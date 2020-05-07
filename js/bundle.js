@@ -48,7 +48,7 @@ $( document ).ready(function() {
       container: 'map',
       style: 'mapbox://styles/mapbox/light-v10',
       //center: [20, 5.5],
-      minZoom: 2,
+      //minZoom: 2,
       zoom: 2,
     });
 
