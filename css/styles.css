@@ -1103,18 +1103,30 @@ footer {
   color: #FFF;
   padding: 20px 0 10px; }
 
-.logos img {
-  margin-right: 40px;
-  margin-bottom: 0;
-  vertical-align: top;
-  width: auto; }
+h1,
+.h1 {
+  font-family: 'Gotham Bold', sans-serif;
+  font-size: 16px;
+  line-height: 18px;
+  padding: 15px 20px; }
 
-#map {
-  height: 600px; }
+.content {
+  display: flex;
+  flex-flow: row;
+  height: 100%; }
+  .content .content-left {
+    display: flex;
+    flex-flow: column;
+    padding: 12px;
+    width: 270px; }
+  .content .content-right {
+    width: 100%; }
 
-@media only screen and (max-width: 767px) {
-  .logos .grid-container > div {
-    padding: 0;
-    text-align: center; }
+.logos {
+  align-items: center;
+  display: flex;
+  flex-flow: column;
+  margin-top: auto;
+  padding-bottom: 15px; }
   .logos img {
-    margin: 10px; } }
+    margin-top: 12px; }

@@ -47,17 +47,90 @@ $( document ).ready(function() {
     map = new mapboxgl.Map({
       container: 'map',
       style: 'mapbox://styles/mapbox/light-v10',
-      //center: [20, 5.5],
-      //minZoom: 2,
-      zoom: 2,
+      center: [20, 6],
+      minZoom: 2
     });
 
+    var hoveredStateId = null;
+
     map.addControl(new mapboxgl.NavigationControl());
+
+    //erikawei.ck9xcye7b6wya2kmnbbj23fub-9x34p
 
     // map.addSource('locationSource', {
     //   type: 'csv',
     //   data: DATA_URL+'data/geodata_locations.geojson'
     // });
+
+    map.on('load', function() {
+      map.addSource('adm1', {
+        'type': 'geojson',
+        'data': 'data/features.geojson'
+      });
+     
+      // The feature-state dependent fill-opacity expression will render the hover effect
+      // when a feature's hover state is set to true.
+      map.addLayer({
+        'id': 'adm1-fills',
+        'type': 'fill',
+        'source': 'adm1',
+        'layout': {},
+        'paint': {
+          'fill-color': '#627BC1',
+          'fill-opacity': 0
+          // 'fill-opacity': [
+          //   'case',
+          //   ['boolean', ['feature-state', 'hover'], false],
+          //   1,
+          //   0.5
+          // ]
+        }
+      });
+       
+      // map.addLayer({
+      //   'id': 'state-borders',
+      //   'type': 'line',
+      //   'source': 'states',
+      //   'layout': {},
+      //   'paint': {
+      //     'line-color': '#000',
+      //     'line-width': 1
+      //   }
+      // });
+       
+      // When the user moves their mouse over the state-fill layer, we'll update the
+      // feature state for the feature under the mouse.
+      map.on('mousemove', 'adm1-fills', function(e) {
+        console.log(e.features[0].properties.ADM1_REF, e.features[0].properties.ADM0_REF);
+        // if (e.features.length > 0) {
+        //   if (hoveredStateId) {
+        //     map.setFeatureState(
+        //       { source: 'states', id: hoveredStateId },
+        //       { hover: false }
+        //     );
+        //   }
+        //   hoveredStateId = e.features[0].id;
+        //   map.setFeatureState(
+        //     { source: 'states', id: hoveredStateId },
+        //     { hover: true }
+        //   );
+        // }
+      });
+       
+      // When the mouse leaves the state-fill layer, update the feature state of the
+      // previously hovered feature.
+      // map.on('mouseleave', 'state-fills', function() {
+      //   if (hoveredStateId) {
+      //     map.setFeatureState(
+      //       { source: 'states', id: hoveredStateId },
+      //       { hover: false }
+      //     );
+      //   }
+      //   hoveredStateId = null;
+      // });
+
+    });
+    
   }
 
   function initTracking() {
