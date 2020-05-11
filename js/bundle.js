@@ -480,7 +480,9 @@ $( document ).ready(function() {
     var mapCenter = [10, 5];
 
     //show confirmed cases by default
-    colorScale = d3.scaleLinear().domain([0, maxCases]).range(['#F7DBD9', '#F2645A']);
+    var medianCases = d3.median(nationalData, function(d) { return +d['#affected+infected']; })
+    //colorScale = d3.scaleLinear().domain([0, max]).range(['#F7DBD9', '#F2645A']);
+    colorScale = d3.scaleLinear().domain([0, medianCases, maxCases]).range(['#F7DBD9', '#F5A09A', '#F2645A']);
 
     projection = d3.geoMercator()
       .center(mapCenter)
@@ -567,8 +569,10 @@ $( document ).ready(function() {
 
 
   function updateGlobalMap() {
+    var median = (currentIndicator.id.indexOf('access')>-1) ? 100 : d3.median(nationalData, function(d) { return +d[currentIndicator.id]; })
     var max = (currentIndicator.id.indexOf('access')>-1) ? 100 : d3.max(nationalData, function(d) { return +d[currentIndicator.id]; })
-    colorScale = d3.scaleLinear().domain([0, max]).range(['#F7DBD9', '#F2645A']);
+    //colorScale = d3.scaleLinear().domain([0, max]).range(['#F7DBD9', '#F2645A']);
+    colorScale = d3.scaleLinear().domain([0, median, max]).range(['#F7DBD9', '#F5A09A', '#F2645A']);
 
     mapsvg.selectAll('.map-regions')
       .attr("fill", function(d) {
@@ -606,7 +610,7 @@ $( document ).ready(function() {
 
   function resetMap() {
     updateGlobalMap();
-    
+
     mapsvg.transition().duration(750).call(zoom.transform, d3.zoomIdentity.scale(1));
 
     $('#country-map').empty();
@@ -617,15 +621,18 @@ $( document ).ready(function() {
   function selectCountry(d) {
     $('.menu-indicators').hide();
     $('.menu h2').html('<a href="#">< Back to Global View</a>');
-    getCountryData(d.properties.ISO_A3);
 
-    var width = viewportWidth;
-    var height = viewportHeight;
-    const [[x0, y0], [x1, y1]] = path.bounds(d);
-
+    //clear map region colors
     mapsvg.selectAll('.map-regions')
       .attr('fill', '#F2F2EF');
 
+    //display country adm1 regions
+    getCountryData(d.properties.ISO_A3);
+
+    //zoom into country
+    var width = viewportWidth;
+    var height = viewportHeight;
+    const [[x0, y0], [x1, y1]] = path.bounds(d);
     d3.event.stopPropagation();
     mapsvg.transition().duration(750).call(
       zoom.transform,
