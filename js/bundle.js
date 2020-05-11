@@ -459,7 +459,12 @@ $( document ).ready(function() {
         //console.log(d.properties.ADM1_REF, d.properties.ADM0_REF)
         return d.properties.ADM1_REF;
       })
-      .attr("d", path);
+      .attr("d", path)
+      .on("mouseover", function(d){ tooltip.style("opacity", 1);})
+      .on("mouseout", function(d) { tooltip.style("opacity", 0); })
+      .on("mousemove", function(d) {
+        createCountryMapTooltip(d.properties['ADM1_REF']);
+      });
   }
 
 
@@ -619,6 +624,18 @@ $( document ).ready(function() {
         .translate(-(x0 + x1) / 2, -(y0 + y1) / 2),
       d3.mouse(mapsvg.node())
     );
+  }
+
+  function createCountryMapTooltip(adm1_name){
+    var w = $('.tooltip').outerWidth();
+    var h = ($('.tooltip-inner').outerHeight() <= 0) ? 80 : $('.tooltip-inner').outerHeight() + 20;
+    tooltip.select('div').html("<label class='h3 label-header'>" + adm1_name + "</label>");
+    tooltip
+      .style('height', h + 'px')
+      .style('left', (d3.event.pageX - w/2) + 'px')
+      .style('top', (d3.event.pageY - h - 15) + 'px')
+      .style('text-align', 'left')
+      .style('opacity', 1);
   }
 
   function createMapTooltip(country_code, country_name){
