@@ -284,6 +284,11 @@ function truncateString(str, num) {
   }
   return str.slice(0, num) + '...';
 }
+
+function selectElement(id, valueToSelect) {    
+  let element = document.getElementById(id);
+  element.value = valueToSelect;
+}
 $( document ).ready(function() {
   var isMobile = window.innerWidth<768? true : false;
   var geomPath = 'data/worldmap.json';
@@ -475,7 +480,7 @@ $( document ).ready(function() {
     var mapCenter = [10, 5];
 
     //show confirmed cases by default
-    colorScale = d3.scaleLinear().domain([0, maxCases]).range(['beige', 'red']);
+    colorScale = d3.scaleLinear().domain([0, maxCases]).range(['#F7DBD9', '#F2645A']);
 
     projection = d3.geoMercator()
       .center(mapCenter)
@@ -530,6 +535,7 @@ $( document ).ready(function() {
       })
       .on("click", function(d) {
         if (isHRP(d.properties.ISO_A3))
+          selectElement('countrySelect', d.properties.ISO_A3);
           selectCountry(d);
       });
 
@@ -562,7 +568,7 @@ $( document ).ready(function() {
 
   function updateGlobalMap() {
     var max = (currentIndicator.id.indexOf('access')>-1) ? 100 : d3.max(nationalData, function(d) { return +d[currentIndicator.id]; })
-    colorScale = d3.scaleLinear().domain([0, max]).range(['beige', 'red']);
+    colorScale = d3.scaleLinear().domain([0, max]).range(['#F7DBD9', '#F2645A']);
 
     mapsvg.selectAll('.map-regions')
       .attr("fill", function(d) {
@@ -599,6 +605,8 @@ $( document ).ready(function() {
   }
 
   function resetMap() {
+    updateGlobalMap();
+    
     mapsvg.transition().duration(750).call(zoom.transform, d3.zoomIdentity.scale(1));
 
     $('#country-map').empty();
@@ -614,6 +622,9 @@ $( document ).ready(function() {
     var width = viewportWidth;
     var height = viewportHeight;
     const [[x0, y0], [x1, y1]] = path.bounds(d);
+
+    mapsvg.selectAll('.map-regions')
+      .attr('fill', '#F2F2EF');
 
     d3.event.stopPropagation();
     mapsvg.transition().duration(750).call(
