@@ -1145,6 +1145,8 @@ h2 {
   font-size: 16px;
   font-weight: normal;
   margin: 0; }
+  h2 a {
+    text-decoration: none; }
 
 h3 {
   font-family: 'Gotham-Bold', sans-serif;
@@ -1401,12 +1403,21 @@ a:visited {
   display: none;
   opacity: 0;
   overflow: scroll;
-  padding: 30px;
+  padding: 0 30px 30px;
   position: absolute;
   top: 30px;
   right: 30px;
   width: 416px;
   transition: opacity 0.3s ease; }
+  .country-panel .panel-header {
+    background-color: #FFF;
+    padding: 30px 0 15px;
+    position: fixed;
+    top: 30px;
+    width: 356px;
+    z-index: 1000; }
+  .country-panel .covid {
+    padding-top: 40px; }
   .country-panel .figure {
     display: inline-block;
     margin-bottom: 20px;
@@ -1419,6 +1430,27 @@ a:visited {
         height: 36px; }
     .country-panel .figure.risk-class .stat {
       font-size: 34px; }
+  .country-panel .access-title {
+    margin: 10px 0 5px; }
+  .country-panel .access-row {
+    display: flex;
+    flex-flow: row;
+    font-size: 14px;
+    line-height: 24px; }
+  .country-panel .access-icon {
+    align-self: flex-start;
+    background-color: #888;
+    color: #FFF;
+    font-size: 14px;
+    font-weight: 700;
+    height: 16px;
+    line-height: 16px;
+    margin: 5px 10px 0 0;
+    min-width: 36px;
+    text-align: center;
+    width: 36px; }
+    .country-panel .access-icon.yes {
+      background-color: #F2645A; }
 
 .timeseries-legend {
   background-color: rgba(255, 255, 255, 0.5);

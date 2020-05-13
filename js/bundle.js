@@ -415,6 +415,8 @@ $( document ).ready(function() {
       }
     });
 
+    $('.content').height(viewportHeight);
+
     //global stats
     maxCases = d3.max(nationalData, function(d) { return +d['#affected+infected']; })
     totalCases = d3.sum(nationalData, function(d) { return d['#affected+infected']; });
@@ -628,7 +630,7 @@ $( document ).ready(function() {
     var height = viewportHeight;
     const [[x0, y0], [x1, y1]] = path.bounds(d);
     d3.event.stopPropagation();
-    mapsvg.transition().duration(750).call(
+    mapsvg.transition().duration(500).call(
       zoom.transform,
       d3.zoomIdentity
         .translate(width / 2, height / 2)
@@ -792,25 +794,29 @@ $( document ).ready(function() {
 
 
     //access
-    //console.log('--',accessLabels['#access+constraints_1'], data['#access+constraints_1']);
-    // var accessDiv = $('.country-panel .humanitarian-access');
-    // const keys = Object.keys(data);
-    // console.log('--',data)
-    // var constraints = [];
-    // var impact = [];
-    // keys.forEach(function(key, index) {
-    //   if (key.indexOf('access+constraints_')>-1) {
-    //     constraints.push(key)
-    //   }
-    //   if (key.indexOf('impact_')>-1) {
-    //     impact.push(key)
-    //   }
-    // })
-    // console.log(constraints)
-    // console.log(impact)
-    // constraints.forEach(function(item) {
-    //   accessDiv.append('<p>'+ accessLabels[item] + ' ' + data[item] +'</p>')
-    // });
+    var accessDiv = $('.country-panel .humanitarian-access');
+    const keys = Object.keys(data);
+    var constraintsCount = 0;
+    var impactCount = 0;
+    keys.forEach(function(key, index) {
+      if (key.indexOf('constraints_')>-1) constraintsCount++;
+      if (key.indexOf('impact_')>-1) impactCount++;
+    });
+    for (var i=1; i<=constraintsCount; i++) {
+      var key = '#access+constraints_'+i;
+      var content = '<div class="access-row">';
+      content += (data[key]==1) ? '<div class="access-icon yes">YES</div>' : '<div class="access-icon">NO</div>';
+      content += '<div>'+ accessLabels[key] +'</div></div>';
+      accessDiv.append(content);
+    }
+    accessDiv.append('<h6 class="access-title">What is the impact of COVID-19 related measures on the response?</h6>');
+    for (var j=1; j<=impactCount; j++) {
+      var key = '#access+impact_'+j;
+      var content = '<div class="access-row">';
+      content += (data[key]==j) ? '<div class="access-icon yes">YES</div>' : '<div class="access-icon">NO</div>';
+      content += '<div>'+ accessLabels[key] +'</div></div>';
+      accessDiv.append(content);
+    }
   }
 
   function createFigure(div, obj) {
