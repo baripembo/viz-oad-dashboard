@@ -1210,6 +1210,7 @@ a:visited {
     width: 270px; }
   .content .content-right {
     position: relative; }
+  .content.country-view .country-select,
   .content.country-view .map-legend.global,
   .content.country-view .menu-indicators,
   .content.country-view .global-stats {
@@ -1254,6 +1255,7 @@ a:visited {
 
 .country-select {
   background-color: #FFF;
+  display: block;
   font-family: 'Source Sans Pro', sans-serif;
   font-size: 16px;
   font-weight: 700;
@@ -1436,7 +1438,7 @@ circle.swatch {
       .country-panel .figure .figure-inner .title {
         height: 36px; }
     .country-panel .figure.risk-class .stat {
-      font-size: 34px; }
+      font-size: 32px; }
   .country-panel .humanitarian-access .access-title {
     margin: 20px 0 5px; }
   .country-panel .humanitarian-access .access-row {

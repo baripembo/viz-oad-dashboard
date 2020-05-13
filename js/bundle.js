@@ -316,9 +316,7 @@ $( document ).ready(function() {
   var timeseriesPath = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS23DBKc8c39Aq55zekL0GCu4I6IVnK4axkd05N6jUBmeJe9wA69s3CmMUiIvAmPdGtZPBd-cLS9YwS/pub?gid=1253093254&single=true&output=csv';
   var geomData, geomFilteredData, nationalData, accessData, subnationalData, timeseriesData, dataByCountry, totalCases, totalDeaths, maxCases, colorScale, currentCountry = '';
   var colorRange = ['#F7DBD9', '#F6BDB9', '#F5A09A', '#F4827A', '#F2645A'];
-  //var informColorRange = ['#FFE6E3','#FFC4B9','#FBA291','#F37F6A','#E85945','#D24834','#BC3823','#A62612','#911300','#821000'];
   var informColorRange = ['#FFE8DC','#FDCCB8','#FC8F6F','#F43C27','#961518'];
-  //var colorRange = ['#F7DBD9', '#F5A09A', '#F2645A'];
   var colorDefault = '#F2F2EF';
   var countryCodeList = [];
   var currentIndicator = {};
@@ -369,7 +367,6 @@ $( document ).ready(function() {
 
       console.log(nationalData)
       console.log(subnationalData)
-      console.log(dataByCountry)
 
       //get list of priority countries
       nationalData.forEach(function(item, index) {
@@ -696,13 +693,13 @@ $( document ).ready(function() {
   }
 
   function resetMap() {
-    updateGlobalMap();
-    mapsvg.transition().duration(750).call(zoom.transform, d3.zoomIdentity.scale(1));
-
     $('.content').removeClass('country-view');
     $('#country-map').empty();
     $('.menu h2').html('Global');
     setSelect('countrySelect', '');
+    
+    updateGlobalMap();
+    mapsvg.transition().duration(750).call(zoom.transform, d3.zoomIdentity.scale(1));
   }
 
   function zoomed(){
@@ -865,6 +862,7 @@ $( document ).ready(function() {
 
     //access -- fix this logic
     var accessDiv = $('.country-panel .humanitarian-access .panel-inner');
+    accessDiv.children().remove();  
     const keys = Object.keys(data);
     var constraintsCount = 0;
     var impactCount = 0;
