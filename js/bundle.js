@@ -106,6 +106,9 @@ function formatTimeseriesData(data) {
 var timeseriesChart;
 function createTimeSeries(array) {
 	timeseriesChart = c3.generate({
+    size: {
+      height: 240
+    },
     padding: {
       top: 10,
       left: 35,
