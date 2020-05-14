@@ -822,13 +822,13 @@ $( document ).ready(function() {
     createFigure(covidDiv, {className: 'deaths', title: 'Total Confirmed Deaths', stat: data['#affected+killed']});
 
     //projections
-    var projectionsDiv = $('.country-panel .projections .panel-inner');
-    projectionsDiv.children().remove();  
-    projectionsDiv.append('<h6>COVID-19 Projections</h6><div class="bar-chart projections-cases"></div>');
-    createBarChart('.projections-cases', 'Cases', ['Cases', data['#affected+cases+imperial+infected+max'], data['#affected+cases+infected+lshtm+max']], '#007CE1');
+    // var projectionsDiv = $('.country-panel .projections .panel-inner');
+    // projectionsDiv.children().remove();  
+    // projectionsDiv.append('<h6>COVID-19 Projections</h6><div class="bar-chart projections-cases"></div>');
+    // createBarChart('.projections-cases', 'Cases', ['Cases', data['#affected+cases+imperial+infected+max'], data['#affected+cases+infected+lshtm+max']], '#007CE1');
     
-    projectionsDiv.append('<div class="bar-chart projections-deaths"></div>');
-    createBarChart('.projections-deaths', 'Deaths', ['Deaths', data['#affected+deaths+imperial+max'], data['#affected+deaths+lshtm+max']], '#333');
+    // projectionsDiv.append('<div class="bar-chart projections-deaths"></div>');
+    // createBarChart('.projections-deaths', 'Deaths', ['Deaths', data['#affected+deaths+imperial+max'], data['#affected+deaths+lshtm+max']], '#333');
     
   
     //hrp
