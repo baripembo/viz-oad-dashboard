@@ -329,7 +329,7 @@ $( document ).ready(function() {
       nationalData.forEach(function(item) {
         //get rid of % in access vars
         item['#access+constraints'] = item['#access+constraints'].replace('%','');
-        item['#access+impact'] = item['#access+impact'].replace('%','');
+        //item['#access+impact'] = item['#access+impact'].replace('%','');
       })
 
       subnationalData.forEach(function(item) {
