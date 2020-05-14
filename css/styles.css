@@ -1460,8 +1460,6 @@ circle.swatch {
       background-color: #F2645A; }
   .country-panel .projections {
     margin-top: 20px; }
-    .country-panel .projections .projections-deaths {
-      margin-top: 10px; }
 
 .timeseries-legend {
   background-color: rgba(255, 255, 255, 0.5);
@@ -1480,23 +1478,15 @@ circle.swatch {
     margin-right: 7px;
     padding: 5px; }
 
-.bar-chart .c3-title {
-  font-family: 'Gotham-Book', sans-serif; }
-
-.c3-title {
-  font-family: 'Gotham-Bold', sans-serif;
+.chart-title {
+  font-family: 'Gotham-Book', sans-serif;
   font-size: 14px;
   line-height: 21px;
-  font-weight: normal; }
+  font-weight: normal;
+  margin-bottom: 0; }
 
 .c3-legend-background {
   stroke: none; }
-
-.c3-axis .tick text {
-  font-family: 'Source Sans Pro', sans-serif; }
-
-.c3-axis .tick line {
-  display: none; }
 
 .c3-text {
   fill: #000 !important;

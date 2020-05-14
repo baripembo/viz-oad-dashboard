@@ -1,40 +1,77 @@
 window.$ = window.jQuery = require('jquery');
-function createBarChart(chartName, title, data, barColor) {
-  var chart = c3.generate({
-    bindto: chartName,
-    title: {
-      text: title,
-      position: 'upper-left',
-    },
-    size: { height: 100 },
-    padding: { left: 45 },
-    data: {
-      columns: [ data ],
-      type: 'bar',
-      labels: { format: d3.format('.2s') },
-      color: function() { return barColor; }
-    },
-    legend: { show: false },
-    axis: {
-      rotated: true,
-      x: {
-        type: 'category',
-        categories: ['Imperial', 'LSHTM'],
-        tick: { outer: false }
-      },
-      y: { show: false }
-    },
-    tooltip: {
-      format: { value: d3.format('.2s') }
-    }
-  });
-}
+function createBarChart(data, type) {
+  var barColor = (type=='Cases') ? '#007CE1' : '#000';
+  var maxVal = d3.max(data, function(d) { return +d.max; })
+  var barHeight = 25;
+  var barPadding = 20;
+  var margin = {top: 0, right: 40, bottom: 30, left: 50},
+      width = 300,
+      height = 90;
+  
+  x = d3.scaleLinear()
+    .domain([0, maxVal])
+    .range([0, width - margin.left - margin.right]);
 
-function updateBarChart(chart, data) {
-  chart.load({
-    columns: data,
-    unload: true
-  });
+  // set the ranges
+  y = d3.scaleBand().range([0, height]);
+  y.domain(data.map(function(d) { return d.model; }));
+            
+  var div = '.projections-'+ type.toLowerCase();
+  var svg = d3.select(div).append('svg')
+      .attr('width', width)
+      .attr('height', height + margin.top + margin.bottom)
+    .append('g')
+      .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+  // add the y axis
+  svg.append('g')
+    .attr('transform', 'translate(0, 0)')
+    .call(d3.axisLeft(y)
+      .tickSizeOuter(0))
+
+  // add the x axis
+  svg.append('g')
+    .attr('transform', 'translate(0, '+height+')')
+    .call(d3.axisBottom(x)
+      .tickSizeOuter(0)
+      .ticks(5, 's'));
+
+  // append bars
+  bars = svg.selectAll('.bar')
+      .data(data)
+    .enter().append('g')
+      .attr('class', 'bar-container')
+      .attr('transform', function(d, i) { return 'translate(' + x(d.min) + ', ' + (y(d.model)+10) + ')'; });
+
+  bars.append('rect')
+    .attr('class', 'bar')
+    .attr('fill', barColor)
+    .attr('height', barHeight)
+    .attr('width', function(d) {
+      var w = x(d.max) - x(d.min);
+      if (w<0) w = 0;
+      return w;
+    });
+
+  // add min/max labels
+  bars.append('text')
+    .attr('class', 'label-num')
+    .attr('x', function(d) {
+      return x(d.max) - x(d.min) + 4;
+    })
+    .attr('y', function(d) { return barHeight/2 + 4; })
+    .text(function (d) {
+      return d3.format('.3s')(d.max);
+    });
+
+  bars.append('text')
+    .attr('class', 'label-num')
+    .attr('text-anchor', 'end')
+    .attr('x', -4)
+    .attr('y', function(d) { return barHeight/2 + 4; })
+    .text(function (d) {
+      return d3.format('.3s')(d.min);
+    });
 }
 
 function initTimeseries(data) {
@@ -329,7 +366,6 @@ $( document ).ready(function() {
       nationalData.forEach(function(item) {
         //get rid of % in access vars
         item['#access+constraints'] = item['#access+constraints'].replace('%','');
-        //item['#access+impact'] = item['#access+impact'].replace('%','');
       })
 
       subnationalData.forEach(function(item) {
@@ -575,8 +611,7 @@ $( document ).ready(function() {
   }
 
   function updateGlobalMap() {
-    var median = (currentIndicator.id.indexOf('access')>-1) ? 100 : d3.median(nationalData, function(d) { return +d[currentIndicator.id]; })
-    var max = (currentIndicator.id.indexOf('access')>-1) ? 100 : d3.max(nationalData, function(d) { return +d[currentIndicator.id]; })
+    var max = (currentIndicator.id.indexOf('access')>-1 || currentIndicator.id.indexOf('funding')>-1) ? 100 : d3.max(nationalData, function(d) { return +d[currentIndicator.id]; })
     colorScale = d3.scaleQuantize().domain([0, max]).range(colorRange);
     
     mapsvg.selectAll('.map-regions')
@@ -681,8 +716,7 @@ $( document ).ready(function() {
     mapsvg.transition().duration(750).call(zoom.transform, d3.zoomIdentity.scale(1));
   }
 
-  function zoomed(){
-    console.log('zoomed')
+  function zoomed() {
     const {transform} = d3.event;
     currentZoom = transform.k;
 
@@ -822,14 +856,17 @@ $( document ).ready(function() {
     createFigure(covidDiv, {className: 'deaths', title: 'Total Confirmed Deaths', stat: data['#affected+killed']});
 
     //projections
-    // var projectionsDiv = $('.country-panel .projections .panel-inner');
-    // projectionsDiv.children().remove();  
-    // projectionsDiv.append('<h6>COVID-19 Projections</h6><div class="bar-chart projections-cases"></div>');
-    // createBarChart('.projections-cases', 'Cases', ['Cases', data['#affected+cases+imperial+infected+max'], data['#affected+cases+infected+lshtm+max']], '#007CE1');
+    var projectionsDiv = $('.country-panel .projections .panel-inner');
+    projectionsDiv.children().remove();  
+    projectionsDiv.append('<h6>COVID-19 Projections</h6><div class="bar-chart projections-cases"><p class="chart-title">Cases</p></div>');
+    var cases = [{model: 'Imperial', min: data['#affected+cases+imperial+infected+min'], max: data['#affected+cases+imperial+infected+max']},
+             {model: 'LSHTM', min: data['#affected+cases+infected+lshtm+min'], max: data['#affected+cases+infected+lshtm+max']}];
+    createBarChart(cases, 'Cases');
     
-    // projectionsDiv.append('<div class="bar-chart projections-deaths"></div>');
-    // createBarChart('.projections-deaths', 'Deaths', ['Deaths', data['#affected+deaths+imperial+max'], data['#affected+deaths+lshtm+max']], '#333');
-    
+    projectionsDiv.append('<div class="bar-chart projections-deaths"><p class="chart-title">Deaths</p></div>');
+    var deaths = [{model: 'Imperial', min: data['#affected+deaths+imperial+min'], max: data['#affected+deaths+imperial+max']},
+                  {model: 'LSHTM', min: data['#affected+deaths+lshtm+min'], max: data['#affected+deaths+lshtm+max']}];
+    createBarChart(deaths, 'Deaths');
   
     //hrp
     var hrpDiv = $('.country-panel .hrp .panel-inner');
@@ -936,8 +973,7 @@ $( document ).ready(function() {
 
     //format content for tooltip
     if (val!=undefined && val!='') {
-      if (currentIndicator.id.indexOf('access')>-1) val += '%';
-      if (currentIndicator.id.indexOf('funding')>-1) val = formatValue(val);
+      if (currentIndicator.id.indexOf('access')>-1 || currentIndicator.id.indexOf('funding')>-1) val += '%';
       if (currentIndicator.id=='#affected+infected' || currentIndicator.id=='#affected+inneed') val = numFormat(val);
     }
     else {
