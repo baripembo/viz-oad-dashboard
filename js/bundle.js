@@ -1,62 +1,41 @@
 window.$ = window.jQuery = require('jquery');
-function initBarCharts(data) {
-	var countries = new Set();
-	countries.add('x');
-	//group data by indicator
-	var groupByIndicator = d3.nest()
-    .key(function(d){ return d['Indicator']; })
-    .key(function(d) { 
-    	countries.add(d['Country']);
-    	return d['ISO3']; 
-    })
-    .entries(data);
-  countries = Array.from(countries);
-
-  //format data for chart
-  groupByIndicator.forEach(function(indicator, index) {
-  	var chartName = 'indicator' + index;
-  	var arr = [indicator.key];
-  	indicator.values.forEach(function(v) {
-  		arr.push(v.values[0].Value);
-  	});
-  	$('.indicator-charts').append('<div class="indicator-chart '+ chartName + '"></div>');
-  	
-		createBarChart(chartName, countries, arr);
-  });
-
-}
-
-function createBarChart(name, countries, values) {
-	var chart = c3.generate({
-    bindto: '.' + name,
+function createBarChart(chartName, title, data, barColor) {
+  var chart = c3.generate({
+    bindto: chartName,
     title: {
-  		text: values[0]
-		},
-		data: {
-			x: 'x',
-			columns: [
-				countries,
-				values
-			],
-			type: 'bar'
-		},
-		bar: {
-			width: {
-				ratio: 0.5 
-			}
-		},
+      text: title,
+      position: 'upper-left',
+    },
+    size: { height: 100 },
+    padding: { left: 45 },
+    data: {
+      columns: [ data ],
+      type: 'bar',
+      labels: { format: d3.format('.2s') },
+      color: function() { return barColor; }
+    },
+    legend: { show: false },
     axis: {
       rotated: true,
       x: {
-      	type: 'category'
-      }
+        type: 'category',
+        categories: ['Imperial', 'LSHTM'],
+        tick: { outer: false }
+      },
+      y: { show: false }
     },
-    legend: {
-      show: false
+    tooltip: {
+      format: { value: d3.format('.2s') }
     }
-	});
+  });
 }
 
+function updateBarChart(chart, data) {
+  chart.load({
+    columns: data,
+    unload: true
+  });
+}
 
 function initTimeseries(data) {
   var timeseriesArray = formatTimeseriesData(data);
@@ -682,7 +661,7 @@ $( document ).ready(function() {
     var height = viewportHeight;
     const [[x0, y0], [x1, y1]] = path.bounds(d);
     d3.event.stopPropagation();
-    mapsvg.transition().duration(500).call(
+    mapsvg.transition().delay(500).duration(500).call(
       zoom.transform,
       d3.zoomIdentity
         .translate(width / 2, height / 2)
@@ -697,12 +676,13 @@ $( document ).ready(function() {
     $('#country-map').empty();
     $('.menu h2').html('Global');
     setSelect('countrySelect', '');
-    
+
     updateGlobalMap();
     mapsvg.transition().duration(750).call(zoom.transform, d3.zoomIdentity.scale(1));
   }
 
   function zoomed(){
+    console.log('zoomed')
     const {transform} = d3.event;
     currentZoom = transform.k;
 
@@ -832,7 +812,7 @@ $( document ).ready(function() {
     updateTimeseries(timeseriesData, data['#country+code']);
     setTimeout(function() {
       $('.country-panel').css('opacity', 1);
-    }, 900);
+    }, 500);
     $('.country-panel h3').text(data['#country+name']);
 
     //covid
@@ -840,7 +820,17 @@ $( document ).ready(function() {
     covidDiv.children().remove();  
     createFigure(covidDiv, {className: 'cases', title: 'Total Confirmed Cases', stat: data['#affected+infected']});
     createFigure(covidDiv, {className: 'deaths', title: 'Total Confirmed Deaths', stat: data['#affected+killed']});
+
+    //projections
+    var projectionsDiv = $('.country-panel .projections .panel-inner');
+    projectionsDiv.children().remove();  
+    projectionsDiv.append('<h6>COVID-19 Projections</h6><div class="bar-chart projections-cases"></div>');
+    createBarChart('.projections-cases', 'Cases', ['Cases', data['#affected+cases+imperial+infected+max'], data['#affected+cases+infected+lshtm+max']], '#007CE1');
     
+    projectionsDiv.append('<div class="bar-chart projections-deaths"></div>');
+    createBarChart('.projections-deaths', 'Deaths', ['Deaths', data['#affected+deaths+imperial+max'], data['#affected+deaths+lshtm+max']], '#333');
+    
+  
     //hrp
     var hrpDiv = $('.country-panel .hrp .panel-inner');
     hrpDiv.children().remove();  
