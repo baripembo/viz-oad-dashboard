@@ -621,7 +621,7 @@ $( document ).ready(function() {
     $('.map-legend.global').append('<h4>Number of COVID-19 cases</h4>');
     var markersvg = div.append('svg');
     markersvg.append('g')
-      .attr("transform", "translate(0, 10)")
+      .attr("transform", "translate(5, 10)")
       .attr('class', 'legendSize');
 
     var legendSize = d3.legendSize()
