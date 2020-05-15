@@ -879,7 +879,7 @@ $( document ).ready(function() {
     updateTimeseries(timeseriesData, data['#country+code']);
 
     //set panel header
-    $('.flag').attr('src', '/assets/flags/'+data['#country+code']+'.png');
+    $('.flag').attr('src', 'assets/flags/'+data['#country+code']+'.png');
     $('.country-panel h3').text(data['#country+name']);
 
     //covid
