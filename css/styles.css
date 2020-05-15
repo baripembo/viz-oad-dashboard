@@ -1210,6 +1210,7 @@ a:visited {
     width: 270px; }
   .content .content-right {
     position: relative; }
+  .content.country-view .description,
   .content.country-view .country-label,
   .content.country-view .map-legend.global,
   .content.country-view .menu-indicators,
@@ -1256,14 +1257,17 @@ a:visited {
       .menu-indicators li:hover i, .menu-indicators li.selected i {
         color: #007CE1; }
 
-.country-select {
+.country-select,
+.indicator-select {
   background-color: #FFF;
-  display: block;
   font-family: 'Source Sans Pro', sans-serif;
   font-size: 16px;
   font-weight: 700;
-  left: 40px;
   height: 48px;
+  width: 100%; }
+
+.country-select {
+  left: 40px;
   position: absolute;
   top: 40px;
   width: 195px;
@@ -1304,7 +1308,7 @@ a:visited {
   #country-map .zoom-controls {
     position: absolute;
     left: 40px;
-    bottom: 40px;
+    bottom: 20px;
     display: grid;
     grid-gap: 5px; }
     #global-map .zoom-controls button,
@@ -1363,6 +1367,8 @@ a:visited {
   position: absolute;
   top: 0;
   transition: opacity 0.5s ease; }
+  #country-map .map-regions {
+    stroke: #999; }
 
 .country-label,
 .adm1-label {
@@ -1383,6 +1389,15 @@ circle.swatch {
 .count-marker {
   cursor: pointer;
   display: block; }
+
+.description {
+  background-color: rgba(255, 255, 255, 0.8);
+  color: #888;
+  display: block;
+  padding: 10px 20px;
+  position: absolute;
+  bottom: 16px;
+  right: 460px; }
 
 .tooltip {
   background-color: #FFF;
@@ -1434,6 +1449,14 @@ circle.swatch {
     top: 0;
     width: 356px;
     z-index: 1000; }
+    .country-panel .panel-header .panel-title {
+      align-items: center;
+      display: flex;
+      margin-bottom: 20px; }
+    .country-panel .panel-header .flag {
+      height: 35px;
+      margin-right: 10px;
+      width: 35px; }
   .country-panel .panel-inner {
     padding-left: 20px; }
   .country-panel .figure {
@@ -1471,6 +1494,8 @@ circle.swatch {
       background-color: #F2645A; }
   .country-panel .projections {
     margin-top: 20px; }
+  .country-panel .covid h5 {
+    margin-top: 0; }
 
 .timeseries-legend {
   background-color: rgba(255, 255, 255, 0.5);
