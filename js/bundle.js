@@ -365,7 +365,7 @@ $( document ).ready(function() {
       //format data
       nationalData.forEach(function(item) {
         //strip out % in access vars
-        item['#access+constraints'] = item['#access+constraints'].replace('%','');
+        if (item['#access+constraints']!=undefined) item['#access+constraints'] = item['#access+constraints'].replace('%','');
       })
 
       subnationalData.forEach(function(item) {
