@@ -1217,7 +1217,8 @@ a:visited {
     display: none; }
   .content.country-view .map-legend.country {
     left: 40px;
-    opacity: 1; }
+    opacity: 1;
+    z-index: 1; }
   .content.country-view .country-panel {
     display: block; }
   .content.country-view #country-map {
@@ -1349,7 +1350,8 @@ a:visited {
   .map-legend.country {
     height: 200px;
     left: -215px;
-    opacity: 0; }
+    opacity: 0;
+    z-index: -1; }
     .map-legend.country svg {
       margin-top: 10px;
       width: 190px; }

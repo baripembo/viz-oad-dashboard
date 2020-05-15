@@ -644,7 +644,7 @@ $( document ).ready(function() {
     var legend = d3.legendColor()
       .labelFormat(',.0f')
       .cells(colorRange.length)
-      .scale(scale);
+      .scale(scale.nice());
 
     var div = d3.select('.map-legend.global');
     var svg = div.append('svg')
@@ -676,10 +676,12 @@ $( document ).ready(function() {
   }
 
   function updateGlobalLegend(scale) {
+    var legendScale = (currentIndicator.id=='#severity+type') ? scale : scale.nice();
+    var legendFormat = (currentIndicator.id=='#access+constraints' || currentIndicator.id=='#value+covid+funding+pct') ? ',.0f' : '.2s';
     var legend = d3.legendColor()
-      .labelFormat(",.0f")
+      .labelFormat(legendFormat)
       .cells(colorRange.length)
-      .scale(scale);
+      .scale(legendScale);
 
     var g = d3.select('.map-legend.global .scale');
     g.call(legend);
@@ -827,9 +829,9 @@ $( document ).ready(function() {
     $('.map-legend.country svg').remove();
 
     var legend = d3.legendColor()
-      .labelFormat(",.0f")
+      .labelFormat(',.0f')
       .cells(colorRange.length)
-      .scale(scale);
+      .scale(scale.nice());
 
     var div = d3.select('.map-legend.country');
     var svg = div.append('svg');
@@ -839,10 +841,11 @@ $( document ).ready(function() {
   }
 
   function updateCountryLegend(scale) {
+    var legendFormat = (currentCountryIndicator.id=='#affected+food+p3+pct') ? ',.0f' : '.2s';
     var legend = d3.legendColor()
-      .labelFormat(",.0f")
+      .labelFormat(legendFormat)
       .cells(colorRange.length)
-      .scale(scale);
+      .scale(scale.nice());
 
     var g = d3.select('.map-legend.country .scale');
     g.call(legend);
