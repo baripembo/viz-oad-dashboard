@@ -1210,16 +1210,18 @@ a:visited {
     width: 270px; }
   .content .content-right {
     position: relative; }
-  .content.country-view .country-select,
+  .content.country-view .country-label,
   .content.country-view .map-legend.global,
   .content.country-view .menu-indicators,
   .content.country-view .global-stats {
     display: none; }
   .content.country-view .map-legend.country {
-    display: block; }
+    left: 40px;
+    opacity: 1; }
   .content.country-view .country-panel {
-    display: block;
-    opacity: 0; }
+    display: block; }
+  .content.country-view #country-map {
+    opacity: 1; }
 
 .logos {
   align-items: center;
@@ -1300,8 +1302,8 @@ a:visited {
   #global-map .zoom-controls,
   #country-map .zoom-controls {
     position: absolute;
-    right: 40px;
-    top: 40px;
+    left: 40px;
+    bottom: 40px;
     display: grid;
     grid-gap: 5px; }
     #global-map .zoom-controls button,
@@ -1345,16 +1347,20 @@ a:visited {
   .map-legend.global {
     display: block; }
   .map-legend.country {
-    display: none;
-    height: 200px; }
+    height: 200px;
+    left: -215px;
+    opacity: 0; }
     .map-legend.country svg {
-      margin-top: 10px; }
+      margin-top: 10px;
+      width: 190px; }
 
 #country-map {
+  left: 0;
+  fill: transparent;
+  opacity: 0;
   position: absolute;
   top: 0;
-  left: 0;
-  fill: transparent; }
+  transition: opacity 0.5s ease; }
 
 .country-label,
 .adm1-label {
@@ -1364,13 +1370,17 @@ a:visited {
   text-anchor: middle;
   width: 100px; }
 
+.country-label {
+  display: block; }
+
 .count-marker,
 circle.swatch {
   fill: #888;
   stroke: #CCC; }
 
 .count-marker {
-  cursor: pointer; }
+  cursor: pointer;
+  display: block; }
 
 .tooltip {
   background-color: #FFF;
@@ -1408,7 +1418,6 @@ circle.swatch {
   background-color: #FFF;
   bottom: 30px;
   display: none;
-  opacity: 0;
   overflow: scroll;
   padding: 0 30px 30px;
   position: absolute;

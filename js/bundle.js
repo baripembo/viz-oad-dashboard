@@ -364,7 +364,7 @@ $( document ).ready(function() {
 
       //format data
       nationalData.forEach(function(item) {
-        //get rid of % in access vars
+        //strip out % in access vars
         item['#access+constraints'] = item['#access+constraints'].replace('%','');
       })
 
@@ -396,11 +396,17 @@ $( document ).ready(function() {
   }
 
   function getCountryData() {
+    //clear map region colors
+    mapsvg.selectAll('.map-regions')
+      .attr('fill', colorDefault);
+    $('.count-marker').hide();
+
     var dataPath = 'data/'+currentCountry+'.geojson';
     Promise.all([
       d3.json(dataPath)
     ]).then(function(data){
       var adm1Data = data[0];
+      currentCountryIndicator = {id: '#affected+food+p3+pct', name: 'Food Security'};
       drawCountryMap(adm1Data);
     });
   }
@@ -419,17 +425,14 @@ $( document ).ready(function() {
     $('.country-select').val($('.country-select option:first').val());
 
     //select event
-    d3.select('.country-select').on('change',function(e){
+    d3.select('.country-select').on('change',function(e) {
       var selected = d3.select('.country-select').node().value;
       if (selected=='') {
         resetMap();
       }
-      else {
-        geomFilteredData.forEach(function(c){
-          if (c.properties.ISO_A3==selected){
-            selectCountry(c);
-          }
-        });
+      else {        
+        currentCountry = selected;
+        getCountryData();
       }
     });
 
@@ -475,14 +478,11 @@ $( document ).ready(function() {
   function initCountryView() {
     $('.content').addClass('country-view');
     $('.menu h2').html('<a href="#">< Back to Global View</a>');
+    $('.country-panel').scrollTop(0);
     $('#foodSecurity').prop('checked', true);
     currentCountryIndicator = {id: $('input[name="countryIndicators"]:checked').val(), name: $('input[name="countryIndicators"]:checked').parent().text()};
 
     initCountryPanel();
-
-    //clear map region colors
-    mapsvg.selectAll('.map-regions')
-      .attr('fill', colorDefault);
   }
 
 
@@ -556,9 +556,10 @@ $( document ).ready(function() {
         }
       })
       .on("click", function(d) {
-        if (isHRP(d.properties.ISO_A3))
-          setSelect('countrySelect', d.properties.ISO_A3);
-          selectCountry(d);
+        if (isHRP(d.properties.ISO_A3)) {
+          currentCountry = d.properties.ISO_A3;
+          getCountryData();
+        }
       });
 
     //create count markers
@@ -611,9 +612,11 @@ $( document ).ready(function() {
   }
 
   function updateGlobalMap() {
+    //set up color scales
     var max = (currentIndicator.id.indexOf('access')>-1 || currentIndicator.id.indexOf('funding')>-1) ? 100 : d3.max(nationalData, function(d) { return +d[currentIndicator.id]; })
     colorScale = d3.scaleQuantize().domain([0, max]).range(colorRange);
     
+    //update choropleth
     mapsvg.selectAll('.map-regions')
       .attr("fill", function(d) {
         var val = -1;
@@ -686,25 +689,24 @@ $( document ).ready(function() {
   }
 
   function selectCountry(d) {
-    //display country adm1 regions
-    currentCountry = d.properties.ISO_A3;
-    getCountryData();
-    initCountryView();
+    setSelect('countrySelect', d.properties.ISO_A3);
 
     //zoom into country
-    var width = viewportWidth;
+    var panelWidth = $('.country-panel').width();
+    var menuWidth = $('.content-left').width();
+    var width = viewportWidth - panelWidth - menuWidth;
     var height = viewportHeight;
     const [[x0, y0], [x1, y1]] = path.bounds(d);
-    d3.event.stopPropagation();
-    mapsvg.transition().delay(500).duration(500).call(
+    mapsvg.transition().duration(200).call(
       zoom.transform,
       d3.zoomIdentity
-        .translate(width / 2, height / 2)
+        .translate(((width-panelWidth) / 2)+menuWidth+100, height / 2)
         .scale(Math.min(8, 0.9 / Math.max((x1 - x0) / width, (y1 - y0) / height)))
-        .translate(-(x0 + x1) / 2, -(y0 + y1) / 2),
-      d3.mouse(mapsvg.node())
-    );
+        .translate(-(x0 + x1) / 2, -(y0 + y1) / 2)
+    )
+    .on('end', initCountryView);
   }
+
 
   function resetMap() {
     $('.content').removeClass('country-view');
@@ -713,7 +715,14 @@ $( document ).ready(function() {
     setSelect('countrySelect', '');
 
     updateGlobalMap();
-    mapsvg.transition().duration(750).call(zoom.transform, d3.zoomIdentity.scale(1));
+    mapsvg.transition().duration(500).call(
+      zoom.transform, 
+      d3.zoomIdentity
+        .scale(1)
+    )
+    .on('end', function() { 
+      $('.count-marker').show(); 
+    });
   }
 
   function zoomed() {
@@ -752,15 +761,13 @@ $( document ).ready(function() {
   /*****************************/
   var cmapsvg, cg;
   function drawCountryMap(adm1Data) {
+    $('#country-map').empty();
     var countryColorScale = d3.scaleQuantize().domain([0, 100]).range(colorRange);
 
     //draw country map
     cmapsvg = d3.select('#country-map').append('svg')
       .attr("width", viewportWidth)
-      .attr("height", viewportHeight)
-      .call(zoom)
-      .on("wheel.zoom", null)
-      .on("dblclick.zoom", null);
+      .attr("height", viewportHeight);
 
     cmapsvg.append("rect")
       .attr("width", "100%")
@@ -779,7 +786,7 @@ $( document ).ready(function() {
         var val = -1;
         var adm1 = subnationalData.filter(c => c['#adm1+name'] == d.properties.ADM1_REF);
         val = adm1[0][currentCountryIndicator.id];
-        var clr = (val<0) ? colorDefault : countryColorScale(val);
+        var clr = (val<0 || val=='') ? colorDefault : countryColorScale(val);
         return clr;
       })
       .on("mouseover", function(d){ tooltip.style("opacity", 1);})
@@ -787,6 +794,13 @@ $( document ).ready(function() {
       .on("mousemove", function(d) { createCountryMapTooltip(d.properties['ADM1_REF']); });
 
     createCountryLegend(countryColorScale);
+
+    //zoom into selected country
+    geomFilteredData.forEach(function(c) {
+      if (c.properties.ISO_A3==currentCountry) {
+        selectCountry(c);
+      }
+    });
   }
 
   function updateCountryMap() {
@@ -842,11 +856,9 @@ $( document ).ready(function() {
     var data = dataByCountry[currentCountry][0];
 
     //timeseries
-    $('.country-panel').css('opacity', 0);
     updateTimeseries(timeseriesData, data['#country+code']);
-    setTimeout(function() {
-      $('.country-panel').css('opacity', 1);
-    }, 500);
+
+    //set panel header
     $('.country-panel h3').text(data['#country+name']);
 
     //covid
@@ -937,6 +949,7 @@ $( document ).ready(function() {
       accessDiv.append(content);
     }
   }
+
 
   function createFigure(div, obj) {
     div.append('<div class="figure '+ obj.className +'"><div class="figure-inner"></div></div>');
