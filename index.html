@@ -68,11 +68,14 @@
             </div>
             <div class='map-legend global'>
               <h4 class='indicator-title'>MAP DATA LAYER</h4>
+              <div class='indicator-source'></div>
             </div>
             <div class='map-legend country'>
               <h4>MAP DATA LAYER</h4>
               <label>Food Security <input checked='true' name='countryIndicators' type='radio' value='#affected+food+p3+pct' id='foodSecurity'></label>
+              <div class='source food-security-source'></div>
               <label>Population Density <input name='countryIndicators' type='radio' value='#population' id='population'></label>
+              <div class='source population-source'></div>
             </div>
           </div>
           
@@ -95,7 +98,7 @@
               <h5>COVID-19 Cases and Projections</h5>
               <div class='panel-inner'></div>
             </div>
-            <div class='panel-inner'>
+            <div class='panel-inner cases-timeseries'>
               <div class='timeseries-chart'></div>
             </div>
             <div class='projections'>

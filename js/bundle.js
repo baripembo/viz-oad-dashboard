@@ -77,6 +77,23 @@ function createBarChart(data, type) {
     .text(function (d) {
       return d3.format('.3s')(d.min);
     });
+
+  //source
+  if (type=='Deaths') {
+    var projectionsDiv = $('.projections .panel-inner');
+    var date = new Date();
+    projectionsDiv.append('<p class="small source"></p>');
+    data.forEach(function(d) {
+      var source = getSource('#affected+infected+cases+min+'+d.model.toLowerCase());
+      var sourceDate = new Date(source['#date']);
+      if (sourceDate.getTime()!=date.getTime()) {
+        date = sourceDate;
+        projectionsDiv.find('.source').append(' <span class="date">'+ dateFormat(date) +'</span>');
+      }
+      projectionsDiv.find('.source').append(' | '+ d.model +': <a href="'+ source['#meta+url'] +'" class="dataURL" target="_blank">DATA</a>');
+    });
+  }
+
 }
 
 function initTimeseries(data) {
@@ -131,6 +148,7 @@ function createTimeSeries(array) {
       height: 240
     },
     padding: {
+      bottom: 0,
       top: 10,
       left: 35,
       right: 16
@@ -185,6 +203,11 @@ function createTimeSeries(array) {
     transition: { duration: 300 }
 	});
 
+
+  var lastUpdated = new Date(Math.max.apply(null, timeseriesData.map(function(e) {
+    return new Date(e.Date);
+  })));
+  $('.cases-timeseries').append('<p class="small"><span class="date">'+ dateFormat(lastUpdated) +'</span> | <a href="https://data.humdata.org/dataset/coronavirus-covid-19-cases-and-deaths" class="dataURL" target="_blank">DATA</a></p>');
   createTimeseriesLegend();
 }
 
@@ -233,8 +256,8 @@ function updateTimeseries(data, selected) {
 
 
 function getMonth(m) {
-    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return months[m];
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return months[m];
 }
 
 function compare(a, b) {
@@ -300,25 +323,168 @@ function getAccessLabels(data) {
   });
   return accessLabels;
 }
+/***********************/
+/*** PANEL FUNCTIONS ***/
+/***********************/
+function initCountryPanel() {
+  var data = dataByCountry[currentCountry][0];
+
+  //timeseries
+  updateTimeseries(timeseriesData, data['#country+code']);
+
+  //set panel header
+  $('.flag').attr('src', 'assets/flags/'+data['#country+code']+'.png');
+  $('.country-panel h3').text(data['#country+name']);
+
+  //covid
+  var covidDiv = $('.country-panel .covid .panel-inner');
+  covidDiv.children().remove();  
+  createFigure(covidDiv, {className: 'cases', title: 'Total Confirmed Cases', stat: data['#affected+infected'], indicator: '#affected+infected'});
+  createFigure(covidDiv, {className: 'deaths', title: 'Total Confirmed Deaths', stat: data['#affected+killed'], indicator: '#affected+killed'});
+
+  //projections
+  var projectionsDiv = $('.country-panel .projections .panel-inner');
+  projectionsDiv.children().remove();  
+  projectionsDiv.append('<h6>COVID-19 Projections</h6><div class="bar-chart projections-cases"><p class="chart-title">Cases</p></div>');
+  var cases = [{model: 'Imperial', min: data['#affected+cases+imperial+infected+min'], max: data['#affected+cases+imperial+infected+max']},
+               {model: 'LSHTM', min: data['#affected+cases+infected+lshtm+min'], max: data['#affected+cases+infected+lshtm+max']}];
+  createBarChart(cases, 'Cases');
+  
+  projectionsDiv.append('<div class="bar-chart projections-deaths"><p class="chart-title">Deaths</p></div>');
+  var deaths = [{model: 'Imperial', min: data['#affected+deaths+imperial+min'], max: data['#affected+deaths+imperial+max']},
+                {model: 'LSHTM', min: data['#affected+deaths+lshtm+min'], max: data['#affected+deaths+lshtm+max']}];
+  createBarChart(deaths, 'Deaths');
+
+  //hrp
+  var hrpDiv = $('.country-panel .hrp .panel-inner');
+  hrpDiv.children().remove();  
+  createFigure(hrpDiv, {className: 'pin', title: 'Number of People in Need', stat: shortenNumFormat(data['#affected+inneed']), indicator: '#affected+inneed'});
+  createFigure(hrpDiv, {className: 'funding-level', title: 'HRP Funding Level', stat: data['#value+covid+funding+pct']+'%', indicator: '#affected+inneed'});
+  createFigure(hrpDiv, {className: 'funding-received', title: 'HRP Funding Received', stat: shortenNumFormat(data['#value+covid+funding+total+usd']), indicator: '#affected+inneed'});
+  createFigure(hrpDiv, {className: 'funding-required', title: 'GHRP Request (USD)', stat: shortenNumFormat(data['#value+funding+precovid+required+usd']), indicator: '#affected+inneed'});
+
+  //inform
+  var informDiv = $('.country-panel .inform .panel-inner');
+  informDiv.children().remove();  
+  createFigure(informDiv, {className: 'risk-index', title: 'Risk Index<br>(1-10)', stat: data['#severity+num'], indicator: '#severity+num'});
+  createFigure(informDiv, {className: 'risk-class', title: 'Risk Class<br>(Very Low-Very High)', stat: data['#severity+type'], indicator: '#severity+num'});
+
+  //school
+  var schoolDiv = $('.country-panel .schools .panel-inner');
+  schoolDiv.children().remove();  
+  createFigure(schoolDiv, {className: 'school', stat: data['#impact+type'], indicator: '#impact+type'});
+
+  //access -- fix this logic
+  var accessDiv = $('.country-panel .humanitarian-access .panel-inner');
+  accessDiv.children().remove();  
+  const keys = Object.keys(data);
+  var constraintsCount = 0;
+  var impactCount = 0;
+  var phrase = ['Restriction of movements INTO the country ', 'Restriction of movements WITHIN the country '];
+  keys.forEach(function(key, index) {
+    if (key.indexOf('constraints_')>-1) constraintsCount++;
+    if (key.indexOf('impact_')>-1) impactCount++;
+  });
+  var headerCount = 0;
+  var text = '';
+  for (var i=1; i<=constraintsCount; i++) {
+    var key = '#access+constraints_'+i;
+    if (accessLabels[key].indexOf(phrase[0])>-1) {
+      text = accessLabels[key].replace(phrase[0],'');
+      if (headerCount==0) {
+        accessDiv.append('<h6 class="access-title">'+ phrase[0] +'</h6>');
+        headerCount++;
+      }
+    }
+    else if (accessLabels[key].indexOf(phrase[1])>-1) {
+      text = accessLabels[key].replace(phrase[1],'');
+      if (headerCount==1) {
+        accessDiv.append('<h6 class="access-title">'+ phrase[1] +'</h6>');
+        headerCount++;
+      }
+    }
+    else {
+      text = accessLabels[key];
+      if (headerCount==2) {
+        accessDiv.append('<h6 class="access-title"></h6>');
+        headerCount++;
+      }
+    }
+    var content = '<div class="access-row">';
+    content += (data[key]==1) ? '<div class="access-icon yes">YES</div>' : '<div class="access-icon">NO</div>';
+    content += '<div>'+ text +'</div></div>';
+    accessDiv.append(content);
+  }
+  accessDiv.append('<h6 class="access-title">What is the impact of COVID-19 related measures on the response?</h6>');
+  for (var j=1; j<=impactCount; j++) {
+    var key = '#access+impact_'+j;
+    var content = '<div class="access-row">';
+    content += (data[key]==j) ? '<div class="access-icon yes">YES</div>' : '<div class="access-icon">NO</div>';
+    content += '<div>'+ accessLabels[key] +'</div></div>';
+    accessDiv.append(content);
+  }
+  createSource(accessDiv, '#access+constraints');
+}
+
+
+function createFigure(div, obj) {
+  div.append('<div class="figure '+ obj.className +'"><div class="figure-inner"></div></div>');
+  var divInner = $('.'+ obj.className +' .figure-inner');
+  if (obj.title != undefined) divInner.append('<h6 class="title">'+ obj.title +'</h6>');
+  divInner.append('<p class="stat">'+ obj.stat +'</p>');
+
+  createSource(divInner, obj.indicator);
+}
+
+function createSource(div, indicator) {
+  var sourceObj = getSource(indicator);
+  var date = dateFormat(new Date(sourceObj['#date']));
+  div.append('<p class="small source"><span class="date">'+ date +'</span> | <a href="'+ sourceObj['#meta+url'] +'" class="dataURL" target="_blank">DATA</a></p>');
+}
+
+function updateSource(div, indicator) {
+  //fix this
+  var id = (indicator=='#value+covid+funding+pct') ? '#value+funding+covid+pct' : indicator;
+  var sourceObj = getSource(id);
+  var date = dateFormat(new Date(sourceObj['#date']));
+  div.find('.date').text(date);
+  div.find('.dataURL').attr('href', sourceObj['#meta+url']);
+}
+
+function getSource(indicator) {
+  var obj = {};
+  sourcesData.forEach(function(item) {
+    if (item['#indicator+name'] == indicator) {
+      obj = item;
+    }
+  });
+  return obj;
+}
+
+
+
+var numFormat = d3.format(',');
+var shortenNumFormat = d3.format('.2s');
+var percentFormat = d3.format('.0%');
+var dateFormat = d3.utcFormat("%b %d, %Y");
+var colorRange = ['#F7DBD9', '#F6BDB9', '#F5A09A', '#F4827A', '#F2645A'];
+var informColorRange = ['#FFE8DC','#FDCCB8','#FC8F6F','#F43C27','#961518'];
+var colorDefault = '#F2F2EF';
+var geomData, geomFilteredData, nationalData, accessData, subnationalData, timeseriesData, dataByCountry, totalCases, totalDeaths, maxCases, colorScale, currentCountry = '';
+  
+var countryCodeList = [];
+var currentIndicator = {};
+var currentCountryIndicator = {};
+var accessLabels = {};
+
 $( document ).ready(function() {
   var isMobile = window.innerWidth<768? true : false;
   var geomPath = 'data/worldmap.json';
-  var nationalPath = 'https://proxy.hxlstandard.org/data.objects.json?dest=data_edit&strip-headers=on&url=https%3A%2F%2Fdocs.google.com%2Fspreadsheets%2Fd%2Fe%2F2PACX-1vT9_g7AItbqJwDkPi55VyVhqOdB81c3FePhqAoFlIL9160mxqtqg-OofaoTZtdq39BATa37PYQ4813k%2Fpub%3Fgid%3D0%26single%3Dtrue%26output%3Dcsv';
+  var nationalPath = 'https://proxy.hxlstandard.org/data.objects.json?dest=data_edit&strip-headers=on&force=on&url=https%3A%2F%2Fdocs.google.com%2Fspreadsheets%2Fd%2Fe%2F2PACX-1vT9_g7AItbqJwDkPi55VyVhqOdB81c3FePhqAoFlIL9160mxqtqg-OofaoTZtdq39BATa37PYQ4813k%2Fpub%3Fgid%3D0%26single%3Dtrue%26output%3Dcsv';
   var accessPath = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9_g7AItbqJwDkPi55VyVhqOdB81c3FePhqAoFlIL9160mxqtqg-OofaoTZtdq39BATa37PYQ4813k/pub?gid=0&single=true&output=csv';
-  var subnationalPath = 'https://proxy.hxlstandard.org/data.objects.json?dest=data_edit&strip-headers=on&url=https%3A%2F%2Fdocs.google.com%2Fspreadsheets%2Fd%2Fe%2F2PACX-1vT9_g7AItbqJwDkPi55VyVhqOdB81c3FePhqAoFlIL9160mxqtqg-OofaoTZtdq39BATa37PYQ4813k%2Fpub%3Fgid%3D433791951%26single%3Dtrue%26output%3Dcsv';
+  var subnationalPath = 'https://proxy.hxlstandard.org/data.objects.json?dest=data_edit&strip-headers=on&force=on&url=https%3A%2F%2Fdocs.google.com%2Fspreadsheets%2Fd%2Fe%2F2PACX-1vT9_g7AItbqJwDkPi55VyVhqOdB81c3FePhqAoFlIL9160mxqtqg-OofaoTZtdq39BATa37PYQ4813k%2Fpub%3Fgid%3D433791951%26single%3Dtrue%26output%3Dcsv';
   var timeseriesPath = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS23DBKc8c39Aq55zekL0GCu4I6IVnK4axkd05N6jUBmeJe9wA69s3CmMUiIvAmPdGtZPBd-cLS9YwS/pub?gid=1253093254&single=true&output=csv';
-  var geomData, geomFilteredData, nationalData, accessData, subnationalData, timeseriesData, dataByCountry, totalCases, totalDeaths, maxCases, colorScale, currentCountry = '';
-  var colorRange = ['#F7DBD9', '#F6BDB9', '#F5A09A', '#F4827A', '#F2645A'];
-  var informColorRange = ['#FFE8DC','#FDCCB8','#FC8F6F','#F43C27','#961518'];
-  var colorDefault = '#F2F2EF';
-  var countryCodeList = [];
-  var currentIndicator = {};
-  var currentCountryIndicator = {};
-  var accessLabels = {};
-
-  var numFormat = d3.format(',');
-  var shortenNumFormat = d3.format('.2s');
-  var percentFormat = d3.format('.0%');
+  var sourcesPath = 'https://proxy.hxlstandard.org/data.objects.json?dest=data_edit&strip-headers=on&force=on&url=https%3A%2F%2Fdocs.google.com%2Fspreadsheets%2Fd%2Fe%2F2PACX-1vT9_g7AItbqJwDkPi55VyVhqOdB81c3FePhqAoFlIL9160mxqtqg-OofaoTZtdq39BATa37PYQ4813k%2Fpub%3Fgid%3D1837381168%26single%3Dtrue%26output%3Dcsv';
 
   var viewportWidth = window.innerWidth - $('.content-left').innerWidth();
   var viewportHeight = window.innerHeight;
@@ -331,7 +497,8 @@ $( document ).ready(function() {
       d3.json(nationalPath),
       d3.json(subnationalPath),
       d3.csv(accessPath),
-      d3.csv(timeseriesPath)
+      d3.csv(timeseriesPath),
+      d3.json(sourcesPath)
     ]).then(function(data){
       //parse data
       geomData = topojson.feature(data[0], data[0].objects.geom);
@@ -339,6 +506,7 @@ $( document ).ready(function() {
       subnationalData = data[2];
       accessData = data[3];
       timeseriesData = data[4];
+      sourcesData = data[5];
 
       //format data
       nationalData.forEach(function(item) {
@@ -436,6 +604,7 @@ $( document ).ready(function() {
     totalDeaths = d3.sum(nationalData, function(d) { return d['#affected+killed']; });
     $('.global-stats .cases').html(numFormat(totalCases));
     $('.global-stats .deaths').html(numFormat(totalDeaths));
+    createSource($('.global-stats'), '#affected+infected');
 
     //access constraints description    
     $('.description').text('Humanitarian Access Constraints: ' + accessLabels['#access+constraints']);
@@ -639,6 +808,11 @@ $( document ).ready(function() {
   }
 
   function createGlobalLegend(scale) {
+    //current indicator
+    var legendTitle = $('.menu-indicators').find('.selected').attr('data-legend');
+    $('.map-legend.global .indicator-title').text(legendTitle);
+    createSource($('.map-legend.global .indicator-source'), currentIndicator.id);
+
     var legend = d3.legendColor()
       .labelFormat(percentFormat)
       .cells(colorRange.length)
@@ -651,11 +825,12 @@ $( document ).ready(function() {
       .attr('class', 'scale')
       .call(legend);
 
-    var legendTitle = $('.menu-indicators').find('.selected').attr('data-legend');
-    $('.map-legend.global .indicator-title').text(legendTitle);
 
+    //cases
     $('.map-legend.global').append('<h4>Number of COVID-19 cases</h4>');
-    var markersvg = div.append('svg');
+    createSource($('.map-legend.global'), '#affected+infected');
+    var markersvg = div.append('svg')
+      .attr('height', '60px');
     markersvg.append('g')
       .attr("transform", "translate(5, 10)")
       .attr('class', 'legendSize');
@@ -674,6 +849,10 @@ $( document ).ready(function() {
   }
 
   function updateGlobalLegend(scale) {
+    var legendTitle = $('.menu-indicators').find('.selected').attr('data-legend');
+    $('.map-legend.global .indicator-title').text(legendTitle);
+    updateSource($('.indicator-source'), currentIndicator.id);
+
     var legendFormat = (currentIndicator.id=='#access+constraints' || currentIndicator.id=='#value+covid+funding+pct') ? percentFormat : shortenNumFormat;
     var legend = d3.legendColor()
       .labelFormat(legendFormat)
@@ -682,9 +861,6 @@ $( document ).ready(function() {
 
     var g = d3.select('.map-legend.global .scale');
     g.call(legend);
-
-    var legendTitle = $('.menu-indicators').find('.selected').attr('data-legend');
-    $('.map-legend.global .indicator-title').text(legendTitle);
   }
 
   function selectCountry(d) {
@@ -843,7 +1019,10 @@ $( document ).ready(function() {
   }
 
   function createCountryLegend(scale) {
+    $('.map-legend.country .source').empty();
     $('.map-legend.country svg').remove();
+    createSource($('.map-legend.country .food-security-source'), '#affected+food+p3+pct');
+    createSource($('.map-legend.country .population-source'), '#population');
 
     var legend = d3.legendColor()
       .labelFormat(percentFormat)
@@ -866,118 +1045,6 @@ $( document ).ready(function() {
 
     var g = d3.select('.map-legend.country .scale');
     g.call(legend);
-  }
-
-
-  /***********************/
-  /*** PANEL FUNCTIONS ***/
-  /***********************/
-  function initCountryPanel() {
-    var data = dataByCountry[currentCountry][0];
-
-    //timeseries
-    updateTimeseries(timeseriesData, data['#country+code']);
-
-    //set panel header
-    $('.flag').attr('src', 'assets/flags/'+data['#country+code']+'.png');
-    $('.country-panel h3').text(data['#country+name']);
-
-    //covid
-    var covidDiv = $('.country-panel .covid .panel-inner');
-    covidDiv.children().remove();  
-    createFigure(covidDiv, {className: 'cases', title: 'Total Confirmed Cases', stat: data['#affected+infected']});
-    createFigure(covidDiv, {className: 'deaths', title: 'Total Confirmed Deaths', stat: data['#affected+killed']});
-
-    //projections
-    var projectionsDiv = $('.country-panel .projections .panel-inner');
-    projectionsDiv.children().remove();  
-    projectionsDiv.append('<h6>COVID-19 Projections</h6><div class="bar-chart projections-cases"><p class="chart-title">Cases</p></div>');
-    var cases = [{model: 'Imperial', min: data['#affected+cases+imperial+infected+min'], max: data['#affected+cases+imperial+infected+max']},
-                 {model: 'LSHTM', min: data['#affected+cases+infected+lshtm+min'], max: data['#affected+cases+infected+lshtm+max']}];
-    createBarChart(cases, 'Cases');
-    
-    projectionsDiv.append('<div class="bar-chart projections-deaths"><p class="chart-title">Deaths</p></div>');
-    var deaths = [{model: 'Imperial', min: data['#affected+deaths+imperial+min'], max: data['#affected+deaths+imperial+max']},
-                  {model: 'LSHTM', min: data['#affected+deaths+lshtm+min'], max: data['#affected+deaths+lshtm+max']}];
-    createBarChart(deaths, 'Deaths');
-  
-    //hrp
-    var hrpDiv = $('.country-panel .hrp .panel-inner');
-    hrpDiv.children().remove();  
-    createFigure(hrpDiv, {className: 'pin', title: 'Number of People in Need', stat: shortenNumFormat(data['#affected+inneed'])});
-    createFigure(hrpDiv, {className: 'funding-level', title: 'HRP Funding Level', stat: data['#value+covid+funding+pct']+'%'});
-    createFigure(hrpDiv, {className: 'funding-received', title: 'HRP Funding Received', stat: shortenNumFormat(data['#value+covid+funding+total+usd'])});
-    createFigure(hrpDiv, {className: 'funding-required', title: 'GHRP Request (USD)', stat: shortenNumFormat(data['#value+funding+precovid+required+usd'])});
-
-    //inform
-    var informDiv = $('.country-panel .inform .panel-inner');
-    informDiv.children().remove();  
-    createFigure(informDiv, {className: 'risk-index', title: 'Risk Index<br>(1-10)', stat: data['#severity+num']});
-    createFigure(informDiv, {className: 'risk-class', title: 'Risk Class<br>(Very Low-Very High)', stat: data['#severity+type']});
-
-    //school
-    var schoolDiv = $('.country-panel .schools .panel-inner');
-    schoolDiv.children().remove();  
-    createFigure(schoolDiv, {className: 'school', stat: data['#impact+type']});
-
-    //access -- fix this logic
-    var accessDiv = $('.country-panel .humanitarian-access .panel-inner');
-    accessDiv.children().remove();  
-    const keys = Object.keys(data);
-    var constraintsCount = 0;
-    var impactCount = 0;
-    var phrase = ['Restriction of movements INTO the country ', 'Restriction of movements WITHIN the country '];
-    keys.forEach(function(key, index) {
-      if (key.indexOf('constraints_')>-1) constraintsCount++;
-      if (key.indexOf('impact_')>-1) impactCount++;
-    });
-    var headerCount = 0;
-    var text = '';
-    for (var i=1; i<=constraintsCount; i++) {
-      var key = '#access+constraints_'+i;
-      if (accessLabels[key].indexOf(phrase[0])>-1) {
-        text = accessLabels[key].replace(phrase[0],'');
-        if (headerCount==0) {
-          accessDiv.append('<h6 class="access-title">'+ phrase[0] +'</h6>');
-          headerCount++;
-        }
-      }
-      else if (accessLabels[key].indexOf(phrase[1])>-1) {
-        text = accessLabels[key].replace(phrase[1],'');
-        if (headerCount==1) {
-          accessDiv.append('<h6 class="access-title">'+ phrase[1] +'</h6>');
-          headerCount++;
-        }
-      }
-      else {
-        text = accessLabels[key];
-        if (headerCount==2) {
-          accessDiv.append('<h6 class="access-title"></h6>');
-          headerCount++;
-        }
-      }
-      var content = '<div class="access-row">';
-      content += (data[key]==1) ? '<div class="access-icon yes">YES</div>' : '<div class="access-icon">NO</div>';
-      content += '<div>'+ text +'</div></div>';
-      accessDiv.append(content);
-    }
-    accessDiv.append('<h6 class="access-title">What is the impact of COVID-19 related measures on the response?</h6>');
-    for (var j=1; j<=impactCount; j++) {
-      var key = '#access+impact_'+j;
-      var content = '<div class="access-row">';
-      content += (data[key]==j) ? '<div class="access-icon yes">YES</div>' : '<div class="access-icon">NO</div>';
-      content += '<div>'+ accessLabels[key] +'</div></div>';
-      accessDiv.append(content);
-    }
-  }
-
-
-  function createFigure(div, obj) {
-    div.append('<div class="figure '+ obj.className +'"><div class="figure-inner"></div></div>');
-    var divInner = $('.'+ obj.className +' .figure-inner');
-    if (obj.title != undefined) divInner.append('<h6 class="title">'+ obj.title +'</h6>');
-    divInner.append('<p class="stat">'+ obj.stat +'</p>');
-    divInner.append('<p class="small"><span class="date">May 2, 2020</span> | <a href="" class="dataURL">DATA</a></p>');
   }
 
 
