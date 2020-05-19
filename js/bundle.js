@@ -142,7 +142,7 @@ function formatTimeseriesData(data) {
 }
 
 var timeseriesChart;
-function createTimeSeries(array) {
+function createTimeSeries(array , div) {
 	timeseriesChart = c3.generate({
     size: {
       height: 240
@@ -150,10 +150,10 @@ function createTimeSeries(array) {
     padding: {
       bottom: 0,
       top: 10,
-      left: 35,
+      left: 30,
       right: 16
     },
-    bindto: '.timeseries-chart',
+    bindto: '.country-timeseries-chart',
     title: {
   		text: 'Number of Confirmed Cases Over Time',
   		position: 'upper-left',
@@ -185,7 +185,8 @@ function createTimeSeries(array) {
 				min: 0,
 				padding: { top:0, bottom:0 },
         tick: { 
-          outer: false
+          outer: false,
+          format: shortenNumFormat
         }
 			}
 		},
@@ -207,7 +208,7 @@ function createTimeSeries(array) {
   var lastUpdated = new Date(Math.max.apply(null, timeseriesData.map(function(e) {
     return new Date(e.Date);
   })));
-  $('.cases-timeseries').append('<p class="small"><span class="date">'+ dateFormat(lastUpdated) +'</span> | <a href="https://data.humdata.org/dataset/coronavirus-covid-19-cases-and-deaths" class="dataURL" target="_blank">DATA</a></p>');
+  $('.cases-timeseries').append('<p class="small"><span class="date">'+ dateFormat(lastUpdated) +'</span> | <span class="source-name">Source</span> | <a href="https://data.humdata.org/dataset/coronavirus-covid-19-cases-and-deaths" class="dataURL" target="_blank">DATA</a></p>');
   createTimeseriesLegend();
 }
 
@@ -219,7 +220,7 @@ function createTimeseriesLegend() {
   });
 
   //custom legend
-  d3.select('.timeseries-chart').insert('div').attr('class', 'timeseries-legend').selectAll('div')
+  d3.select('.country-timeseries-chart').insert('div').attr('class', 'timeseries-legend').selectAll('div')
     .data(names)
     .enter().append('div')
     .attr('data-id', function(id) {
@@ -307,6 +308,10 @@ function truncateString(str, num) {
 function formatValue(val) {
   var n = (isNaN(val) || val==0) ? val : d3.format('$.3s')(val).replace(/G/, 'B');
   return n;
+}
+
+function roundUp(x, limit) {
+  return Math.ceil(x/limit)*limit;
 }
 
 function setSelect(id, valueToSelect) {    
@@ -439,7 +444,7 @@ function createFigure(div, obj) {
 function createSource(div, indicator) {
   var sourceObj = getSource(indicator);
   var date = dateFormat(new Date(sourceObj['#date']));
-  div.append('<p class="small source"><span class="date">'+ date +'</span> | <a href="'+ sourceObj['#meta+url'] +'" class="dataURL" target="_blank">DATA</a></p>');
+  div.append('<p class="small source"><span class="date">'+ date +'</span> | <span class="source-name">Source</span> | <a href="'+ sourceObj['#meta+url'] +'" class="dataURL" target="_blank">DATA</a></p>');
 }
 
 function updateSource(div, indicator) {
@@ -448,6 +453,7 @@ function updateSource(div, indicator) {
   var sourceObj = getSource(id);
   var date = dateFormat(new Date(sourceObj['#date']));
   div.find('.date').text(date);
+  div.find('.source-name').text('Source');
   div.find('.dataURL').attr('href', sourceObj['#meta+url']);
 }
 
@@ -518,6 +524,7 @@ $( document ).ready(function() {
         var pop = item['#population'];
         item['#population'] = parseInt(pop.replace(/,/g, ''), 10);
         item['#affected+food+p3+pct'] = item['#affected+food+p3+pct']/100;
+        item['#org+count+num'] = +item['#org+count+num'];
       })
 
       //parse out access labels
@@ -631,7 +638,8 @@ $( document ).ready(function() {
     });
 
     drawGlobalMap();
-    initTimeseries(timeseriesData);
+    //initTimeseries(timeseriesData, '.global-timeseries-chart');
+    initTimeseries(timeseriesData, '.country-timeseries-chart');
 
     //remove loader and show vis
     $('.loader').hide();
@@ -964,7 +972,10 @@ $( document ).ready(function() {
       .attr("d", path)
       .attr("fill", function(d) {
         var val = -1;
-        var adm1 = subnationalData.filter(c => c['#adm1+name'] == d.properties.ADM1_REF);
+        var adm1 = subnationalData.filter(function(c) {
+          if (c['#adm1+name']==d.properties.ADM1_REF && c['#country+code']==currentCountry)
+            return c;
+        });
         val = adm1[0][currentCountryIndicator.id];
         var clr = (val<0 || val=='') ? colorDefault : countryColorScale(val);
         return clr;
@@ -997,32 +1008,40 @@ $( document ).ready(function() {
   function updateCountryMap() {
     $('.map-legend.country svg').show();
     var max = (currentCountryIndicator.id.indexOf('pct')>-1) ? 1 : d3.max(subnationalData, function(d) { 
-      if (d['#country+code']==currentCountry)
+      if (d['#country+code']==currentCountry) {
         return d[currentCountryIndicator.id]; 
-    })
+      }
+    });
+
+    if (currentCountryIndicator.id=='#org+count+num') max = roundUp(max, 10);
+
     var countryColorScale = d3.scaleQuantize().domain([0, max]).range(colorRange);
 
     cmapsvg.selectAll('.map-regions')
       .attr('fill', function(d) {
         var val = -1;
         var clr = colorDefault;
-        var adm1 = subnationalData.filter(c => c['#adm1+name'] == d.properties.ADM1_REF);
+        var adm1 = subnationalData.filter(function(c) {
+          if (c['#adm1+name']==d.properties.ADM1_REF && c['#country+code']==currentCountry)
+            return c;
+        });
         val = adm1[0][currentCountryIndicator.id]; 
         clr = (val<0 || val=='') ? colorDefault : countryColorScale(val);
         return clr;
       });
 
-    if (max!=undefined)
+    if (max!=undefined & max>0)
       updateCountryLegend(countryColorScale);
     else
       $('.map-legend.country svg').hide();
   }
 
   function createCountryLegend(scale) {
-    $('.map-legend.country .source').empty();
+    $('.map-legend.country .source-container').empty();
     $('.map-legend.country svg').remove();
     createSource($('.map-legend.country .food-security-source'), '#affected+food+p3+pct');
     createSource($('.map-legend.country .population-source'), '#population');
+    createSource($('.map-legend.country .orgs-source'), '#org+count+num');
 
     var legend = d3.legendColor()
       .labelFormat(percentFormat)
@@ -1037,7 +1056,17 @@ $( document ).ready(function() {
   }
 
   function updateCountryLegend(scale) {
-    var legendFormat = (currentCountryIndicator.id=='#affected+food+p3+pct') ? percentFormat : shortenNumFormat;
+    var legendFormat;
+    switch(currentCountryIndicator.id) {
+      case '#affected+food+p3+pct':
+        legendFormat = percentFormat;
+        break;
+      case '#population':
+        legendFormat = shortenNumFormat;
+        break;
+      default:
+        legendFormat = d3.format('.0s');
+    }
     var legend = d3.legendColor()
       .labelFormat(legendFormat)
       .cells(colorRange.length)
@@ -1052,7 +1081,10 @@ $( document ).ready(function() {
   /*** TOOLTIP FUNCTIONS ***/
   /*************************/
   function createCountryMapTooltip(adm1_name){
-    var adm1 = subnationalData.filter(c => c['#adm1+name'] == adm1_name);
+    var adm1 = subnationalData.filter(function(c) {
+      if (c['#adm1+name']==adm1_name && c['#country+code']==currentCountry)
+        return c;
+    });
     var val = adm1[0][currentCountryIndicator.id];
 
     //format content for tooltip

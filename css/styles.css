@@ -1278,7 +1278,7 @@ a:visited {
   background-color: #FFF;
   bottom: 16px;
   display: block;
-  height: 210px;
+  height: 205px;
   padding: 25px;
   position: absolute;
   right: 24px;
@@ -1347,25 +1347,28 @@ a:visited {
     justify-content: flex-end;
     fill: #000;
     font-family: 'Gotham Bold', sans-serif;
-    font-size: 12px; }
+    font-size: 12px;
+    line-height: 14px; }
   .map-legend input {
-    margin-right: 6px; }
+    margin: 0 6px 0 0; }
   .map-legend.global {
     display: block; }
     .map-legend.global svg {
       margin-top: 10px;
       width: 195px; }
   .map-legend.country {
-    height: 225px;
+    height: auto;
     left: -215px;
     opacity: 0;
     z-index: -1; }
     .map-legend.country label {
       margin-top: 10px; }
     .map-legend.country svg {
-      height: 90px;
+      height: 85px;
       margin-top: 10px;
       width: 190px; }
+    .map-legend.country .source-container {
+      margin-left: 18px; }
 
 #country-map {
   left: 0;
@@ -1527,7 +1530,9 @@ circle.swatch {
     margin-right: 7px;
     padding: 5px; }
 
+.c3-title,
 .chart-title {
+  fill: #000;
   font-family: 'Gotham-Book', sans-serif;
   font-size: 14px;
   line-height: 21px;
@@ -1540,3 +1545,6 @@ circle.swatch {
 .c3-text {
   fill: #000 !important;
   font-family: 'Source Sans Pro', sans-serif; }
+
+.c3-axis .tick text {
+  fill: #000; }
