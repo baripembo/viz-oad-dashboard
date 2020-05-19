@@ -96,9 +96,9 @@ function createBarChart(data, type) {
 
 }
 
-function initTimeseries(data) {
+function initTimeseries(data, div) {
   var timeseriesArray = formatTimeseriesData(data);
-  createTimeSeries(timeseriesArray);
+  createTimeSeries(timeseriesArray, div);
 }
 
 function formatTimeseriesData(data) {
@@ -141,9 +141,9 @@ function formatTimeseriesData(data) {
   return timeseriesArray;
 }
 
-var timeseriesChart;
+var countryTimeseriesChart;
 function createTimeSeries(array , div) {
-	timeseriesChart = c3.generate({
+	var chart = c3.generate({
     size: {
       height: 240
     },
@@ -153,7 +153,7 @@ function createTimeSeries(array , div) {
       left: 30,
       right: 16
     },
-    bindto: '.country-timeseries-chart',
+    bindto: div,
     title: {
   		text: 'Number of Confirmed Cases Over Time',
   		position: 'upper-left',
@@ -204,23 +204,26 @@ function createTimeSeries(array , div) {
     transition: { duration: 300 }
 	});
 
-
   var lastUpdated = new Date(Math.max.apply(null, timeseriesData.map(function(e) {
     return new Date(e.Date);
   })));
-  $('.cases-timeseries').append('<p class="small"><span class="date">'+ dateFormat(lastUpdated) +'</span> | <span class="source-name">Source</span> | <a href="https://data.humdata.org/dataset/coronavirus-covid-19-cases-and-deaths" class="dataURL" target="_blank">DATA</a></p>');
-  createTimeseriesLegend();
+
+  if (div=='.country-timeseries-chart') {
+    countryTimeseriesChart = chart;
+    $('.cases-timeseries').append('<p class="small"><span class="date">'+ dateFormat(lastUpdated) +'</span> | <span class="source-name">Source</span> | <a href="https://data.humdata.org/dataset/coronavirus-covid-19-cases-and-deaths" class="dataURL" target="_blank">DATA</a></p>');
+  }
+  createTimeseriesLegend(chart, div);
 }
 
 
-function createTimeseriesLegend() {
+function createTimeseriesLegend(chart, div) {
   var names = [];
-  timeseriesChart.data.shown().forEach(function(d) {
+  chart.data.shown().forEach(function(d) {
     names.push(d.id)
   });
 
   //custom legend
-  d3.select('.country-timeseries-chart').insert('div').attr('class', 'timeseries-legend').selectAll('div')
+  d3.select(div).insert('div').attr('class', 'timeseries-legend').selectAll('div')
     .data(names)
     .enter().append('div')
     .attr('data-id', function(id) {
@@ -230,13 +233,13 @@ function createTimeseriesLegend() {
       return '<span></span>'+id;
     })
     .each(function(id) {
-      d3.select(this).select('span').style('background-color', timeseriesChart.color(id));
+      d3.select(this).select('span').style('background-color', chart.color(id));
     })
     .on('mouseover', function(id) {
-      timeseriesChart.focus(id);
+      chart.focus(id);
     })
     .on('mouseout', function(id) {
-      timeseriesChart.revert();
+      chart.revert();
     });
 }
 
@@ -245,12 +248,12 @@ function updateTimeseries(data, selected) {
   var timeseriesArray = formatTimeseriesData(updatedData);
 
   //load new data
-  timeseriesChart.load({
+  countryTimeseriesChart.load({
     columns: timeseriesArray,
     unload: true,
     done: function() {
-      $('.timeseries-legend').remove();
-      createTimeseriesLegend();
+      $('.country-timeseries-chart .timeseries-legend').remove();
+      createTimeseriesLegend(countryTimeseriesChart, '.country-timeseries-chart');
     }
   });
 }
@@ -327,6 +330,12 @@ function getAccessLabels(data) {
       accessLabels[item[1]] = item[0];
   });
   return accessLabels;
+}
+
+function createKeyFigure(target, title, className, value) {
+  var targetDiv = $(target);
+  //<p class='date small'><span>"+ date +"</span></p>
+  return targetDiv.append("<div class='key-figure'><div class='inner'><h3>"+ title +"</h3><div class='num " + className + "'>"+ numFormat(value) +"</div></div></div></div>");
 }
 /***********************/
 /*** PANEL FUNCTIONS ***/
@@ -504,7 +513,7 @@ $( document ).ready(function() {
       d3.json(subnationalPath),
       d3.csv(accessPath),
       d3.csv(timeseriesPath),
-      d3.json(sourcesPath)
+      d3.json(sourcesPath),
     ]).then(function(data){
       //parse data
       geomData = topojson.feature(data[0], data[0].objects.geom);
@@ -609,13 +618,13 @@ $( document ).ready(function() {
     maxCases = d3.max(nationalData, function(d) { return +d['#affected+infected']; })
     totalCases = d3.sum(nationalData, function(d) { return d['#affected+infected']; });
     totalDeaths = d3.sum(nationalData, function(d) { return d['#affected+killed']; });
-    $('.global-stats .cases').html(numFormat(totalCases));
-    $('.global-stats .deaths').html(numFormat(totalDeaths));
+    createKeyFigure('.stats-priority', 'Total Confirmed Cases', 'cases', totalCases);
+    createKeyFigure('.stats-priority', 'Total Confirmed Deaths', 'deaths', totalDeaths);
+    createKeyFigure('.stats-priority', 'Total Locations', 'locations', nationalData.length);
     createSource($('.global-stats'), '#affected+infected');
 
     //access constraints description    
-    $('.description').text('Humanitarian Access Constraints: ' + accessLabels['#access+constraints']);
-    $('.description').width(viewportWidth - $('.global-stats').innerWidth() - $('.zoom-controls').innerWidth() - 150);
+    $('.description').text(accessLabels['#access+constraints']);
 
     //set up menu events
     $('.menu-indicators li').on('click', function() {
@@ -624,7 +633,7 @@ $( document ).ready(function() {
       currentIndicator = {id: $(this).attr('data-id'), name: $(this).text()};
       updateGlobalMap();
     });
-    currentIndicator = {id: $('.menu-indicators').find('.selected').attr('data-id'), name: $('.menu-indicators').find('.selected').text()};
+    currentIndicator = {id: $('.menu-indicators').find('.selected').attr('data-id'), name: $('.menu-indicators').find('.selected div').text()};
 
     $('.menu h2').on('click', function() {
       resetMap();
@@ -638,7 +647,7 @@ $( document ).ready(function() {
     });
 
     drawGlobalMap();
-    //initTimeseries(timeseriesData, '.global-timeseries-chart');
+    initTimeseries(timeseriesData, '.global-timeseries-chart');
     initTimeseries(timeseriesData, '.country-timeseries-chart');
 
     //remove loader and show vis
@@ -665,8 +674,8 @@ $( document ).ready(function() {
   function drawGlobalMap(){
     var width = viewportWidth;
     var height = viewportHeight;
-    var mapScale = width/3.5;
-    var mapCenter = [10, 5];
+    var mapScale = width/4;
+    var mapCenter = [30, 5];
 
     //choropleth color scale
     colorScale = d3.scaleQuantize().domain([0, 1]).range(colorRange);

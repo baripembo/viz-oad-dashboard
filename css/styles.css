@@ -1182,6 +1182,7 @@ h6 {
   color: #888;
   font-family: 'Source Sans Pro', sans-serif;
   font-size: 12px;
+  line-height: 14px;
   margin: 0; }
 
 .stat {
@@ -1242,13 +1243,14 @@ a:visited {
 .menu-indicators {
   display: block; }
   .menu-indicators li {
-    align-items: center;
     color: #888;
     cursor: pointer;
-    display: flex;
-    font-size: 16px;
-    height: 60px;
-    padding: 0 25px; }
+    font-size: 16px; }
+    .menu-indicators li div {
+      align-items: center;
+      display: flex;
+      height: 60px;
+      padding: 0 25px; }
     .menu-indicators li i {
       padding-right: 25px; }
     .menu-indicators li:hover, .menu-indicators li.selected {
@@ -1278,17 +1280,42 @@ a:visited {
   background-color: #FFF;
   bottom: 16px;
   display: block;
-  height: 205px;
+  height: 460px;
   padding: 25px;
   position: absolute;
   right: 24px;
-  width: 416px;
+  width: 450px;
   z-index: 101; }
-  .global-stats li {
-    font-family: 'Gotham Bold', sans-serif;
-    font-size: 16px;
-    line-height: 18px;
-    margin-bottom: 20px; }
+  .global-stats .stats {
+    display: flex;
+    padding-top: 20px; }
+    .global-stats .stats .key-figure {
+      margin-right: 15px;
+      padding-bottom: 10px;
+      width: 30%; }
+      .global-stats .stats .key-figure .inner {
+        border-bottom: 1px solid #CCC;
+        border-top: 1px solid #CCC; }
+        .global-stats .stats .key-figure .inner h3 {
+          color: #000;
+          font-size: 14px;
+          height: 32px;
+          line-height: 16px;
+          margin: 14px 0; }
+      .global-stats .stats .key-figure:first-child {
+        width: 40%; }
+      .global-stats .stats .key-figure:last-child {
+        margin-right: 0; }
+  .global-stats .date {
+    padding-bottom: 10px; }
+  .global-stats .num {
+    color: #000;
+    font-family: 'Gotham-Light', sans-serif;
+    font-size: 46px;
+    line-height: 46px;
+    padding: 10px 0; }
+    .global-stats .num span {
+      font-size: 26px; }
 
 .label-header {
   display: block;
@@ -1401,13 +1428,10 @@ circle.swatch {
   display: block; }
 
 .description {
-  background-color: rgba(255, 255, 255, 0.8);
-  color: #888;
+  color: #A1A1A1;
+  font-weight: normal;
   display: block;
-  padding: 10px 20px;
-  position: absolute;
-  bottom: 16px;
-  right: 460px; }
+  padding: 0 20px 10px; }
 
 .tooltip {
   background-color: #FFF;
@@ -1538,6 +1562,9 @@ circle.swatch {
   line-height: 21px;
   font-weight: normal;
   margin-bottom: 0; }
+
+.c3-title {
+  font-family: 'Gotham-Bold', sans-serif; }
 
 .c3-legend-background {
   stroke: none; }
