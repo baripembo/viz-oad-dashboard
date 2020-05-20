@@ -1280,7 +1280,6 @@ a:visited {
   background-color: #FFF;
   bottom: 16px;
   display: block;
-  height: 232px;
   padding: 25px;
   position: absolute;
   right: 24px;
@@ -1299,9 +1298,8 @@ a:visited {
         .global-stats .stats .key-figure .inner h3 {
           color: #000;
           font-size: 14px;
-          height: 32px;
           line-height: 16px;
-          margin: 14px 0; }
+          margin: 14px 0 0; }
       .global-stats .stats .key-figure:last-child {
         margin-right: 0; }
   .global-stats .date {
