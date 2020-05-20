@@ -1418,6 +1418,7 @@ a:visited {
 .country-label {
   display: block; }
 
+.health-marker,
 .count-marker,
 circle.swatch {
   fill: #888;

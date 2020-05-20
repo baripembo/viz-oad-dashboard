@@ -485,7 +485,7 @@ var dateFormat = d3.utcFormat("%b %d, %Y");
 var colorRange = ['#F7DBD9', '#F6BDB9', '#F5A09A', '#F4827A', '#F2645A'];
 var informColorRange = ['#FFE8DC','#FDCCB8','#FC8F6F','#F43C27','#961518'];
 var colorDefault = '#F2F2EF';
-var geomData, geomFilteredData, nationalData, accessData, subnationalData, timeseriesData, dataByCountry, totalCases, totalDeaths, maxCases, colorScale, currentCountry = '';
+var geomData, geomFilteredData, nationalData, accessData, subnationalData, timeseriesData, healthData, dataByCountry, totalCases, totalDeaths, maxCases, colorScale, currentCountry = '';
   
 var countryCodeList = [];
 var currentIndicator = {};
@@ -500,6 +500,7 @@ $( document ).ready(function() {
   var subnationalPath = 'https://proxy.hxlstandard.org/data.objects.json?dest=data_edit&strip-headers=on&force=on&url=https%3A%2F%2Fdocs.google.com%2Fspreadsheets%2Fd%2Fe%2F2PACX-1vT9_g7AItbqJwDkPi55VyVhqOdB81c3FePhqAoFlIL9160mxqtqg-OofaoTZtdq39BATa37PYQ4813k%2Fpub%3Fgid%3D433791951%26single%3Dtrue%26output%3Dcsv';
   var timeseriesPath = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS23DBKc8c39Aq55zekL0GCu4I6IVnK4axkd05N6jUBmeJe9wA69s3CmMUiIvAmPdGtZPBd-cLS9YwS/pub?gid=1253093254&single=true&output=csv';
   var sourcesPath = 'https://proxy.hxlstandard.org/data.objects.json?dest=data_edit&strip-headers=on&force=on&url=https%3A%2F%2Fdocs.google.com%2Fspreadsheets%2Fd%2Fe%2F2PACX-1vT9_g7AItbqJwDkPi55VyVhqOdB81c3FePhqAoFlIL9160mxqtqg-OofaoTZtdq39BATa37PYQ4813k%2Fpub%3Fgid%3D1837381168%26single%3Dtrue%26output%3Dcsv';
+  var healthPath = 'data/health.csv';
 
   var viewportWidth = window.innerWidth - $('.content-left').innerWidth();
   var viewportHeight = window.innerHeight;
@@ -514,6 +515,7 @@ $( document ).ready(function() {
       d3.csv(accessPath),
       d3.csv(timeseriesPath),
       d3.json(sourcesPath),
+      d3.csv(healthPath)
     ]).then(function(data){
       //parse data
       geomData = topojson.feature(data[0], data[0].objects.geom);
@@ -522,6 +524,7 @@ $( document ).ready(function() {
       accessData = data[3];
       timeseriesData = data[4];
       sourcesData = data[5];
+      healthData = data[6];
 
       //format data
       nationalData.forEach(function(item) {
@@ -531,7 +534,7 @@ $( document ).ready(function() {
 
       subnationalData.forEach(function(item) {
         var pop = item['#population'];
-        item['#population'] = parseInt(pop.replace(/,/g, ''), 10);
+        if (item['#population']!=undefined) item['#population'] = parseInt(pop.replace(/,/g, ''), 10);
         item['#affected+food+p3+pct'] = item['#affected+food+p3+pct']/100;
         item['#org+count+num'] = +item['#org+count+num'];
       })
@@ -546,6 +549,7 @@ $( document ).ready(function() {
 
       console.log(nationalData)
       console.log(subnationalData)
+      console.log(healthData)
 
       //get list of priority countries
       nationalData.forEach(function(item, index) {
@@ -925,20 +929,31 @@ $( document ).ready(function() {
       g.attr('transform', transform);
       g.attr('stroke-width', 1 / transform.k);
 
+      //update country labels and markers
       if (cg!=undefined) {
         cg.attr('transform', transform);
         cg.attr('stroke-width', 1 / transform.k);
-      }
 
-      mapsvg.selectAll('.country-label')
-        .style('font-size', function(d) { return 12/transform.k+'px'; });
-
-      if (cmapsvg!=undefined) {
         cmapsvg.selectAll('.adm1-label')
           .style('font-size', function(d) { return 12/transform.k+'px'; });
+
+        cmapsvg.selectAll('circle').each(function(m){
+        var marker = d3.select(this);
+        subnationalData.forEach(function(d){
+          if (m.properties.ADM1_REF == d['#adm1+name']) {
+            var r = 20;
+            marker.transition().duration(500).attr('r', function (d) { 
+              return (r/currentZoom);
+            });
+          }
+        });
+      });
       }
 
-      //update map markers
+      //update global labels and markers
+      mapsvg.selectAll('.country-label')
+        .style('font-size', function(d) { return 12/transform.k+'px'; });
+      
       mapsvg.selectAll('circle').each(function(m){
         var marker = d3.select(this);
         nationalData.forEach(function(d){
@@ -956,10 +971,15 @@ $( document ).ready(function() {
   /*****************************/
   /*** COUNTRY MAP FUNCTIONS ***/
   /*****************************/
-  var cmapsvg, cg;
+  var cmapsvg, cg, healthScale;
   function drawCountryMap(adm1Data) {
     $('#country-map').empty();
     var countryColorScale = d3.scaleQuantize().domain([0, 1]).range(colorRange);
+
+    // //create log scale for health markers
+    // healthScale = d3.scaleSqrt()
+    //   .domain([1, maxCases])
+    //   .range([2, 15]);
 
     //draw country map
     cmapsvg = d3.select('#country-map').append('svg')
@@ -993,6 +1013,37 @@ $( document ).ready(function() {
       .on("mouseout", function(d) { tooltip.style("opacity", 0); })
       .on("mousemove", function(d) { createCountryMapTooltip(d.properties['ADM1_REF']); });
 
+
+    //create health markers
+    // var healthMarker = cg.append("g")
+    //   .attr("class", "health-layer")
+    //   .selectAll(".health-marker")
+    //   .data(adm1Data.features)
+    //   .enter()
+    //     .append("g")
+    //     .attr("transform", function(d){ return "translate(" + path.centroid(d) + ")"; });
+
+    //   healthMarker.append("circle")
+    //     .attr("class", "marker health-marker")
+    //     .attr("id", function(d) { return d.properties.ADM1_REF; })
+    //     .attr("r", 20);
+
+    //   healthMarker.append("text")
+    //       .attr("class", "health-label")
+    //       //.attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
+    //       //.attr("dy", '1em')
+    //       .text(function(d) { 
+    //         var adm1 = healthData.filter(function(c) {
+    //           if (c['ADM1_REF']==d.properties.ADM1_REF && c['alpha_3']==currentCountry)
+    //             return c;
+    //         });
+    //         return adm1[0].NUMPOINTS; 
+    //       })
+        // .on("mouseover", function(){ tooltip.style("opacity", 1); })
+        // .on("mouseout", function(){ tooltip.style("opacity", 0); })
+        // .on("mousemove", function(d) {
+        //   createMapTooltip(d.properties.ISO_A3, d.properties.NAME_LONG);
+        // });
 
     //adm1 labels
     var label = cg.selectAll(".adm1-label")
