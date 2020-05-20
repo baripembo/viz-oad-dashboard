@@ -84,7 +84,7 @@ function createBarChart(data, type) {
     var date = new Date();
     projectionsDiv.append('<p class="small source"></p>');
     data.forEach(function(d) {
-      var source = getSource('#affected+infected+cases+min+'+d.model.toLowerCase());
+      var source = getSource('#affected+deaths+'+ d.model.toLowerCase() +'+min');
       var sourceDate = new Date(source['#date']);
       if (sourceDate.getTime()!=date.getTime()) {
         date = sourceDate;
@@ -210,7 +210,7 @@ function createTimeSeries(array , div) {
 
   if (div=='.country-timeseries-chart') {
     countryTimeseriesChart = chart;
-    $('.cases-timeseries').append('<p class="small"><span class="date">'+ dateFormat(lastUpdated) +'</span> | <span class="source-name">Source</span> | <a href="https://data.humdata.org/dataset/coronavirus-covid-19-cases-and-deaths" class="dataURL" target="_blank">DATA</a></p>');
+    $('.cases-timeseries').append('<p class="small"><span class="date">'+ dateFormat(lastUpdated) +'</span> | <span class="source-name">WHO</span> | <a href="https://data.humdata.org/dataset/coronavirus-covid-19-cases-and-deaths" class="dataURL" target="_blank">DATA</a></p>');
   }
   createTimeseriesLegend(chart, div);
 }
@@ -453,16 +453,14 @@ function createFigure(div, obj) {
 function createSource(div, indicator) {
   var sourceObj = getSource(indicator);
   var date = dateFormat(new Date(sourceObj['#date']));
-  div.append('<p class="small source"><span class="date">'+ date +'</span> | <span class="source-name">Source</span> | <a href="'+ sourceObj['#meta+url'] +'" class="dataURL" target="_blank">DATA</a></p>');
+  div.append('<p class="small source"><span class="date">'+ date +'</span> | <span class="source-name">'+ sourceObj['#meta+source'] +'</span> | <a href="'+ sourceObj['#meta+url'] +'" class="dataURL" target="_blank">DATA</a></p>');
 }
 
 function updateSource(div, indicator) {
-  //fix this
-  var id = (indicator=='#value+covid+funding+pct') ? '#value+funding+covid+pct' : indicator;
-  var sourceObj = getSource(id);
+  var sourceObj = getSource(indicator);
   var date = dateFormat(new Date(sourceObj['#date']));
   div.find('.date').text(date);
-  div.find('.source-name').text('Source');
+  div.find('.source-name').text(sourceObj['#meta+source']);
   div.find('.dataURL').attr('href', sourceObj['#meta+url']);
 }
 
@@ -624,7 +622,6 @@ $( document ).ready(function() {
     totalDeaths = d3.sum(nationalData, function(d) { return d['#affected+killed']; });
     createKeyFigure('.stats-priority', 'Total Confirmed Cases', 'cases', totalCases);
     createKeyFigure('.stats-priority', 'Total Confirmed Deaths', 'deaths', totalDeaths);
-    createKeyFigure('.stats-priority', 'Total Locations', 'locations', nationalData.length);
     createSource($('.global-stats'), '#affected+infected');
 
     //access constraints description    
@@ -651,7 +648,7 @@ $( document ).ready(function() {
     });
 
     drawGlobalMap();
-    initTimeseries(timeseriesData, '.global-timeseries-chart');
+    //initTimeseries(timeseriesData, '.global-timeseries-chart');
     initTimeseries(timeseriesData, '.country-timeseries-chart');
 
     //remove loader and show vis
@@ -678,8 +675,8 @@ $( document ).ready(function() {
   function drawGlobalMap(){
     var width = viewportWidth;
     var height = viewportHeight;
-    var mapScale = width/4;
-    var mapCenter = [30, 5];
+    var mapScale = width/3.5;
+    var mapCenter = [10, 15];
 
     //choropleth color scale
     colorScale = d3.scaleQuantize().domain([0, 1]).range(colorRange);

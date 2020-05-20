@@ -1280,11 +1280,11 @@ a:visited {
   background-color: #FFF;
   bottom: 16px;
   display: block;
-  height: 460px;
+  height: 232px;
   padding: 25px;
   position: absolute;
   right: 24px;
-  width: 450px;
+  width: 416px;
   z-index: 101; }
   .global-stats .stats {
     display: flex;
@@ -1292,7 +1292,7 @@ a:visited {
     .global-stats .stats .key-figure {
       margin-right: 15px;
       padding-bottom: 10px;
-      width: 30%; }
+      width: 50%; }
       .global-stats .stats .key-figure .inner {
         border-bottom: 1px solid #CCC;
         border-top: 1px solid #CCC; }
@@ -1302,8 +1302,6 @@ a:visited {
           height: 32px;
           line-height: 16px;
           margin: 14px 0; }
-      .global-stats .stats .key-figure:first-child {
-        width: 40%; }
       .global-stats .stats .key-figure:last-child {
         margin-right: 0; }
   .global-stats .date {
