@@ -45,6 +45,9 @@
               <li data-id='#value+covid+funding+pct' data-legend='HRP Funding Level'>
                 <div><i class='humanitarianicons-Analysis'></i>HRP Funding Level</div>
               </li>
+              <li data-id='#severity+economic+num' data-legend='COVID-19 Economic Exposure Index'>
+                <div><i class='humanitarianicons-Analysis'></i>COVID-19 Economic Exposure Index</div>
+              </li>
             </ul>
           </div>
           <div class='logos'>
@@ -77,12 +80,20 @@
             </div>
             <div class='map-legend country'>
               <h4>MAP DATA LAYER</h4>
-              <label>Acute Food Insecurity (% of population in IPC Phase 3+) <input checked='true' name='countryIndicators' type='radio' value='#affected+food+p3+pct' id='foodSecurity'></label>
+              <label>Acute Food Insecurity<br>(% of population in IPC Phase 3+) <input checked='true' name='countryIndicators' type='radio' value='#affected+food+p3+pct' id='foodSecurity'></label>
               <div class='source-container food-security-source'></div>
               <label>Population Density <input name='countryIndicators' type='radio' value='#population' id='population'></label>
               <div class='source-container population-source'></div>
               <label>Number of Organizations <input name='countryIndicators' type='radio' value='#org+count+num' id='orgs'></label>
               <div class='source-container orgs-source'></div>
+              <label>Health facilities <input name='countryIndicators' type='radio' value='#loc+count+health' id='healthFacilities'></label>
+              <div class='source-container health-facilities-source'></div>
+              <h4 class='subtitle'>Immunization</h4>
+              <div class='source-container immunization-source'></div>
+              <label>Hepatitis B <input name='countryIndicators' type='radio' value='#population+hepb3+pct+vaccinated' id='hepb'></label>
+              <label>Inactivated Polio <input name='countryIndicators' type='radio' value='#population+ipv1+pct+vaccinated' id='ipv'></label>
+              <label>Polio <input name='countryIndicators' type='radio' value='#population+pct+pol3+vaccinated' id='pol'></label>
+              <label>Measles <input name='countryIndicators' type='radio' value='#population+ipv1+pct+vaccinated' id='mcv'></label>
             </div>
           </div>
           
