@@ -1078,7 +1078,8 @@
   .col-12 {
     grid-column: 1 / -1; } }
 
-.loader {
+.loader,
+.modal-loader {
   color: #000;
   font-size: 11px;
   text-align: center;
@@ -1086,6 +1087,9 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%); }
+
+.modal-loader {
+  top: 55%; }
 
 .sp {
   clear: both;
@@ -1112,6 +1116,96 @@
     transform: rotate(0deg); }
   to {
     transform: rotate(359deg); } }
+
+.food-prices .modal-content {
+  padding-left: 10px;
+  padding-right: 10px; }
+
+.food-prices #header h5 {
+  margin-top: 0; }
+
+.food-prices #charts {
+  padding: 0 4px; }
+
+.food-prices .chart-container {
+  display: flex; }
+
+.food-prices .chart-inner {
+  padding: 0 16px; }
+
+.food-prices .modal-subnav {
+  padding: 0 20px; }
+
+.food-prices .sparkline {
+  fill: none;
+  stroke-width: 2px;
+  stroke: #2a93fc; }
+
+.food-prices .sparkyearline {
+  fill: none;
+  stroke-width: 1px;
+  stroke: #eeeeee;
+  shape-rendering: crispEdges; }
+
+.food-prices .productsparkline {
+  border-width: 2px;
+  border-color: #fff;
+  border-style: solid;
+  padding: 0 15px;
+  width: 25%; }
+
+.food-prices .productsparkline:hover {
+  border-width: 2px;
+  border-color: #2a93fc;
+  border-style: solid;
+  cursor: pointer; }
+
+.food-prices .area {
+  fill: #2a93fc;
+  clip-path: url(#clip); }
+
+.food-prices .axis path,
+.food-prices .axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges; }
+
+.food-prices .axis {
+  font-size: 11px; }
+
+.food-prices .brush .extent {
+  stroke: #fff;
+  fill-opacity: .125;
+  shape-rendering: crispEdges; }
+
+.food-prices .bar {
+  fill: #2a93fc; }
+
+.food-prices .bar:hover {
+  cursor: pointer; }
+
+.food-prices #embedoptions {
+  display: none;
+  padding: 10px; }
+
+.food-prices #hdxembedoptions {
+  display: none;
+  padding: 10px; }
+
+.food-prices #hdxembed {
+  padding-top: 15px; }
+
+.food-prices .wfplabel {
+  font-size: 11px; }
+
+.food-prices .setbrush {
+  text-decoration: underline;
+  font-size: 10px;
+  color: #2a93fc;
+  margin-left: 5px; }
+
+.food-prices .setbrush:hover {
+  cursor: pointer; }
 
 * {
   box-sizing: border-box; }
@@ -1206,6 +1300,13 @@ a,
 a:visited {
   color: #007CE1; }
 
+.footnote {
+  bottom: 16px;
+  font-size: 11px;
+  font-style: italic;
+  left: 80px;
+  position: absolute; }
+
 .content {
   display: flex;
   flex-flow: row; }
@@ -1231,6 +1332,51 @@ a:visited {
     display: block; }
   .content.country-view #country-map {
     opacity: 1; }
+  .content.food-prices-view .map-legend.global,
+  .content.food-prices-view .count-marker,
+  .content.food-prices-view .global-stats {
+    display: none; }
+  .content.food-prices-view .food-prices-description {
+    display: block; }
+
+.food-prices-description {
+  background-color: #FFF;
+  display: none;
+  left: 40px;
+  padding: 15px;
+  position: absolute;
+  top: 120px;
+  width: 240px; }
+
+.modal-bg-overlay {
+  background-color: rgba(51, 51, 51, 0.7);
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 101; }
+
+.modal {
+  background-color: #FFF;
+  display: none;
+  left: 50%;
+  max-height: 90%;
+  min-height: 300px;
+  overflow: scroll;
+  padding: 0 4px 20px;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 840px;
+  z-index: 101; }
+
+.modal-close-btn {
+  cursor: pointer;
+  position: absolute;
+  right: 20px;
+  top: 18px; }
 
 .logos {
   align-items: center;
@@ -1400,8 +1546,6 @@ a:visited {
       .map-legend.country svg .legendTitle {
         font-family: 'Gotham-Bold', sans-serif;
         letter-spacing: 0.2px; }
-    .map-legend.country .disclaimer {
-      margin-top: 10px; }
     .map-legend.country .source-container {
       margin-left: 18px; }
 
