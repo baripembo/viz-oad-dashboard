@@ -679,13 +679,13 @@ function generateTimeCharts(data,cf,title){
         .attr("class", "focus")
         .attr("transform", "translate(" + margin.left + "," + (margin.top+10) + ")");
 
-    var nav_chart = d3.select("#nav_chart").append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height2 + margin.top + margin.bottom);
+    // var nav_chart = d3.select("#nav_chart").append("svg")
+    //     .attr("width", width + margin.left + margin.right)
+    //     .attr("height", height2 + margin.top + margin.bottom);
 
-    var context = nav_chart.append("g")
-        .attr("class", "context")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    // var context = nav_chart.append("g")
+    //     .attr("class", "context")
+    //     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
     x.domain(d3.extent(data.map(function(d) { return d.key; })));
     y.domain([0, d3.max(data.map(function(d) { return d.value; }))]);
