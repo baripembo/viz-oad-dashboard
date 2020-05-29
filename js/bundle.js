@@ -1127,7 +1127,7 @@ function initMap() {
     //add adm0 boundaries tileset
     map.addSource('adm0', {
       type: 'vector',
-      url: 'mapbox://humdata.6rwlbkj5'
+      url: 'mapbox://humdata.ckarts36o033p23rzqkfebyc8-7drvx'
     });
 
     //data join
@@ -1148,7 +1148,7 @@ function initMap() {
         'id': 'adm0-fills',
         'type': 'fill',
         'source': 'adm0',
-        'source-layer': 'hrp25_polbnda_int_15m_uncs-0581kx',
+        'source-layer': 'hrp25_polbnda_int_15m_uncs',
         'paint': {
           'fill-color': expression,
           'fill-outline-color': '#CCC'
