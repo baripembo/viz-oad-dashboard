@@ -1286,7 +1286,7 @@ h6 {
 
 .stat {
   font-family: 'Gotham-Light', sans-serif;
-  font-size: 52px;
+  font-size: 42px;
   margin: 30px 0; }
 
 ul {
@@ -1667,6 +1667,8 @@ circle.swatch {
       padding-bottom: 15px; }
       .country-panel .figure .figure-inner .title {
         height: 36px; }
+    .country-panel .figure.cases .stat {
+      font-size: 52px; }
     .country-panel .figure.risk-class .stat {
       font-size: 32px; }
   .country-panel .humanitarian-access .access-title {
