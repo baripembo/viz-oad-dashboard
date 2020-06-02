@@ -1116,7 +1116,7 @@ function createKeyFigure(target, title, className, value) {
   //<p class='date small'><span>"+ date +"</span></p>
   return targetDiv.append("<div class='key-figure'><div class='inner'><h3>"+ title +"</h3><div class='num " + className + "'>"+ numFormat(value) +"</div></div></div></div>");
 }
-var map, globalLayer, globalCentroidLayer, countryLayer, countryLabelLayer, countryMarkerLayer, tooltip, markerScale;
+var map, globalLayer, globalMarkerLayer, countryLayer, countryLabelLayer, countryMarkerLayer, tooltip, markerScale;
 function initMap() {
   map = new mapboxgl.Map({
     container: 'global-map',
@@ -1136,24 +1136,53 @@ function initMap() {
 
     //get layers
     map.getStyle().layers.map(function (layer) {
-      if (layer.id.indexOf('adm0-fills') >= 0) {
-        globalLayer = layer.id;
-      }
-      else if (layer.id.indexOf('hrp25-centroid-int-uncs') >= 0) {
-        globalCentroidLayer = layer.id;
-      }
-      else if (layer.id.indexOf('adm1-fills') >= 0) {
-        countryLayer = layer.id;
-        map.setLayoutProperty(countryLayer, 'visibility', 'none');
-      }
-      else if (layer.id.indexOf('hrp25-centroid-adm1-simplified-o') >= 0) {
-        countryLabelLayer = layer.id;
-        map.setLayoutProperty(countryLabelLayer, 'visibility', 'none');
-      }
-      else if (layer.id.indexOf('hrp25-centroid-adm1-simplified-o-circle') >= 0) {
-        countryMarkerLayer = layer.id;
-        map.setLayoutProperty(countryMarkerLayer, 'visibility', 'none');
-        console.log('country markers')
+      // if (layer.id.indexOf('adm0-fills') >= 0) {
+      //   globalLayer = layer.id;
+      // }
+      // else if (layer.id.indexOf('hrp25-centroid-int-uncs') >= 0) {
+      //   globalMarkerLayer = layer.id;
+      // }
+      // else if (layer.id.indexOf('adm1-fills') >= 0) {
+      //   countryLayer = layer.id;
+      //   map.setLayoutProperty(countryLayer, 'visibility', 'none');
+      // }
+      // else if (layer.id.indexOf('hrp25-centroid-adm1-simplified-o') >= 0) {
+      //   countryLabelLayer = layer.id;
+      //   map.setLayoutProperty(countryLabelLayer, 'visibility', 'none');
+      // }
+      // else if (layer.id.indexOf('hrp25-centroid-adm1-simplified-o-circle') >= 0) {
+      //   countryMarkerLayer = layer.id;
+      //   map.setLayoutProperty(countryMarkerLayer, 'visibility', 'none');
+      //   console.log('country markers')
+      // }
+      switch(layer.id) {
+        case 'adm0-fills':
+          globalLayer = layer.id;
+          break;
+        case 'hrp25-centroid-int-uncs':
+          globalMarkerLayer = layer.id;
+          break;
+        case 'adm1-fills':
+          countryLayer = layer.id;
+          map.setLayoutProperty(countryLayer, 'visibility', 'none');
+          break;
+        case 'hrp25-centroid-adm1-simplified-o':
+          countryLabelLayer = layer.id;
+          map.setLayoutProperty(countryLabelLayer, 'visibility', 'none');
+          break;
+        case 'hrp25-centroid-adm1-simplified-o-circle':
+          countryMarkerLayer = layer.id;
+          map.setLayoutProperty(countryMarkerLayer, 'visibility', 'none');
+          console.log('country markers')
+          break;
+        // case '':
+        //   globalMarkerLayer = layer.id;
+        //   break;
+        // case '':
+        //   globalMarkerLayer = layer.id;
+        //   break;
+        default:
+          //do nothing
       }
     });
 
@@ -1204,10 +1233,9 @@ function initGlobalLayer() {
   
   //set properties
   map.setPaintProperty(globalLayer, 'fill-color', expression);
-  map.setPaintProperty(globalCentroidLayer, 'circle-radius', expressionMarkers);
-  //map.setPaintProperty(globalCentroidLayer, 'circle-opacity', 0.6);
-  map.setPaintProperty(globalCentroidLayer, 'circle-stroke-color', '#CCC');
-  map.setPaintProperty(globalCentroidLayer, 'circle-translate', [0,-10]);
+  map.setPaintProperty(globalMarkerLayer, 'circle-radius', expressionMarkers);
+  //map.setPaintProperty(globalMarkerLayer, 'circle-opacity', 0.6);
+  map.setPaintProperty(globalMarkerLayer, 'circle-translate', [0,-10]);
 
   //define mouse events
   map.on('mouseenter', globalLayer, function(e) {
@@ -1246,7 +1274,7 @@ function initGlobalLayer() {
       else {
         updateCountryLayer();
         map.setLayoutProperty(globalLayer, 'visibility', 'none');
-        map.setLayoutProperty(globalCentroidLayer, 'visibility', 'none');
+        map.setLayoutProperty(globalMarkerLayer, 'visibility', 'none');
         map.setLayoutProperty('adm0-label', 'visibility', 'none');
         map.setLayoutProperty('wrl-polbndl-int-15m-uncs', 'visibility', 'none');
         map.setLayoutProperty(countryLayer, 'visibility', 'visible');
@@ -1290,10 +1318,10 @@ function updateGlobalLayer() {
   setGlobalLegend(colorScale);
 
   if (currentIndicator.id=='#food-prices') {
-    map.setLayoutProperty(globalCentroidLayer, 'visibility', 'none');
+    map.setLayoutProperty(globalMarkerLayer, 'visibility', 'none');
   }
   else {
-    map.setLayoutProperty(globalCentroidLayer, 'visibility', 'visible');
+    map.setLayoutProperty(globalMarkerLayer, 'visibility', 'visible');
   }
 }
 
@@ -1478,7 +1506,7 @@ function updateCountryLayer() {
   map.setPaintProperty(countryLayer, 'fill-color', expression);
   map.setPaintProperty(countryLayer, 'fill-outline-color', expressionOutline);
   //map.setLayoutProperty(countryLabelLayer, 'visibility', 'visible');
-  //map.setPaintProperty(countryLabelLayer, 'text-opacity', expressionText);
+  map.setPaintProperty(countryLabelLayer, 'text-opacity', expressionText);
 
   //toggle health layer
   if (currentCountryIndicator.id=='#loc+count+health') $('.health-layer').fadeIn()
@@ -1657,7 +1685,7 @@ function resetMap() {
   });
   map.once('moveend', function() {
     map.setLayoutProperty(globalLayer, 'visibility', 'visible');
-    map.setLayoutProperty(globalCentroidLayer, 'visibility', 'visible');
+    map.setLayoutProperty(globalMarkerLayer, 'visibility', 'visible');
     map.setLayoutProperty('adm0-label', 'visibility', 'visible');
     map.setLayoutProperty('wrl-polbndl-int-15m-uncs', 'visibility', 'visible');
   });
