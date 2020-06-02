@@ -1301,11 +1301,12 @@ a:visited {
   color: #007CE1; }
 
 .footnote {
-  bottom: 16px;
+  bottom: 34px;
   font-size: 11px;
   font-style: italic;
-  left: 80px;
-  position: absolute; }
+  left: 10px;
+  position: absolute;
+  z-index: 1; }
 
 .content {
   display: flex;
@@ -1440,7 +1441,7 @@ a:visited {
 
 .global-stats {
   background-color: #FFF;
-  bottom: 16px;
+  bottom: 25px;
   display: block;
   padding: 25px;
   position: absolute;
@@ -1541,13 +1542,16 @@ a:visited {
   .map-legend .no-data {
     height: 20px; }
     .map-legend .no-data rect {
-      fill: #F2F2EF; }
+      fill: #FFF;
+      stroke: #CCC; }
     .map-legend .no-data text {
       transform: translate(25px, 12.5px); }
   .map-legend.global {
     display: block; }
     .map-legend.global .legend-container {
       height: 83px; }
+      .map-legend.global .legend-container.vaccination-campaign {
+        height: 32px; }
   .map-legend.country {
     height: auto;
     left: -215px;
@@ -1611,6 +1615,7 @@ circle.swatch {
   display: none; }
 
 .mapboxgl-popup.map-tooltip {
+  max-width: 270px;
   z-index: 2; }
   .mapboxgl-popup.map-tooltip .mapboxgl-popup-content {
     border-radius: 8px;
@@ -1627,6 +1632,17 @@ circle.swatch {
       margin: 15px 0; }
     .mapboxgl-popup.map-tooltip .mapboxgl-popup-content .cases {
       color: #888; }
+
+table {
+  font-size: 12px;
+  line-height: 14px; }
+  table th {
+    text-align: left;
+    vertical-align: bottom; }
+  table tr td:first-child, table tr td:last-child {
+    font-weight: 700; }
+  table tr.covid-postpone td:first-child, table tr.covid-postpone td:last-child {
+    color: #F2645A; }
 
 .country-panel {
   background-color: #FFF;
