@@ -1116,7 +1116,7 @@ function createKeyFigure(target, title, className, value) {
   //<p class='date small'><span>"+ date +"</span></p>
   return targetDiv.append("<div class='key-figure'><div class='inner'><h3>"+ title +"</h3><div class='num " + className + "'>"+ numFormat(value) +"</div></div></div></div>");
 }
-var map, globalLayer, globalCentroidLayer, countryLayer, countryCentroidLayer, countryMarkerLayer, tooltip, markerScale;
+var map, globalLayer, globalCentroidLayer, countryLayer, countryLabelLayer, countryMarkerLayer, tooltip, markerScale;
 function initMap() {
   map = new mapboxgl.Map({
     container: 'global-map',
@@ -1147,8 +1147,8 @@ function initMap() {
         map.setLayoutProperty(countryLayer, 'visibility', 'none');
       }
       else if (layer.id.indexOf('hrp25-centroid-adm1-simplified-o') >= 0) {
-        countryCentroidLayer = layer.id;
-        map.setLayoutProperty(countryCentroidLayer, 'visibility', 'none');
+        countryLabelLayer = layer.id;
+        map.setLayoutProperty(countryLabelLayer, 'visibility', 'none');
       }
       else if (layer.id.indexOf('hrp25-centroid-adm1-simplified-o-circle') >= 0) {
         countryMarkerLayer = layer.id;
@@ -1250,7 +1250,7 @@ function initGlobalLayer() {
         map.setLayoutProperty('adm0-label', 'visibility', 'none');
         map.setLayoutProperty('wrl-polbndl-int-15m-uncs', 'visibility', 'none');
         map.setLayoutProperty(countryLayer, 'visibility', 'visible');
-        map.setLayoutProperty(countryCentroidLayer, 'visibility', 'visible');
+        map.setLayoutProperty(countryLabelLayer, 'visibility', 'visible');
 
         var bbox = turf.bbox(turf.featureCollection(features));
         var offset = 50;
@@ -1457,7 +1457,7 @@ function updateCountryLayer() {
     if (d['#country+code']==currentCountry) {
       var val = d[currentCountryIndicator.id];
       color  = (val<0 || val=='' || isNaN(val) || currentCountryIndicator.id=='#loc+count+health') ? colorNoData : countryColorScale(val);
-      colorOutline  = '#CCC';
+      colorOutline = '#CCC';
       textOpacity = 1;
     }
     else {
@@ -1477,8 +1477,8 @@ function updateCountryLayer() {
   //set properties
   map.setPaintProperty(countryLayer, 'fill-color', expression);
   map.setPaintProperty(countryLayer, 'fill-outline-color', expressionOutline);
-  map.setLayoutProperty(countryCentroidLayer, 'visibility', 'visible');
-  map.setPaintProperty(countryCentroidLayer, 'text-opacity', expressionText);
+  //map.setLayoutProperty(countryLabelLayer, 'visibility', 'visible');
+  //map.setPaintProperty(countryLabelLayer, 'text-opacity', expressionText);
 
   //toggle health layer
   if (currentCountryIndicator.id=='#loc+count+health') $('.health-layer').fadeIn()
@@ -1643,7 +1643,7 @@ function initCountryView() {
 
 function resetMap() {
   map.setLayoutProperty(countryLayer, 'visibility', 'none');
-  map.setLayoutProperty(countryCentroidLayer, 'visibility', 'none');
+  map.setLayoutProperty(countryLabelLayer, 'visibility', 'none');
   $('.content').removeClass('country-view');
   $('.country-panel').fadeOut();
   setSelect('countrySelect', '');
