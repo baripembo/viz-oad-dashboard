@@ -1116,7 +1116,7 @@ function createKeyFigure(target, title, className, value) {
   //<p class='date small'><span>"+ date +"</span></p>
   return targetDiv.append("<div class='key-figure'><div class='inner'><h3>"+ title +"</h3><div class='num " + className + "'>"+ numFormat(value) +"</div></div></div></div>");
 }
-var map, globalLayer, globalMarkerLayer, countryLayer, countryLabelLayer, countryMarkerLayer, tooltip, markerScale;
+var map, mapFeatures, globalLayer, globalLabelLayer, globalMarkerLayer, countryLayer, countryLabelLayer, countryMarkerLayer, tooltip, markerScale, countryMarkerScale;
 function initMap() {
   map = new mapboxgl.Map({
     container: 'global-map',
@@ -1136,28 +1136,12 @@ function initMap() {
 
     //get layers
     map.getStyle().layers.map(function (layer) {
-      // if (layer.id.indexOf('adm0-fills') >= 0) {
-      //   globalLayer = layer.id;
-      // }
-      // else if (layer.id.indexOf('hrp25-centroid-int-uncs') >= 0) {
-      //   globalMarkerLayer = layer.id;
-      // }
-      // else if (layer.id.indexOf('adm1-fills') >= 0) {
-      //   countryLayer = layer.id;
-      //   map.setLayoutProperty(countryLayer, 'visibility', 'none');
-      // }
-      // else if (layer.id.indexOf('hrp25-centroid-adm1-simplified-o') >= 0) {
-      //   countryLabelLayer = layer.id;
-      //   map.setLayoutProperty(countryLabelLayer, 'visibility', 'none');
-      // }
-      // else if (layer.id.indexOf('hrp25-centroid-adm1-simplified-o-circle') >= 0) {
-      //   countryMarkerLayer = layer.id;
-      //   map.setLayoutProperty(countryMarkerLayer, 'visibility', 'none');
-      //   console.log('country markers')
-      // }
       switch(layer.id) {
         case 'adm0-fills':
           globalLayer = layer.id;
+          break;
+        case 'adm0-label':
+          globalLabelLayer = layer.id;
           break;
         case 'hrp25-centroid-int-uncs':
           globalMarkerLayer = layer.id;
@@ -1170,19 +1154,40 @@ function initMap() {
           countryLabelLayer = layer.id;
           map.setLayoutProperty(countryLabelLayer, 'visibility', 'none');
           break;
-        case 'hrp25-centroid-adm1-simplified-o-circle':
+        case 'adm1-marker-points':
           countryMarkerLayer = layer.id;
           map.setLayoutProperty(countryMarkerLayer, 'visibility', 'none');
-          console.log('country markers')
           break;
-        // case '':
-        //   globalMarkerLayer = layer.id;
-        //   break;
-        // case '':
-        //   globalMarkerLayer = layer.id;
-        //   break;
         default:
           //do nothing
+      }
+    });
+
+    mapFeatures = map.queryRenderedFeatures();
+
+    //country select event
+    d3.select('.country-select').on('change',function(e) {
+      var selected = d3.select('.country-select').node().value;
+      if (selected=='') {
+        resetMap();
+      }
+      else {        
+        currentCountry = selected;
+        currentCountryName = d3.select('.country-select option:checked').text();
+
+        var selectedFeatures = [];
+        mapFeatures.forEach(function(feature) {
+          if (feature.sourceLayer=='hrp25_polbnda_int_15m_uncs' && feature.properties.ISO_3==currentCountry) {
+            selectedFeatures.push(feature)
+          }
+        });
+        
+        if (currentIndicator.id=='#food-prices') {
+          openModal(currentCountryName);
+        }
+        else {
+          selectCountry(selectedFeatures);
+        }
       }
     });
 
@@ -1234,10 +1239,13 @@ function initGlobalLayer() {
   //set properties
   map.setPaintProperty(globalLayer, 'fill-color', expression);
   map.setPaintProperty(globalMarkerLayer, 'circle-radius', expressionMarkers);
-  //map.setPaintProperty(globalMarkerLayer, 'circle-opacity', 0.6);
   map.setPaintProperty(globalMarkerLayer, 'circle-translate', [0,-10]);
 
   //define mouse events
+  handleGlobalEvents();
+}
+
+function handleGlobalEvents(layer) {
   map.on('mouseenter', globalLayer, function(e) {
     map.getCanvas().style.cursor = 'pointer';
     if (currentIndicator.id!='#food-prices') {
@@ -1245,13 +1253,17 @@ function initGlobalLayer() {
     }
   });
 
-  map.on('mousemove', globalLayer, function(e) {
+  map.on('mousemove', function(e) {
     if (currentIndicator.id!='#food-prices') {
-      var f = map.queryRenderedFeatures(e.point)[0];
-      var content = f.properties.Terr_Name;
-      if (content!=undefined) {
+      var features = map.queryRenderedFeatures(e.point, { layers: [globalLayer, globalLabelLayer, globalMarkerLayer] });
+      var target;
+      features.forEach(function(feature) {
+        if (feature.sourceLayer=='hrp25_polbnda_int_15m_uncs')
+          target = feature;
+      });
+      if (target!=undefined) {
         tooltip.setLngLat(e.lngLat);
-        createMapTooltip(f.properties.ISO_3, f.properties.Terr_Name)
+        createMapTooltip(target.properties.ISO_3, target.properties.Terr_Name)
       }
     }
   });
@@ -1261,36 +1273,55 @@ function initGlobalLayer() {
     tooltip.remove();
   });
 
-  map.on('click', globalLayer, function(e) {
+  map.on('click', function(e) {
     tooltip.remove();
-    var features = map.queryRenderedFeatures(e.point);
-    currentCountry = features[0].properties.ISO_3;
-    currentCountryName = features[0].properties.Terr_Name;
+    var features = map.queryRenderedFeatures(e.point, { layers: [globalLayer, globalLabelLayer, globalMarkerLayer] });
+    var target;
+    features.forEach(function(feature) {
+      if (feature.sourceLayer=='hrp25_polbnda_int_15m_uncs')
+        target = feature;
+    });
+  
+    if (target!=null) {
+      currentCountry = target.properties.ISO_3;
+      currentCountryName = target.properties.Terr_Name;
 
-    if (currentCountry!=undefined) {
-      if (currentIndicator.id=='#food-prices') {
-        openModal(features[0].properties.Terr_Name);
-      }
-      else {
-        updateCountryLayer();
-        map.setLayoutProperty(globalLayer, 'visibility', 'none');
-        map.setLayoutProperty(globalMarkerLayer, 'visibility', 'none');
-        map.setLayoutProperty('adm0-label', 'visibility', 'none');
-        map.setLayoutProperty('wrl-polbndl-int-15m-uncs', 'visibility', 'none');
-        map.setLayoutProperty(countryLayer, 'visibility', 'visible');
-        map.setLayoutProperty(countryLabelLayer, 'visibility', 'visible');
-
-        var bbox = turf.bbox(turf.featureCollection(features));
-        var offset = 50;
-        map.fitBounds(bbox, {
-          padding: {left: $('.map-legend.country').outerWidth()+offset+10, right: $('.country-panel').outerWidth()+offset},
-          linear: true
-        });
-
-        map.once('moveend', initCountryView);
+      if (currentCountry!=undefined) {
+        if (currentIndicator.id=='#food-prices') {
+          openModal(target.properties.Terr_Name);
+        }
+        else {
+          selectCountry(features);
+        }
       }
     }
+    
   });
+}
+
+function selectCountry(features) {
+  //set first country indicator
+  $('#foodSecurity').prop('checked', true);
+  currentCountryIndicator = {
+    id: $('input[name="countryIndicators"]:checked').val(), 
+    name: $('input[name="countryIndicators"]:checked').parent().text()
+  };
+
+  updateCountryLayer();
+  map.setLayoutProperty(globalLayer, 'visibility', 'none');
+  map.setLayoutProperty(globalMarkerLayer, 'visibility', 'none');
+  map.setLayoutProperty(countryLayer, 'visibility', 'visible');
+  map.setLayoutProperty(countryLabelLayer, 'visibility', 'visible');
+  map.setLayoutProperty(countryMarkerLayer, 'visibility', 'visible');
+
+  var bbox = turf.bbox(turf.featureCollection(features));
+  var offset = 50;
+  map.fitBounds(bbox, {
+    padding: {left: $('.map-legend.country').outerWidth()+offset+10, right: $('.country-panel').outerWidth()+offset},
+    linear: true
+  });
+
+  map.once('moveend', initCountryView);
 }
 
 function updateGlobalLayer() {
@@ -1419,26 +1450,9 @@ function setGlobalLegend(scale) {
 /*** COUNTRY MAP FUNCTIONS ***/
 /*****************************/
 function initCountryLayer() {
-  currentCountryIndicator = {id: '#affected+food+p3+pct', name: 'Food Security'};
-
   //color scale
   var countryColorScale = d3.scaleQuantize().domain([0, 1]).range(colorRange);
   createCountryLegend(countryColorScale);
-
-  //data join for choropleths
-  var expression = ['match', ['get', 'ADM1_PCODE']];
-  subnationalData.forEach(function(d) {
-    var val = (d['#country+code']==currentCountry) ? d[currentCountryIndicator.id] : '';
-    var color = (val<0 || val=='') ? colorNoData : countryColorScale(val);
-    expression.push(d['#adm1+code'], color);
-  });
-
-  //default value for no data
-  expression.push(colorDefault);
-
-  //set choropleths
-  map.setPaintProperty(countryLayer, 'fill-color', expression);
-  map.setPaintProperty(countryLayer, 'fill-outline-color', '#CCC');
 
   //mouse events
   map.on('mouseenter', countryLayer, function(e) {
@@ -1468,68 +1482,102 @@ function initCountryLayer() {
 }
 
 function updateCountryLayer() {
+  if (currentCountryIndicator.id=='#affected+food+ipc+p3+pct') checkIPCData();
+
   //$('.map-legend.country .legend-container').show();
   var max = getCountryIndicatorMax();
   if (currentCountryIndicator.id.indexOf('pct')>0 && max>0) max = 1;
   if (currentCountryIndicator.id=='#org+count+num') max = roundUp(max, 10);
 
+  //color scale
   var clrRange = (currentCountryIndicator.id.indexOf('vaccinated')>0) ? immunizationColorRange : colorRange;
   var countryColorScale = d3.scaleQuantize().domain([0, max]).range(clrRange);
+
+  //create log scale for circle markers
+  // var healthFacilityMax = d3.max(subnationalData, function(d) {
+  //   if (d['#country+code']==currentCountry)
+  //     return +d['#loc+count+health']; 
+  // })
+  // var markerScale = d3.scaleSqrt()
+  //   .domain([1, healthFacilityMax])
+  //   .range([2, 15]);
 
   //data join
   var expression = ['match', ['get', 'ADM1_PCODE']];
   var expressionOutline = ['match', ['get', 'ADM1_PCODE']];
   var expressionText = ['match', ['get', 'ADM1_PCODE']];
+  //var expressionMarkers = ['match', ['get', 'ADM1_PCODE']];
   subnationalData.forEach(function(d) {
-    var color, colorOutline, textOpacity;
+    var color, colorOutline, textOpacity, markerSize;
     if (d['#country+code']==currentCountry) {
-      var val = d[currentCountryIndicator.id];
-      color  = (val<0 || val=='' || isNaN(val) || currentCountryIndicator.id=='#loc+count+health') ? colorNoData : countryColorScale(val);
+      var val = +d[currentCountryIndicator.id];
+      color = (val<0 || val==' ' || isNaN(val)) ? colorNoData : countryColorScale(val);
       colorOutline = '#CCC';
       textOpacity = 1;
+
+      //health facility markers
+      // var healthVal = (currentCountryIndicator.id=='#loc+count+health') ? d['#loc+count+health'] : 0;
+      // markerSize = markerScale(healthVal);
     }
     else {
       color = colorDefault;
       colorOutline = colorDefault;
       textOpacity = 0;
+      markerSize = 0;
     }
     
     expression.push(d['#adm1+code'], color);
     expressionOutline.push(d['#adm1+code'], colorOutline);
     expressionText.push(d['#adm1+code'], textOpacity);
+    //expressionMarkers.push(d['#adm1+code'], markerSize);
   });
   expression.push(colorDefault);
   expressionOutline.push(colorDefault);
   expressionText.push(0);
+  //expressionMarkers.push(0);
 
   //set properties
   map.setPaintProperty(countryLayer, 'fill-color', expression);
   map.setPaintProperty(countryLayer, 'fill-outline-color', expressionOutline);
-  //map.setLayoutProperty(countryLabelLayer, 'visibility', 'visible');
   map.setPaintProperty(countryLabelLayer, 'text-opacity', expressionText);
 
-  //toggle health layer
-  if (currentCountryIndicator.id=='#loc+count+health') $('.health-layer').fadeIn()
-  else $('.health-layer').fadeOut('fast');
+  //set health facility markers
+  // map.setPaintProperty(countryMarkerLayer, 'circle-radius', expressionMarkers);
+  // map.setPaintProperty(countryMarkerLayer, 'circle-color', '#007ce1');
+  // map.setPaintProperty(countryMarkerLayer, 'circle-opacity', 0.6);
+  // map.setPaintProperty(countryMarkerLayer, 'circle-translate', [0,-10]);
 
   //hide color scale if no data
-  if (max!=undefined && max>0 && currentCountryIndicator.id!='#loc+count+health')
+  if (max!=undefined && max>0)
     updateCountryLegend(countryColorScale);
   // else
   //   $('.map-legend.country .legend-container').hide();
 }
 
+function checkIPCData() {
+  var index = 0;
+  subnationalData.forEach(function(d) {
+    if (d['#country+code']==currentCountry) {
+      var val = +d[currentCountryIndicator.id];
+      if (index==0 && val==' ') {
+        currentCountryIndicator.id = '#affected+ch+food+p3+pct';
+      }
+      index++;
+    }
+  });
+}
+
 function getCountryIndicatorMax() {
   var max =  d3.max(subnationalData, function(d) { 
     if (d['#country+code']==currentCountry) {
-      return d[currentCountryIndicator.id]; 
+      return +d[currentCountryIndicator.id]; 
     }
   });
   return max;
 }
 
 function createCountryLegend(scale) {
-  createSource($('.map-legend.country .food-security-source'), '#affected+food+p3+pct');
+  createSource($('.map-legend.country .food-security-source'), '#affected+food+ipc+p3+pct');
   createSource($('.map-legend.country .population-source'), '#population');
   createSource($('.map-legend.country .orgs-source'), '#org+count+num');
   createSource($('.map-legend.country .health-facilities-source'), '#loc+count+health');
@@ -1549,6 +1597,7 @@ function createCountryLegend(scale) {
     .attr('class', 'scale')
     .call(legend);
 
+  //no data
   var nodata = div.append('svg')
     .attr('class', 'no-data');
 
@@ -1562,9 +1611,17 @@ function createCountryLegend(scale) {
 }
 
 function updateCountryLegend(scale) {
+  if (currentIndicator.id.indexOf('food') >-1) {
+    ('.map-legend.country .food-security-source').empty();
+    createSource($('.map-legend.country .food-security-source'), currentIndicator.id);
+  }
+
   var legendFormat;
   switch(currentCountryIndicator.id) {
     case '#affected+food+p3+pct':
+      legendFormat = percentFormat;
+      break;
+    case '#affected+ch+food+p3+pct':
       legendFormat = percentFormat;
       break;
     case '#population':
@@ -1659,11 +1716,6 @@ function initCountryView() {
   setSelect('countrySelect', currentCountry);
   $('.content').addClass('country-view');
   $('.country-panel').show().scrollTop(0);
-  $('#foodSecurity').prop('checked', true);
-  currentCountryIndicator = {
-    id: $('input[name="countryIndicators"]:checked').val(), 
-    name: $('input[name="countryIndicators"]:checked').parent().text()
-  };
 
   initCountryPanel();
 }
@@ -1686,8 +1738,6 @@ function resetMap() {
   map.once('moveend', function() {
     map.setLayoutProperty(globalLayer, 'visibility', 'visible');
     map.setLayoutProperty(globalMarkerLayer, 'visibility', 'visible');
-    map.setLayoutProperty('adm0-label', 'visibility', 'visible');
-    map.setLayoutProperty('wrl-polbndl-int-15m-uncs', 'visibility', 'visible');
   });
 }
 
@@ -1726,9 +1776,7 @@ function initCountryPanel() {
 
   //hrp
   var hrpDiv = $('.country-panel .hrp .panel-inner');
-  hrpDiv.children().remove();  
-  //HRP requirement, HRP funding level, COVID-19 GHRP requirement, COVID-19 GHRP allocation, CERF COVID-19 allocation, CBPF COVID allocation
-  //createFigure(hrpDiv, {className: 'pin', title: 'Number of People in Need', stat: shortenNumFormat(data['#affected+inneed']), indicator: '#affected+inneed'});
+  hrpDiv.children().remove();
   createFigure(hrpDiv, {className: 'funding-required', title: 'HRP requirement', stat: formatValue(data['#value+funding+hrp+required+usd']), indicator: '#value+funding+hrp+required+usd'});
   createFigure(hrpDiv, {className: 'funding-level', title: 'HRP Funding Level', stat: percentFormat(data['#value+funding+hrp+pct']), indicator: '#value+covid+funding+hrp+pct'});
   createFigure(hrpDiv, {className: 'funding-covid-required', title: 'COVID-19 GHRP requirement', stat: formatValue(data['#value+covid+funding+hrp+required+usd']), indicator: '#value+covid+funding+hrp+required+usd'});
@@ -1748,55 +1796,55 @@ function initCountryPanel() {
   createFigure(schoolDiv, {className: 'school', stat: data['#impact+type'], indicator: '#impact+type'});
 
   //access -- fix this logic
-  var accessDiv = $('.country-panel .humanitarian-access .panel-inner');
-  accessDiv.children().remove();  
-  const keys = Object.keys(data);
-  var constraintsCount = 0;
-  var impactCount = 0;
-  var phrase = ['Restriction of movements INTO the country ', 'Restriction of movements WITHIN the country '];
-  keys.forEach(function(key, index) {
-    if (key.indexOf('constraints_')>-1) constraintsCount++;
-    if (key.indexOf('impact_')>-1) impactCount++;
-  });
-  var headerCount = 0;
-  var text = '';
-  for (var i=1; i<=constraintsCount; i++) {
-    var key = '#access+constraints_'+i;
-    if (accessLabels[key].indexOf(phrase[0])>-1) {
-      text = accessLabels[key].replace(phrase[0],'');
-      if (headerCount==0) {
-        accessDiv.append('<h6 class="access-title">'+ phrase[0] +'</h6>');
-        headerCount++;
-      }
-    }
-    else if (accessLabels[key].indexOf(phrase[1])>-1) {
-      text = accessLabels[key].replace(phrase[1],'');
-      if (headerCount==1) {
-        accessDiv.append('<h6 class="access-title">'+ phrase[1] +'</h6>');
-        headerCount++;
-      }
-    }
-    else {
-      text = accessLabels[key];
-      if (headerCount==2) {
-        accessDiv.append('<h6 class="access-title"></h6>');
-        headerCount++;
-      }
-    }
-    var content = '<div class="access-row">';
-    content += (data[key]==1) ? '<div class="access-icon yes">YES</div>' : '<div class="access-icon">NO</div>';
-    content += '<div>'+ text +'</div></div>';
-    accessDiv.append(content);
-  }
-  accessDiv.append('<h6 class="access-title">What is the impact of COVID-19 related measures on the response?</h6>');
-  for (var j=1; j<=impactCount; j++) {
-    var key = '#access+impact_'+j;
-    var content = '<div class="access-row">';
-    content += (data[key]==j) ? '<div class="access-icon yes">YES</div>' : '<div class="access-icon">NO</div>';
-    content += '<div>'+ accessLabels[key] +'</div></div>';
-    accessDiv.append(content);
-  }
-  createSource(accessDiv, '#access+constraints+pct');
+  // var accessDiv = $('.country-panel .humanitarian-access .panel-inner');
+  // accessDiv.children().remove();  
+  // const keys = Object.keys(data);
+  // var constraintsCount = 0;
+  // var impactCount = 0;
+  // var phrase = ['Restriction of movements INTO the country ', 'Restriction of movements WITHIN the country '];
+  // keys.forEach(function(key, index) {
+  //   if (key.indexOf('constraints_')>-1) constraintsCount++;
+  //   if (key.indexOf('impact_')>-1) impactCount++;
+  // });
+  // var headerCount = 0;
+  // var text = '';
+  // for (var i=1; i<=constraintsCount; i++) {
+  //   var key = '#access+constraints_'+i;
+  //   if (accessLabels[key].indexOf(phrase[0])>-1) {
+  //     text = accessLabels[key].replace(phrase[0],'');
+  //     if (headerCount==0) {
+  //       accessDiv.append('<h6 class="access-title">'+ phrase[0] +'</h6>');
+  //       headerCount++;
+  //     }
+  //   }
+  //   else if (accessLabels[key].indexOf(phrase[1])>-1) {
+  //     text = accessLabels[key].replace(phrase[1],'');
+  //     if (headerCount==1) {
+  //       accessDiv.append('<h6 class="access-title">'+ phrase[1] +'</h6>');
+  //       headerCount++;
+  //     }
+  //   }
+  //   else {
+  //     text = accessLabels[key];
+  //     if (headerCount==2) {
+  //       accessDiv.append('<h6 class="access-title"></h6>');
+  //       headerCount++;
+  //     }
+  //   }
+  //   var content = '<div class="access-row">';
+  //   content += (data[key]==1) ? '<div class="access-icon yes">YES</div>' : '<div class="access-icon">NO</div>';
+  //   content += '<div>'+ text +'</div></div>';
+  //   accessDiv.append(content);
+  // }
+  // accessDiv.append('<h6 class="access-title">What is the impact of COVID-19 related measures on the response?</h6>');
+  // for (var j=1; j<=impactCount; j++) {
+  //   var key = '#access+impact_'+j;
+  //   var content = '<div class="access-row">';
+  //   content += (data[key]==j) ? '<div class="access-icon yes">YES</div>' : '<div class="access-icon">NO</div>';
+  //   content += '<div>'+ accessLabels[key] +'</div></div>';
+  //   accessDiv.append(content);
+  // }
+  // createSource(accessDiv, '#access+constraints+pct');
 }
 
 
@@ -1854,12 +1902,12 @@ var currentCountryIndicator = {};
 var accessLabels = {};
 
 $( document ).ready(function() {
-  var prod = true;//(window.location.href.indexOf('ocha-dap')>-1) ? true : false;
+  var prod = (window.location.href.indexOf('ocha-dap')>-1) ? true : false;
   console.log(prod);
   var isMobile = window.innerWidth<768? true : false;
   var nationalPath = (prod) ? 'https://proxy.hxlstandard.org/data.objects.json?dest=data_edit&strip-headers=on&force=on&url=https%3A%2F%2Fdocs.google.com%2Fspreadsheets%2Fd%2Fe%2F2PACX-1vT9_g7AItbqJwDkPi55VyVhqOdB81c3FePhqAoFlIL9160mxqtqg-OofaoTZtdq39BATa37PYQ4813k%2Fpub%3Fgid%3D0%26single%3Dtrue%26output%3Dcsv' : 'https://proxy.hxlstandard.org/data.objects.json?dest=data_edit&strip-headers=on&force=on&url=https%3A%2F%2Fdocs.google.com%2Fspreadsheets%2Fd%2Fe%2F2PACX-1vTP8bQCTObeCb8j6binSiC0PmU_sCh6ZdfDnK9s28Pi89I-7DT_KhcVw-ZQTcWi4_VplTBBeMnP1d68%2Fpub%3Fgid%3D0%26single%3Dtrue%26output%3Dcsv';
   var subnationalPath = (prod) ? 'https://proxy.hxlstandard.org/data.objects.json?dest=data_edit&strip-headers=on&force=on&url=https%3A%2F%2Fdocs.google.com%2Fspreadsheets%2Fd%2Fe%2F2PACX-1vT9_g7AItbqJwDkPi55VyVhqOdB81c3FePhqAoFlIL9160mxqtqg-OofaoTZtdq39BATa37PYQ4813k%2Fpub%3Fgid%3D433791951%26single%3Dtrue%26output%3Dcsv' : 'https://proxy.hxlstandard.org/data.objects.json?dest=data_edit&strip-headers=on&force=on&url=https%3A%2F%2Fdocs.google.com%2Fspreadsheets%2Fd%2Fe%2F2PACX-1vTP8bQCTObeCb8j6binSiC0PmU_sCh6ZdfDnK9s28Pi89I-7DT_KhcVw-ZQTcWi4_VplTBBeMnP1d68%2Fpub%3Fgid%3D433791951%26single%3Dtrue%26output%3Dcsv';
-  var accessPath = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9_g7AItbqJwDkPi55VyVhqOdB81c3FePhqAoFlIL9160mxqtqg-OofaoTZtdq39BATa37PYQ4813k/pub?gid=0&single=true&output=csv';
+  //var accessPath = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9_g7AItbqJwDkPi55VyVhqOdB81c3FePhqAoFlIL9160mxqtqg-OofaoTZtdq39BATa37PYQ4813k/pub?gid=0&single=true&output=csv';
   var timeseriesPath = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS23DBKc8c39Aq55zekL0GCu4I6IVnK4axkd05N6jUBmeJe9wA69s3CmMUiIvAmPdGtZPBd-cLS9YwS/pub?gid=1253093254&single=true&output=csv';
   var sourcesPath = 'https://proxy.hxlstandard.org/data.objects.json?dest=data_edit&strip-headers=on&force=on&url=https%3A%2F%2Fdocs.google.com%2Fspreadsheets%2Fd%2Fe%2F2PACX-1vT9_g7AItbqJwDkPi55VyVhqOdB81c3FePhqAoFlIL9160mxqtqg-OofaoTZtdq39BATa37PYQ4813k%2Fpub%3Fgid%3D1837381168%26single%3Dtrue%26output%3Dcsv';
   var vaccinationPath = 'https://proxy.hxlstandard.org/data.objects.json?dest=data_edit&strip-headers=on&force=on&url=https%3A%2F%2Fdocs.google.com%2Fspreadsheets%2Fd%2Fe%2F2PACX-1vT8m53T3ITzFdJWWKkdRRVRjezgt6MeeU5c2tJWl9SNff7SYn3iJ9_7DZZ_tYSmYI67-vH7cqze1VE0%2Fpub%3Fgid%3D0%26single%3Dtrue%26output%3Dcsv';
@@ -1875,18 +1923,18 @@ $( document ).ready(function() {
     Promise.all([
       d3.json(nationalPath),
       d3.json(subnationalPath),
-      d3.csv(accessPath),
       d3.csv(timeseriesPath),
       d3.json(sourcesPath),
       d3.json(vaccinationPath)
+      //d3.csv(accessPath),
     ]).then(function(data){
       //parse data
       nationalData = data[0];
       subnationalData = data[1];
-      accessData = data[2];
-      timeseriesData = data[3];
-      sourcesData = data[4];
-      vaccinationData = data[5];
+      timeseriesData = data[2];
+      sourcesData = data[3];
+      vaccinationData = data[4];
+      //accessData = data[5];
 
       //format data
       nationalData.forEach(function(item) {
@@ -1906,7 +1954,7 @@ $( document ).ready(function() {
       vaccinationData = vaccinationData.filter((row) => countryCodeList.includes(row['#country+code']));
 
       //parse out access labels
-      accessLabels = getAccessLabels(accessData[0]);
+      //accessLabels = getAccessLabels(accessData[0]);
 
       //group national data by country    
       dataByCountry = d3.nest()
@@ -1921,6 +1969,9 @@ $( document ).ready(function() {
       vaccinationDataByCountry.forEach(function(country) {
         var postponed = 'On Track';
         country.values.forEach(function(campaign) {
+          var d = moment(campaign['#date+start'], ['YYYY-MM','MM/DD/YYYY']);
+          var date = new Date(d.year(), d.month(), d.date());
+          campaign['#date+start'] = (isNaN(date.getTime())) ? campaign['#date+start'] : getMonth(date.getMonth()) + ' ' + date.getFullYear();
           if (campaign['#status+name'].toLowerCase().indexOf('postponed')>-1) postponed = 'Postponed / May postpone';
         });
 
@@ -1933,7 +1984,6 @@ $( document ).ready(function() {
 
       console.log(nationalData)
       console.log(subnationalData)
-      console.log(vaccinationDataByCountry)
 
       initDisplay();
       initMap();
@@ -1966,23 +2016,8 @@ $( document ).ready(function() {
     createKeyFigure('.stats-priority', 'Total Confirmed Deaths', 'deaths', totalDeaths);
     createSource($('.global-stats'), '#affected+infected');
 
-    //country select event
-    // d3.select('.country-select').on('change',function(e) {
-    //   var selected = d3.select('.country-select').node().value;
-    //   if (selected=='') {
-    //     resetMap();
-    //   }
-    //   else {        
-    //     currentCountry = selected;
-
-    //     if (currentIndicator.id=='#food-prices') {
-    //       openModal(currentCountry);
-    //     }
-    //     else {
-    //       getCountryData();
-    //     }
-    //   }
-    // });
+    //set food prices source
+    createSource($('.food-prices-description'), '#food-prices');
 
     //menu events
     $('.menu-indicators li').on('click', function() {
@@ -2007,7 +2042,6 @@ $( document ).ready(function() {
     $('.country-menu h2').on('click', function() {
       resetMap();
     });
-
 
     //country panel indicator select event
     d3.select('.indicator-select').on('change',function(e) {
