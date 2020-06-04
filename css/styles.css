@@ -1316,6 +1316,7 @@ a:visited {
     flex-flow: column;
     overflow: scroll;
     padding: 12px;
+    min-width: 255px;
     width: 255px; }
   .content .content-right {
     height: 100%;
@@ -1329,7 +1330,7 @@ a:visited {
   .content.country-view .map-legend.country {
     left: 40px;
     opacity: 1;
-    z-index: 1; }
+    z-index: 3; }
   .content.country-view .country-menu {
     display: block; }
   .content.food-prices-view .map-legend.global,
@@ -1437,7 +1438,7 @@ a:visited {
   position: absolute;
   top: 40px;
   width: 215px;
-  z-index: 100; }
+  z-index: 3; }
 
 .global-stats {
   background-color: #FFF;
@@ -1447,7 +1448,7 @@ a:visited {
   position: absolute;
   right: 24px;
   width: 416px;
-  z-index: 101; }
+  z-index: 3; }
   .global-stats .stats {
     display: flex;
     padding-top: 20px; }
@@ -1481,40 +1482,9 @@ a:visited {
   margin: 0;
   padding-bottom: 0; }
 
-#global-map,
-#country-map {
-  fill: #A6D8E8;
-  position: relative; }
-  #global-map .map-regions,
-  #country-map .map-regions {
-    stroke: #CCC;
-    cursor: pointer;
-    transition: fill 0.5s ease; }
-  #global-map .zoom-controls,
-  #country-map .zoom-controls {
-    position: absolute;
-    left: 40px;
-    bottom: 20px;
-    display: grid;
-    grid-gap: 5px; }
-    #global-map .zoom-controls button,
-    #country-map .zoom-controls button {
-      width: 30px;
-      height: 30px;
-      font-size: 18px;
-      border-radius: 50% !important;
-      background: #FFF;
-      color: #000;
-      border: none;
-      user-select: none;
-      cursor: pointer;
-      text-align: center; }
-    #global-map .zoom-controls button:active,
-    #country-map .zoom-controls button:active {
-      background: rgba(255, 255, 255, 0.8); }
-    #global-map .zoom-controls button:focus,
-    #country-map .zoom-controls button:focus {
-      outline: 0; }
+#global-map {
+  height: 100%;
+  width: 100%; }
 
 .map-legend {
   background-color: #FFF;
@@ -1525,7 +1495,7 @@ a:visited {
   position: absolute;
   top: 120px;
   width: 215px;
-  z-index: 1; }
+  z-index: 3; }
   .map-legend label {
     display: flex;
     flex-direction: row-reverse;
@@ -1539,12 +1509,12 @@ a:visited {
   .map-legend svg {
     margin-top: 5px;
     width: 190px; }
-  .map-legend .no-data {
+  .map-legend .no-data-key {
     height: 20px; }
-    .map-legend .no-data rect {
+    .map-legend .no-data-key rect {
       fill: #FFF;
       stroke: #CCC; }
-    .map-legend .no-data text {
+    .map-legend .no-data-key text {
       transform: translate(25px, 12.5px); }
   .map-legend.global {
     display: block; }
@@ -1567,6 +1537,10 @@ a:visited {
       .map-legend.country .legend-container .legendTitle {
         font-family: 'Gotham-Bold', sans-serif;
         letter-spacing: 0.2px; }
+      .map-legend.country .legend-container.no-data {
+        height: 20px; }
+        .map-legend.country .legend-container.no-data .legendCells {
+          display: none; }
     .map-legend.country .source-container {
       margin-left: 18px; }
 
@@ -1616,7 +1590,7 @@ circle.swatch {
 
 .mapboxgl-popup.map-tooltip {
   max-width: 270px;
-  z-index: 2; }
+  z-index: 4; }
   .mapboxgl-popup.map-tooltip .mapboxgl-popup-content {
     border-radius: 8px;
     box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
@@ -1685,8 +1659,6 @@ table {
       padding-bottom: 15px; }
       .country-panel .figure .figure-inner .title {
         height: 36px; }
-    .country-panel .figure.cases .stat, .country-panel .figure.deaths .stat {
-      font-size: 52px; }
     .country-panel .figure.risk-class .stat {
       font-size: 32px; }
   .country-panel .humanitarian-access .access-title {
@@ -1759,3 +1731,25 @@ table {
 
 .c3-axis .tick text {
   fill: #000; }
+
+.mobile-message {
+  background-color: rgba(0, 0, 0, 0.5);
+  display: none;
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  z-index: 5; }
+  .mobile-message .message {
+    color: #FFF;
+    padding: 20px;
+    text-align: center; }
+  .mobile-message .mobile-close-btn {
+    color: #FFF;
+    position: absolute;
+    right: 10px;
+    top: 10px; }
+
+@media only screen and (max-height: 696px) {
+  .map-legend.country {
+    overflow: scroll; } }

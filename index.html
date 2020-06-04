@@ -21,6 +21,13 @@
 
   <body>
 
+    <div class='mobile-message'>
+      <div class='mobile-close-btn'><i class='humanitarianicons-Exit-Cancel'></i></div>
+      <div class='message'>
+        <h4>This dashboard is best viewed on a desktop</h4>
+      </div>
+    </div>
+    
     <div class='loader'>
       <div class="sp sp-circle"></div>
       Loading data...
@@ -53,7 +60,7 @@
                 <li data-id='#food-prices' data-legend='Food Market Prices'>
                   <div><i class='humanitarianicons-Analysis'></i>Food Market Prices</div>
                 </li>
-                <li data-id='#vaccination-campaign' data-legend='Vaccination Campaign Status'>
+                <li data-id='#vaccination-campaigns' data-legend='Vaccination Campaign Status'>
                   <div><i class='humanitarianicons-Analysis'></i>Vaccination Campaign Status</div>
                 </li>
               </ul>
@@ -102,7 +109,7 @@
           </div>
           <select id='countrySelect' class='country-select'></select>
 
-          <div id='global-map' style='width: 100%; height: 100%;'>
+          <div id='global-map'>
             <div class='global-stats'>
               <h2>COVID-19 Pandemic in 25 HRP Locations</h2>
               <div class='stats stats-priority'></div>
