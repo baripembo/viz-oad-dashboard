@@ -279,7 +279,7 @@ function createTimeseriesLegend(chart, div, country) {
       chart.focus(id);
     })
     .on('mouseout', function(id) {
-      chart.revert();
+      //chart.revert();
     });
 }
 
