@@ -1079,8 +1079,8 @@ function truncateString(str, num) {
   return str.slice(0, num) + '...';
 }
 
-function formatValue(val, includeSymbol) {
-  var format = (includeSymbol==undefined) ? d3.format('$.3s') : d3.format('.3s');
+function formatValue(val) {
+  var format = d3.format('$.3s');
   var value;
   if (val=='') {
     value = 'NA';
@@ -1112,8 +1112,8 @@ function setGlobalFigures() {
 	else if (currentIndicator.id=='#value+funding+hrp+pct') {
 		globalFigures.find('h2').text('Humanitarian Funding Overview');
 		var totalPIN = d3.sum(nationalData, function(d) { return +d['#affected+inneed']; });
-		createKeyFigure('.figures', 'Total Funding Required', '', formatValue(worldData['#value+funding+required+usd'], false));
-		createKeyFigure('.figures', 'GHRP Requirement (COVID-19)', '', formatValue(worldData['#value+covid+funding+ghrp+required+usd'], false));
+		createKeyFigure('.figures', 'Total Funding Required', '', formatValue(worldData['#value+funding+required+usd']));
+		createKeyFigure('.figures', 'GHRP Requirement (COVID-19)', '', formatValue(worldData['#value+covid+funding+ghrp+required+usd']));
 		createKeyFigure('.figures', 'Funding Coverage', '', percentFormat(worldData['#value+funding+pct']));
 		createKeyFigure('.figures', 'Countries Affected', '', nationalData.length);
 		//createSource(globalFigures, '#affected+inneed');
