@@ -1100,7 +1100,6 @@ function setSelect(id, valueToSelect) {
   element.value = valueToSelect;
 }
 function setGlobalFigures() {
-	console.log('setGlobalFigures', currentIndicator.id)
 	var globalFigures = $('.global-figures');
 	globalFigures.find('.figures, .source').empty();
 	if (currentIndicator.id=='#affected+inneed+pct') {
@@ -1113,9 +1112,9 @@ function setGlobalFigures() {
 	else if (currentIndicator.id=='#value+funding+hrp+pct') {
 		globalFigures.find('h2').text('Humanitarian Funding Overview');
 		var totalPIN = d3.sum(nationalData, function(d) { return +d['#affected+inneed']; });
-		createKeyFigure('.figures', 'Total Funding Required', '', formatValue(globalData['#value+funding+required+usd'], false));
-		createKeyFigure('.figures', 'GHRP Requirement (COVID-19)', '', formatValue(globalData['#value+covid+funding+ghrp+required+usd'], false));
-		createKeyFigure('.figures', 'Funding Coverage', '', percentFormat(globalData['#value+funding+pct']));
+		createKeyFigure('.figures', 'Total Funding Required', '', formatValue(worldData['#value+funding+required+usd'], false));
+		createKeyFigure('.figures', 'GHRP Requirement (COVID-19)', '', formatValue(worldData['#value+covid+funding+ghrp+required+usd'], false));
+		createKeyFigure('.figures', 'Funding Coverage', '', percentFormat(worldData['#value+funding+pct']));
 		createKeyFigure('.figures', 'Countries Affected', '', nationalData.length);
 		//createSource(globalFigures, '#affected+inneed');
 	}
@@ -1346,7 +1345,7 @@ function initGlobalLayer() {
 
     //covid markers
     var covidVal = d['#affected+infected'];
-    var size = markerScale(covidVal);
+    var size = (covidVal=='') ? 0 : markerScale(covidVal);
     expressionMarkers.push(d['#country+code'], size);
   });
 
@@ -2011,7 +2010,7 @@ var immunizationColorRange = ['#CCE5F9','#99CBF3','#66B0ED','#3396E7','#027CE1']
 var foodPricesColor = '#3B97E1';
 var colorDefault = '#F2F2EF';
 var colorNoData = '#FFF';
-var nationalData, subnationalData, globalData, vaccinationData, timeseriesData, dataByCountry, colorScale, currentCountry, currentCountryName = '';
+var worldData, nationalData, subnationalData, vaccinationData, timeseriesData, dataByCountry, colorScale, currentCountry, currentCountryName = '';
 var mapLoaded = false;
 var dataLoaded = false;
 
@@ -2062,9 +2061,8 @@ $( document ).ready(function() {
   function getData() {
     console.log('Loading data...')
     Promise.all([
-      d3.json('https://raw.githubusercontent.com/alexandru-m-g/covid-viz-bundler/master/out.json'),
-      d3.csv(timeseriesPath),
-      //d3.json('https://proxy.hxlstandard.org/data.objects.json?dest=data_view&url=https%3A%2F%2Fdocs.google.com%2Fspreadsheets%2Fd%2Fe%2F2PACX-1vT9_g7AItbqJwDkPi55VyVhqOdB81c3FePhqAoFlIL9160mxqtqg-OofaoTZtdq39BATa37PYQ4813k%2Fpub%3Fgid%3D1260889797%26single%3Dtrue%26output%3Dcsv')
+      d3.json('https://raw.githubusercontent.com/OCHA-DAP/hdx-scraper-covid-viz/master/out.json'),
+      d3.csv(timeseriesPath)
     ]).then(function(data) {
       console.log('Data loaded')
       $('.loader span').text('Initializing map...');
@@ -2072,20 +2070,13 @@ $( document ).ready(function() {
       //parse data
       var allData = data[0];
       timeseriesData = data[1];
-      globalData = {
-        "#value+covid+funding+ghrp+pct": "0.17",
-        "#value+covid+funding+ghrp+required+usd": "6817174418",
-        "#value+covid+funding+ghrp+total+usd": "1186917591",
-        "#value+funding+pct": "0.17",
-        "#value+funding+required+usd": "36868246454",
-        "#value+funding+total+usd": "6273967926"
-      };
-
+      worldData = allData.world_data[0];
       nationalData = allData.national_data;
       subnationalData = allData.subnational_data;
       sourcesData = allData.sources_data;
       vaccinationData = allData.vaccination_campaigns_data;
 
+      console.log(worldData)
       //format data
       nationalData.forEach(function(item) {
         //create list of priority countries
@@ -2141,7 +2132,7 @@ $( document ).ready(function() {
         item['#affected+inneed+pct'] = item['#affected+inneed']/popDataByCountry[item['#country+code']];
       })
 
-      // console.log(nationalData)
+      console.log(nationalData)
       // console.log(subnationalData)
 
       dataLoaded = true;
