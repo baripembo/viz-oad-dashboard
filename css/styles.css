@@ -1332,7 +1332,8 @@ a:visited {
   .content.country-view .country-label,
   .content.country-view .map-legend.global,
   .content.country-view .global-menu,
-  .content.country-view .global-figures {
+  .content.country-view .global-figures,
+  .content.country-view .layer-description {
     display: none; }
   .content.country-view .map-legend.country {
     left: 40px;
@@ -1342,12 +1343,14 @@ a:visited {
     display: block; }
   .content.food-prices-view .map-legend.global,
   .content.food-prices-view .count-marker,
-  .content.food-prices-view .global-figures {
+  .content.food-prices-view .global-figures, .content.travel-restrictions-view .map-legend.global,
+  .content.travel-restrictions-view .count-marker,
+  .content.travel-restrictions-view .global-figures {
     display: none; }
-  .content.food-prices-view .food-prices-description {
+  .content.food-prices-view .layer-description, .content.travel-restrictions-view .layer-description {
     display: block; }
 
-.food-prices-description {
+.layer-description {
   background-color: #FFF;
   display: none;
   left: 40px;
@@ -1356,6 +1359,18 @@ a:visited {
   top: 120px;
   width: 240px;
   z-index: 1; }
+  .layer-description .description-source {
+    padding-top: 10px; }
+  .layer-description .description-content {
+    padding-top: 5px; }
+    .layer-description .description-content .title {
+      padding-top: 30px; }
+    .layer-description .description-content p {
+      margin: 0; }
+    .layer-description .description-content a {
+      font-family: 'Source Sans Pro', sans-serif;
+      font-size: 14px;
+      text-decoration: none; }
 
 .modal-bg-overlay {
   background-color: rgba(51, 51, 51, 0.7);
