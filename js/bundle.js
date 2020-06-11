@@ -1354,7 +1354,7 @@ function initGlobalLayer() {
   var expressionMarkers = ['match', ['get', 'ISO_3']];
   nationalData.forEach(function(d) {
     var val = d[currentIndicator.id];
-    var color = (val<0 || val=='') ? colorNoData : colorScale(val);
+    var color = (val<=0 || val=='' || isNaN(val)) ? colorNoData : colorScale(val);
     expression.push(d['#country+code'], color);
 
     //covid markers
@@ -1381,7 +1381,6 @@ function initGlobalLayer() {
   setGlobalFigures();
 }
 
-var hoveredStateId = null;
 function handleGlobalEvents(layer) {
   map.on('mouseenter', globalLayer, function(e) {
     map.getCanvas().style.cursor = 'pointer';
@@ -2158,7 +2157,7 @@ $( document ).ready(function() {
         if (item['#country+name']=='State of Palestine') item['#country+name'] = 'occupied Palestinian territory';
 
         //calculate and inject PIN percentage
-        item['#affected+inneed+pct'] = item['#affected+inneed']/popDataByCountry[item['#country+code']];
+        item['#affected+inneed+pct'] = (item['#affected+inneed']!='') ? item['#affected+inneed']/popDataByCountry[item['#country+code']] : 0;
 
         //tally countries with cerf and cbpf data
         if (item['#value+cerf+covid+funding+total+usd']!='') numCERF++;
