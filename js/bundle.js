@@ -1133,7 +1133,7 @@ function setGlobalFigures() {
 	if (currentIndicator.id=='#affected+inneed+pct') {
 		globalFigures.find('h2').text('People in Need');
 		var totalPIN = d3.sum(nationalData, function(d) { return +d['#affected+inneed']; });
-		createKeyFigure('.figures', 'Number of People in Need', 'pin', (d3.format('.4s'))(totalPIN));
+		createKeyFigure('.figures', 'Total Number of People in Need', 'pin', (d3.format('.4s'))(totalPIN));
 		createKeyFigure('.figures', 'Number of Countries', '', nationalData.length);
 		createSource(globalFigures, '#affected+inneed');
 	}
@@ -1148,13 +1148,13 @@ function setGlobalFigures() {
 	}
 	else if (currentIndicator.id=='#value+cerf+covid+funding+total+usd') {
 		globalFigures.find('h2').text('CERF COVID-19 Allocations Overview');
-		createKeyFigure('.figures', 'CERF COVID-19 Funding', '', formatValue(worldData['#value+cerf+covid+funding+global+usd']));
+		createKeyFigure('.figures', 'Total CERF COVID-19 Funding', '', formatValue(worldData['#value+cerf+covid+funding+global+usd']));
 		createKeyFigure('.figures', 'Number of Countries', '', worldData.numCERFCountries);
 		createSource(globalFigures, '#value+cerf+covid+funding+total+usd');
 	}
 	else if (currentIndicator.id=='#value+cbpf+covid+funding+total+usd') {
 		globalFigures.find('h2').text('CBPF COVID-19 Allocations Overview');
-		createKeyFigure('.figures', 'CBPF COVID-19 Funding', '', formatValue(worldData['#value+cbpf+covid+funding+global+usd']));
+		createKeyFigure('.figures', 'Total CBPF COVID-19 Funding', '', formatValue(worldData['#value+cbpf+covid+funding+global+usd']));
 		createKeyFigure('.figures', 'Number of Countries', '', worldData.numCBPFCountries);
 		createSource(globalFigures, '#value+cbpf+covid+funding+total+usd');
 	}
@@ -1162,8 +1162,8 @@ function setGlobalFigures() {
 		//global figures
 		var totalCases = d3.sum(nationalData, function(d) { return d['#affected+infected']; });
 		var totalDeaths = d3.sum(nationalData, function(d) { return d['#affected+killed']; });
-		globalFigures.find('h2').text('COVID-19 Pandemic in 25 HRP Locations');
-		createKeyFigure('.figures', 'Total Confirmed Cases', 'cases', numFormat(totalCases));
+		globalFigures.find('h2').text('COVID-19 Pandemic in '+ nationalData.length +' GHRP Locations');
+		createKeyFigure('.figures', 'Total Confirmed Cases', 'cases', shortenNumFormat(totalCases));
 		createKeyFigure('.figures', 'Total Confirmed Deaths', 'deaths', numFormat(totalDeaths));
 		createSource(globalFigures, '#affected+infected');
 	}
@@ -1939,13 +1939,13 @@ function createMapTooltip(country_code, country_name) {
       if (currentIndicator.id=='#severity+economic+num' || currentIndicator.id.indexOf('funding+total+usd')>-1) val = shortenNumFormat(val);
     }
     else {
-      val = 'No Data';
+      val = (currentIndicator.id=='#affected+inneed+pct') ? 'NA' : 'No Data';
     }
     var content = '<h2>' + country_name + '</h2>'+ currentIndicator.name + ':<div class="stat">' + val + '</div>';
 
     //PIN layer shows refugees and IDPs
     if (currentIndicator.id=='#affected+inneed+pct') {
-      content += '<div class="pins">Refugees: XXX' + '<br/>IDPs: XXX</div>';
+      content += '<div class="pins">Refugees: '+ numFormat(country[0]['#affected+refugees']) +'<br/>IDPs: '+ numFormat(country[0]['#affected+displaced']) +'</div>';
     }
 
     //covid cases and deaths
@@ -2181,8 +2181,8 @@ $( document ).ready(function() {
         if (item['#country+name']=='State of Palestine') item['#country+name'] = 'occupied Palestinian territory';
 
         //calculate and inject PIN percentage
-        item['#affected+inneed+pct'] = (item['#affected+inneed']=='' || isNaN(item['#affected+inneed'])) ? 0 : item['#affected+inneed']/popDataByCountry[item['#country+code']];
-
+        item['#affected+inneed+pct'] = (item['#affected+inneed']=='' || popDataByCountry[item['#country+code']]==undefined) ? '' : item['#affected+inneed']/popDataByCountry[item['#country+code']];
+       
         //tally countries with cerf and cbpf data
         if (item['#value+cerf+covid+funding+total+usd']!='') numCERF++;
         if (item['#value+cbpf+covid+funding+total+usd']!='') numCBPF++;
