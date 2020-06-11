@@ -1209,7 +1209,7 @@ function initMap() {
   console.log('Loading map...')
   map = new mapboxgl.Map({
     container: 'global-map',
-    style: 'mapbox://styles/humdata/ckb843tjb46fy1ilaw49redy7/draft',
+    style: 'mapbox://styles/humdata/ckb843tjb46fy1ilaw49redy7',
     center: [10, 6],
     minZoom: 1,
     zoom: 2,
