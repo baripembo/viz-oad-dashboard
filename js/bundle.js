@@ -1099,6 +1099,34 @@ function setSelect(id, valueToSelect) {
   let element = document.getElementById(id);
   element.value = valueToSelect;
 }
+
+const countryCodeList = [
+  'AFG',
+  'BDI',
+  'BFA',
+  'CAF',
+  'CMR',
+  'COD',
+  'COL',
+  'ETH',
+  'HTI',
+  'IRQ',
+  'LBY',
+  'MLI',
+  'MMR',
+  'NER',
+  'NGA',
+  'PSE',
+  'SDN',
+  'SOM',
+  'SSD',
+  'SYR',
+  'TCD',
+  'UKR',
+  'VEN',
+  'YEM',
+  'ZWE'
+];
 function setGlobalFigures() {
 	var globalFigures = $('.global-figures');
 	globalFigures.find('.figures, .source').empty();
@@ -1176,11 +1204,12 @@ function getSource(indicator) {
 
 
 var map, mapFeatures, globalLayer, globalLabelLayer, globalMarkerLayer, countryLayer, countryBoundaryLayer, countryLabelLayer, countryMarkerLayer, tooltip, markerScale, countryMarkerScale;
+var adm0SourceLayer = '63_polbnda_int_uncs-29lk4r';
 function initMap() {
   console.log('Loading map...')
   map = new mapboxgl.Map({
     container: 'global-map',
-    style: 'mapbox://styles/humdata/ckb843tjb46fy1ilaw49redy7',
+    style: 'mapbox://styles/humdata/ckb843tjb46fy1ilaw49redy7/draft',
     center: [10, 6],
     minZoom: 1,
     zoom: 2,
@@ -1216,7 +1245,7 @@ function displayMap() {
       case 'adm0-label':
         globalLabelLayer = layer.id;
         break;
-      case 'hrp25-centroid-int-uncs':
+      case 'adm0-centroids':
         globalMarkerLayer = layer.id;
         break;
       case 'adm1-fills':
@@ -1275,7 +1304,7 @@ function matchMapFeatures(country_code) {
   //loop through mapFeatures to find matches to currentCountry.code
   var selectedFeatures = [];
   mapFeatures.forEach(function(feature) {
-    if (feature.sourceLayer=='hrp25_polbnda_int_15m_uncs' && feature.properties.ISO_3==currentCountry.code) {
+    if (feature.sourceLayer==adm0SourceLayer && feature.properties.ISO_3==currentCountry.code) {
       selectedFeatures.push(feature)
     }
   });
@@ -1397,7 +1426,7 @@ function handleGlobalEvents(layer) {
       var features = map.queryRenderedFeatures(e.point, { layers: [globalLayer, globalLabelLayer, globalMarkerLayer] });
       var target;
       features.forEach(function(feature) {
-        if (feature.sourceLayer=='hrp25_polbnda_int_15m_uncs')
+        if (feature.sourceLayer==adm0SourceLayer)
           target = feature;
       });
       if (target!=undefined) {
@@ -1417,7 +1446,7 @@ function handleGlobalEvents(layer) {
     var features = map.queryRenderedFeatures(e.point, { layers: [globalLayer, globalLabelLayer, globalMarkerLayer] });
     var target;
     features.forEach(function(feature) {
-      if (feature.sourceLayer=='hrp25_polbnda_int_15m_uncs')
+      if (feature.sourceLayer==adm0SourceLayer)
         target = feature;
     });
   
@@ -1698,7 +1727,7 @@ function updateCountryLayer() {
     var color, layerOpacity, markerSize;
     if (d['#country+code']==currentCountry.code) {
       var val = +d[currentCountryIndicator.id];
-      color = (val<0 || val==' ' || isNaN(val)) ? colorNoData : countryColorScale(val);
+      color = (val<0 || val=='') ? colorNoData : countryColorScale(val);
       layerOpacity = 1;
 
       //health facility markers
@@ -2070,10 +2099,8 @@ var worldData, nationalData, subnationalData, vaccinationData, timeseriesData, d
 var mapLoaded = false;
 var dataLoaded = false;
 
-var countryCodeList = [];
 var currentIndicator = {};
 var currentCountryIndicator = {};
-var accessLabels = {};
 var popDataByCountry = {};
 var currentCountry = {};
 
@@ -2150,14 +2177,11 @@ $( document ).ready(function() {
       var numCERF = 0;
       var numCBPF = 0;
       nationalData.forEach(function(item) {
-        //create list of priority countries
-        countryCodeList.push(item['#country+code']);
-
         //normalize PSE name
         if (item['#country+name']=='State of Palestine') item['#country+name'] = 'occupied Palestinian territory';
 
         //calculate and inject PIN percentage
-        item['#affected+inneed+pct'] = (item['#affected+inneed']!='') ? item['#affected+inneed']/popDataByCountry[item['#country+code']] : 0;
+        item['#affected+inneed+pct'] = (item['#affected+inneed']=='' || isNaN(item['#affected+inneed'])) ? 0 : item['#affected+inneed']/popDataByCountry[item['#country+code']];
 
         //tally countries with cerf and cbpf data
         if (item['#value+cerf+covid+funding+total+usd']!='') numCERF++;
@@ -2174,7 +2198,7 @@ $( document ).ready(function() {
         .object(nationalData);
 
       //filter for priority countries
-      vaccinationData = vaccinationData.filter((row) => countryCodeList.includes(row['#country+code']));
+      //vaccinationData = vaccinationData.filter((row) => countryCodeList.includes(row['#country+code']));
 
       //group vaccination data by country    
       vaccinationDataByCountry = d3.nest()
@@ -2207,10 +2231,11 @@ $( document ).ready(function() {
   }
 
   function initView() {
-    //create country select 
+    //create country select
+    var hrpData = nationalData.filter((row) => countryCodeList.includes(row['#country+code']));
     var countrySelect = d3.select('.country-select')
       .selectAll('option')
-      .data(nationalData)
+      .data(hrpData)
       .enter().append('option')
         .text(function(d) { return d['#country+name']; })
         .attr('value', function (d) { return d['#country+code']; });
