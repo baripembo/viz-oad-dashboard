@@ -1234,11 +1234,11 @@ main {
   transition: 0.5s all ease; }
 
 h1 {
-  font-family: 'Gotham Bold', sans-serif;
+  font-family: 'Gotham-Bold', sans-serif;
   font-size: 16px;
   font-weight: normal;
   line-height: 18px;
-  padding: 15px 20px; }
+  padding: 15px 5px 15px 20px; }
 
 h2 {
   font-family: 'Gotham-Bold', sans-serif;
@@ -1289,6 +1289,9 @@ h6 {
   margin: 0; }
   .small.source {
     margin-top: 2px; }
+
+.subtext {
+  color: #888; }
 
 .stat {
   font-family: 'Gotham-Light', sans-serif;
@@ -1407,7 +1410,7 @@ a:visited {
   display: flex;
   flex-flow: column;
   margin-top: auto;
-  padding-bottom: 15px; }
+  padding: 20px 0; }
   .logos img {
     margin-top: 12px; }
 
@@ -1643,7 +1646,11 @@ circle.swatch {
       margin-bottom: 10px; }
     .mapboxgl-popup.map-tooltip .mapboxgl-popup-content .stat {
       font-size: 32px;
-      margin: 15px 0; }
+      margin: 15px 0;
+      position: relative; }
+      .mapboxgl-popup.map-tooltip .mapboxgl-popup-content .stat > svg {
+        left: 85px;
+        position: absolute; }
     .mapboxgl-popup.map-tooltip .mapboxgl-popup-content .cases {
       color: #888; }
     .mapboxgl-popup.map-tooltip .mapboxgl-popup-content .pins {
@@ -1781,6 +1788,12 @@ table {
     padding-left: 6px; }
   .c3-tooltip td > span {
     display: none; }
+
+.sparkline {
+  fill: none;
+  margin-left: 6px;
+  stroke: #007CE1;
+  stroke-width: 1px; }
 
 .mobile-message {
   background-color: rgba(0, 0, 0, 0.5);
