@@ -1352,6 +1352,11 @@ a:visited {
     display: none; }
   .content.food-prices-view .layer-description, .content.travel-restrictions-view .layer-description {
     display: block; }
+    .content.food-prices-view .layer-description svg, .content.travel-restrictions-view .layer-description svg {
+      height: 33px;
+      width: 200px; }
+  .content.travel-restrictions-view .description-legend {
+    display: none; }
 
 .layer-description {
   background-color: #FFF;
@@ -1374,6 +1379,9 @@ a:visited {
       font-family: 'Source Sans Pro', sans-serif;
       font-size: 14px;
       text-decoration: none; }
+  .layer-description .description-legend {
+    display: block;
+    margin-top: 10px; }
 
 .modal-bg-overlay {
   background-color: rgba(51, 51, 51, 0.7);
@@ -1404,6 +1412,9 @@ a:visited {
   position: absolute;
   right: 20px;
   top: 18px; }
+
+.hdx-logo {
+  padding-left: 15px; }
 
 .logos {
   align-items: center;
@@ -1565,6 +1576,9 @@ a:visited {
       height: 83px; }
       .map-legend.global .legend-container.vaccination-campaign {
         height: 32px; }
+    .map-legend.global .source-secondary {
+      margin-bottom: 10px;
+      margin-top: -8px; }
   .map-legend.country {
     height: auto;
     left: -215px;
@@ -1632,7 +1646,7 @@ circle.swatch {
   display: none; }
 
 .mapboxgl-popup.map-tooltip {
-  max-width: 270px;
+  max-width: 250px !important;
   z-index: 4; }
   .mapboxgl-popup.map-tooltip .mapboxgl-popup-content {
     border-radius: 8px;
@@ -1649,12 +1663,11 @@ circle.swatch {
       margin: 15px 0;
       position: relative; }
       .mapboxgl-popup.map-tooltip .mapboxgl-popup-content .stat > svg {
-        left: 85px;
+        left: 110px;
         position: absolute; }
     .mapboxgl-popup.map-tooltip .mapboxgl-popup-content .cases {
-      color: #888; }
-    .mapboxgl-popup.map-tooltip .mapboxgl-popup-content .pins {
-      padding-bottom: 10px; }
+      color: #888;
+      margin-top: 10px; }
 
 table {
   font-size: 12px;
@@ -1788,6 +1801,9 @@ table {
     padding-left: 6px; }
   .c3-tooltip td > span {
     display: none; }
+
+.c3-focused .c3-lines .c3-line {
+  stroke: #007CE1 !important; }
 
 .sparkline {
   fill: none;
