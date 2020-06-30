@@ -247,6 +247,7 @@ function createTimeseriesLegend(chart, div, country) {
 
 function updateTimeseries(data, selected) {
   if (selected=='Syrian Arab Republic') selected = 'Syria';
+  if (selected=='Venezuela (Bolivarian Republic of)') selected = 'Venezuela';
 
   countryTimeseriesChart.focus(selected);
   $('.c3-chart-lines .c3-line').css('stroke', '#999');
@@ -1997,14 +1998,15 @@ function updateCountryLayer() {
     if (map.getLayer(id+'-popdensity'))
       map.setLayoutProperty(id+'-popdensity', 'visibility', 'none');
   });
-  //show current raster
+
+  //set properties
   if (currentCountryIndicator.id=='#population') {
     var id = currentCountry.code.toLowerCase();
     map.setLayoutProperty(id+'-popdensity', 'visibility', 'visible');
   }
-
-  //set properties
-  map.setPaintProperty(countryLayer, 'fill-color', expression);
+  else {
+    map.setPaintProperty(countryLayer, 'fill-color', expression);
+  }
   map.setPaintProperty(countryBoundaryLayer, 'line-opacity', expressionOpacity);
   map.setPaintProperty(countryBoundaryLayer, 'line-color', expressionBoundary);
   map.setPaintProperty(countryLabelLayer, 'text-opacity', expressionOpacity);
