@@ -1371,13 +1371,6 @@ function displayMap() {
       case 'adm0-fills':
         globalLayer = layer.id;
 
-        // map.setPaintProperty(globalLayer, 'fill-opacity', [
-        //   'case',
-        //   ['boolean', ['feature-state', 'hover'], false],
-        //   1,
-        //   0.5
-        // );
-
         map.setFeatureState(
           { source: 'composite', sourceLayer: adm0SourceLayer, id: globalLayer },
           { hover: false }
@@ -1411,30 +1404,6 @@ function displayMap() {
   });
 
   mapFeatures = map.queryRenderedFeatures();
-
-  //load pop density rasters
-  var countryList = Object.keys(countryCodeList);
-  countryList.forEach(function(country_code) {
-    var id = country_code.toLowerCase();
-    var raster = countryCodeList[country_code];
-    if (raster!='') {
-      map.addSource(id+'-pop-tileset', {
-        type: 'raster',
-        url: 'mapbox://humdata.'+raster
-      });
-
-      map.addLayer(
-        {
-          'id': id+'-popdensity',
-          'type': 'raster',
-          'source': id+'-pop-tileset'
-        },
-        countryBoundaryLayer
-      );
-
-      map.setLayoutProperty(id+'-popdensity', 'visibility', 'none');
-    }
-  });
 
   //country select event
   d3.select('.country-select').on('change',function(e) {
@@ -1554,6 +1523,31 @@ function selectCountry(features) {
   });
 
   map.once('moveend', initCountryView);
+
+  //load pop density rasters
+  var id = currentCountry.code.toLowerCase();
+  var raster = countryCodeList[currentCountry.code];
+
+  if (raster!='') {
+    map.addSource(id+'-pop-tileset', {
+      type: 'raster',
+      url: 'mapbox://humdata.'+raster,
+      bounds: bbox
+    });
+
+    map.addLayer(
+      {
+        'id': id+'-popdensity',
+        'type': 'raster',
+        'source': id+'-pop-tileset'
+      },
+      countryBoundaryLayer
+    );
+
+    map.setLayoutProperty(id+'-popdensity', 'visibility', 'none');
+  }
+
+  //track mixpanel event
   mpTrack(currentCountry.code, currentCountryIndicator.name);
 }
 
@@ -1966,8 +1960,13 @@ function updateCountryLayer() {
     if (d['#country+code']==currentCountry.code) {
       var val = +d[currentCountryIndicator.id];
       color = (val<0 || val=='' || isNaN(val)) ? colorNoData : countryColorScale(val);
-      boundaryColor = (currentCountryIndicator.id=='#population') ? '#FFF' : '#E0E0E0';
+      boundaryColor = '#E0E0E0';
       layerOpacity = 1;
+
+      if (currentCountryIndicator.id=='#population') {
+        boundaryColor = '#FFF';
+        color = colorDefault;
+      }
 
       //health facility markers
       // var healthVal = (currentCountryIndicator.id=='#loc+count+health') ? d['#loc+count+health'] : 0;
@@ -1998,15 +1997,14 @@ function updateCountryLayer() {
     if (map.getLayer(id+'-popdensity'))
       map.setLayoutProperty(id+'-popdensity', 'visibility', 'none');
   });
-
-  //set properties
+  //show current raster
   if (currentCountryIndicator.id=='#population') {
     var id = currentCountry.code.toLowerCase();
     map.setLayoutProperty(id+'-popdensity', 'visibility', 'visible');
   }
-  else {
-    map.setPaintProperty(countryLayer, 'fill-color', expression);
-  }
+
+  //set properties
+  map.setPaintProperty(countryLayer, 'fill-color', expression);
   map.setPaintProperty(countryBoundaryLayer, 'line-opacity', expressionOpacity);
   map.setPaintProperty(countryBoundaryLayer, 'line-color', expressionBoundary);
   map.setPaintProperty(countryLabelLayer, 'text-opacity', expressionOpacity);
