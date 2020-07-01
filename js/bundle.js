@@ -1517,6 +1517,7 @@ function selectCountry(features) {
   map.setLayoutProperty(countryMarkerLayer, 'visibility', 'visible');
 
   var bbox = turf.bbox(turf.featureCollection(features));
+  console.log('national bbox', bbox)
   var offset = 50;
   map.fitBounds(bbox, {
     padding: {left: $('.map-legend.country').outerWidth()+offset+10, right: $('.country-panel').outerWidth()+offset},
@@ -1530,11 +1531,22 @@ function selectCountry(features) {
   var raster = countryCodeList[currentCountry.code];
 
   if (raster!='') {
-    map.addSource(id+'-pop-tileset', {
-      type: 'raster',
-      url: 'mapbox://humdata.'+raster,
-      bounds: bbox
-    });
+    var rasterFeatures = [{ "type": "Feature", "properties": { "MINX": 13.473749961, "MINY": 7.441250172, "MAXX": 24.002916586000001, "MAXY": 23.450416775000001, "CNTX": 18.7383332735, "CNTY": 15.4458334735 }, "bbox": [ 1499890.98473441042006, 830694.742037164280191, 2671992.451906941831112, 2686580.574456987436861 ], "geometry": { "type": "Polygon", "coordinates": [ [ [ 1499890.98473441042006, 830694.742037164280191 ], [ 2671992.451906941831112, 830694.742037164280191 ], [ 2671992.451906941831112, 2686580.574456987436861 ], [ 1499890.98473441042006, 2686580.574456987436861 ], [ 1499890.98473441042006, 830694.742037164280191 ] ] ] } }];
+    var rasterBbox = [ 13.473749961, 7.441250172, 24.002916586, 23.450416775 ];//turf.bbox(turf.featureCollection(rasterFeatures));
+    
+    if (id=='tcd') {
+      map.addSource(id+'-pop-tileset', {
+        type: 'raster',
+        url: 'mapbox://humdata.'+raster,
+        bounds: rasterBbox
+      });
+    }
+    else {
+      map.addSource(id+'-pop-tileset', {
+        type: 'raster',
+        url: 'mapbox://humdata.'+raster
+      });
+    }
 
     map.addLayer(
       {
