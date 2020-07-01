@@ -1517,7 +1517,6 @@ function selectCountry(features) {
   map.setLayoutProperty(countryMarkerLayer, 'visibility', 'visible');
 
   var bbox = turf.bbox(turf.featureCollection(features));
-  console.log('national bbox', bbox)
   var offset = 50;
   map.fitBounds(bbox, {
     padding: {left: $('.map-legend.country').outerWidth()+offset+10, right: $('.country-panel').outerWidth()+offset},
@@ -1535,6 +1534,8 @@ function selectCountry(features) {
     var rasterBbox = [ 13.473749961, 7.441250172, 24.002916586, 23.450416775 ];//turf.bbox(turf.featureCollection(rasterFeatures));
     
     if (id=='tcd') {
+  console.log('national bbox', bbox)
+  console.log('raster bbox', rasterBbox)
       map.addSource(id+'-pop-tileset', {
         type: 'raster',
         url: 'mapbox://humdata.'+raster,
