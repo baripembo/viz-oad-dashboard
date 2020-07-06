@@ -377,10 +377,14 @@ function createRankingChart() {
 
   var valueMax = d3.max(rankingData, function(d) { return +d.value; });
   
-  var valueFormat;
-  if (indicator.indexOf('pct')>-1) valueFormat = percentFormat;
-  else if (indicator.indexOf('funding')>-1) valueFormat = formatValue;
-  else valueFormat = d3.format(',.2r')
+  var valueFormat = d3.format(',.2r');
+  if (indicator.indexOf('funding')>-1 || indicator.indexOf('gdp')>-1) {
+    valueFormat = formatValue;
+    rankingData.reverse();
+  }
+  if (indicator.indexOf('pct')>-1) {
+    valueFormat = percentFormat;
+  }
 
   //console.log(rankingData);
 
