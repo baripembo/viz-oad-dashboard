@@ -1335,7 +1335,6 @@ a:visited {
   .content.country-view .description,
   .content.country-view .country-label,
   .content.country-view .map-legend.global,
-  .content.country-view .global-menu,
   .content.country-view .global-figures,
   .content.country-view .layer-description {
     display: none; }
@@ -1344,8 +1343,8 @@ a:visited {
     right: 24px;
     opacity: 1;
     z-index: 3; }
-  .content.country-view .country-menu {
-    display: block; }
+  .content.country-view .country-panel {
+    left: 0; }
   .content.food-prices-view .map-legend.global,
   .content.food-prices-view .count-marker, .content.travel-restrictions-view .map-legend.global,
   .content.travel-restrictions-view .count-marker {
@@ -1438,9 +1437,6 @@ a:visited {
 
 .menu .global-menu {
   display: block; }
-
-.menu .country-menu {
-  display: none; }
 
 .menu-indicators li {
   color: #888;
@@ -1737,15 +1733,18 @@ table {
 
 .country-panel {
   background-color: #FFF;
-  bottom: 30px;
-  display: none;
+  bottom: 0;
   overflow: scroll;
-  padding: 0 30px 30px;
+  padding: 12px 30px 30px;
   position: absolute;
-  top: 30px;
-  left: 40px;
+  top: 0;
+  left: -416px;
   width: 416px;
-  z-index: 1; }
+  z-index: 3;
+  transition: left 0.3s ease-out; }
+  .country-panel .hdx-logo,
+  .country-panel h1 {
+    padding-left: 0; }
   .country-panel .panel-header {
     background-color: #FFF;
     padding: 30px 0 15px;

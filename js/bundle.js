@@ -392,7 +392,7 @@ function createRankingChart() {
   var barPadding = 9;
 
   //determine height available for chart
-  var availSpace = window.innerHeight - $('.ranking-chart').position().top - 40;
+  var availSpace = viewportHeight - $('.ranking-chart').position().top - 40;
   var numRows = Math.floor(availSpace/(rankingBarHeight+barPadding));
   var rankingChartHeight = ((rankingBarHeight+barPadding) * numRows) + 14;
   $('.ranking-chart').css('height', rankingChartHeight);
@@ -1642,7 +1642,7 @@ function createEvents() {
   });
   
   //back to global event
-  $('.country-menu h2').on('click', function() {
+  $('.country-panel h2').on('click', function() {
     resetMap();
   });
 
@@ -1718,7 +1718,7 @@ function selectCountry(features) {
   var bbox = turf.bbox(turf.featureCollection(features));
   var offset = 50;
   map.fitBounds(bbox, {
-    padding: {left: $('.country-panel').outerWidth()+offset+10, right: $('.map-legend.country').outerWidth()+offset},
+    padding: {left: ($('.country-panel').outerWidth() - $('.content-left').outerWidth()) + offset, right: $('.map-legend.country').outerWidth()+offset},
     linear: true
   });
 
@@ -2073,7 +2073,7 @@ function initCountryView() {
   $('.content').removeClass('food-prices-view');
   $('.content').removeClass('travel-restrictions-view');
   $('.content').addClass('country-view');
-  $('.country-panel').show().scrollTop(0);
+  $('.country-panel').scrollTop(0);
 
   initCountryPanel();
 }
@@ -2507,7 +2507,6 @@ function resetMap() {
   map.setLayoutProperty(countryLayer, 'visibility', 'none');
   map.setLayoutProperty(countryLabelLayer, 'visibility', 'none');
   $('.content').removeClass('country-view');
-  $('.country-panel').fadeOut();
   setSelect('countrySelect', '');
 
   if (currentIndicator.id=='#food-prices') {
@@ -2606,7 +2605,7 @@ var foodPricesColor = '#007CE1';
 var travelColor = '#F2645A';//'#6EB4ED'
 var colorDefault = '#F2F2EF';
 var colorNoData = '#FFF';
-var worldData, nationalData, subnationalData, vaccinationData, timeseriesData, covidTrendData, dataByCountry, colorScale = '';
+var worldData, nationalData, subnationalData, vaccinationData, timeseriesData, covidTrendData, dataByCountry, colorScale, viewportWidth, viewportHeight = '';
 var mapLoaded = false;
 var dataLoaded = false;
 
@@ -2622,8 +2621,9 @@ $( document ).ready(function() {
   var timeseriesPath = 'https://proxy.hxlstandard.org/api/data-preview.csv?url=https%3A%2F%2Fdocs.google.com%2Fspreadsheets%2Fd%2Fe%2F2PACX-1vS23DBKc8c39Aq55zekL0GCu4I6IVnK4axkd05N6jUBmeJe9wA69s3CmMUiIvAmPdGtZPBd-cLS9YwS%2Fpub%3Fgid%3D1253093254%26single%3Dtrue%26output%3Dcsv';
   mapboxgl.accessToken = 'pk.eyJ1IjoiaHVtZGF0YSIsImEiOiJja2FvMW1wbDIwMzE2MnFwMW9teHQxOXhpIn0.Uri8IURftz3Jv5It51ISAA';
   var minWidth = 1000;
-  var viewportWidth = (window.innerWidth<minWidth) ? minWidth - $('.content-left').innerWidth() : window.innerWidth - $('.content-left').innerWidth();
-  var viewportHeight = window.innerHeight;
+  viewportWidth = (window.innerWidth<minWidth) ? minWidth - $('.content-left').innerWidth() : window.innerWidth - $('.content-left').innerWidth();
+  console.log(viewportWidth)
+  viewportHeight = window.innerHeight;
   var tooltip = d3.select('.tooltip');
 
 
@@ -2640,7 +2640,7 @@ $( document ).ready(function() {
     $('.global-figures').height(viewportHeight-40);
     $('.content').height(viewportHeight);
     $('.content-right').width(viewportWidth);
-    $('.content-right').css('min-width', viewportWidth);
+    //$('.content-right').css('min-width', viewportWidth);
     if (viewportHeight<696) $('.map-legend.country').height(viewportHeight - parseInt($('.map-legend.country').css('top')) - 60);
 
     //load static map -- will only work for screens smaller than 1280
@@ -2776,9 +2776,7 @@ $( document ).ready(function() {
 
   function initCountryView() {
     $('.content').addClass('country-view');
-    $('.menu h2').html('<a href="#">< Back to Global View</a>');
     $('.country-panel').scrollTop(0);
-    $('.country-panel').show();
     $('#foodSecurity').prop('checked', true);
     currentCountryIndicator = {id: $('input[name="countryIndicators"]:checked').val(), name: $('input[name="countryIndicators"]:checked').parent().text()};
 
