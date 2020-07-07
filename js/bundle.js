@@ -2522,7 +2522,7 @@ function resetMap() {
   map.flyTo({ 
     speed: 2,
     zoom: 2,
-    center: [10, 6] 
+    center: [-25, 6] 
   });
   map.once('moveend', function() {
     map.setLayoutProperty(globalLayer, 'visibility', 'visible');
