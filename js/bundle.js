@@ -1715,7 +1715,8 @@ function selectCountry(features) {
   map.setLayoutProperty(countryLabelLayer, 'visibility', 'visible');
   map.setLayoutProperty(countryMarkerLayer, 'visibility', 'visible');
 
-  var bbox = turf.bbox(turf.featureCollection(features));
+  //fix MMR bug
+  var bbox = (currentCountry.code=='MMR') ? [92.197265625, 9.990490803070287, 101.162109375, 28.555576049185973] : turf.bbox(turf.featureCollection(features));
   var offset = 50;
   map.fitBounds(bbox, {
     padding: {left: ($('.country-panel').outerWidth() - $('.content-left').outerWidth()) + offset, right: $('.map-legend.country').outerWidth()+offset},
@@ -2621,10 +2622,9 @@ $( document ).ready(function() {
   var timeseriesPath = 'https://proxy.hxlstandard.org/api/data-preview.csv?url=https%3A%2F%2Fdocs.google.com%2Fspreadsheets%2Fd%2Fe%2F2PACX-1vS23DBKc8c39Aq55zekL0GCu4I6IVnK4axkd05N6jUBmeJe9wA69s3CmMUiIvAmPdGtZPBd-cLS9YwS%2Fpub%3Fgid%3D1253093254%26single%3Dtrue%26output%3Dcsv';
   mapboxgl.accessToken = 'pk.eyJ1IjoiaHVtZGF0YSIsImEiOiJja2FvMW1wbDIwMzE2MnFwMW9teHQxOXhpIn0.Uri8IURftz3Jv5It51ISAA';
   var minWidth = 1000;
-  viewportWidth = (window.innerWidth<minWidth) ? minWidth - $('.content-left').innerWidth() : window.innerWidth - $('.content-left').innerWidth();
-  console.log(viewportWidth)
-  viewportHeight = window.innerHeight;
   var tooltip = d3.select('.tooltip');
+  viewportWidth = (window.innerWidth<minWidth) ? minWidth - $('.content-left').innerWidth() : window.innerWidth - $('.content-left').innerWidth();
+  viewportHeight = window.innerHeight;
 
 
   function init() {
