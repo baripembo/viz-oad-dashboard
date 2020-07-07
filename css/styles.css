@@ -1344,7 +1344,8 @@ a:visited {
     opacity: 1;
     z-index: 3; }
   .content.country-view .country-panel {
-    left: 0; }
+    left: 0;
+    transition: left 0.4s ease-out; }
   .content.food-prices-view .map-legend.global,
   .content.food-prices-view .count-marker, .content.travel-restrictions-view .map-legend.global,
   .content.travel-restrictions-view .count-marker {
@@ -1648,16 +1649,6 @@ a:visited {
     .map-legend.country .source-container {
       margin-left: 18px; }
 
-#country-map {
-  left: 0;
-  fill: transparent;
-  opacity: 0;
-  position: absolute;
-  top: 0;
-  transition: opacity 0.5s ease; }
-  #country-map .map-regions {
-    stroke: #999; }
-
 .country-label,
 .adm1-label,
 .health-label {
@@ -1741,7 +1732,7 @@ table {
   left: -416px;
   width: 416px;
   z-index: 3;
-  transition: left 0.3s ease-out; }
+  transition: left 0.3s ease-in; }
   .country-panel .hdx-logo,
   .country-panel h1 {
     padding-left: 0; }
