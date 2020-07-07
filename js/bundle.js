@@ -1929,10 +1929,11 @@ function getGlobalColorScale() {
     var reverseRange = colorRange.slice().reverse();
     scale = d3.scaleQuantize().domain([0, max]).range(reverseRange);
   }
-  else if (currentIndicator.id=='#covid+cases') {
+  else if (currentIndicator.id=='#covid+cases+per+capita') {
     var data = [];
     nationalData.forEach(function(d) {
-      data.push(+d[currentIndicator.id]);
+      if (d[currentIndicator.id]!=null)
+        data.push(d[currentIndicator.id]);
     })
     scale = d3.scaleQuantile().domain(data).range(colorRange);
   }
@@ -2048,6 +2049,7 @@ function setGlobalLegend(scale) {
   }
   else {
     var legendFormat = ((currentIndicator.id).indexOf('pct')>-1) ? d3.format('.0%') : shortenNumFormat;
+    if (currentIndicator.id=='#covid+cases+per+capita') legendFormat = d3.format('.1f');
     legend = d3.legendColor()
       .labelFormat(legendFormat)
       .cells(colorRange.length)
@@ -2343,11 +2345,11 @@ function createMapTooltip(country_code, country_name) {
     var content = '<h2>' + country_name + '</h2>';
 
     //COVID trend layer shows sparklines
-    if (currentIndicator.id=='#covid+cases') {
+    if (currentIndicator.id=='#covid+cases+per+capita') {
       // if (val!='No Data') {
       //   val = (val.toFixed(0)<1) ? '<1' : val.toFixed(0);
       // }
-      content += "Weekly number of new cases" + ':<div class="stat covid-cases">' + numFormat(val) + '</div>';
+      content += "Weekly number of new cases" + ':<div class="stat covid-cases">' + numFormat(country[0]['#covid+cases']) + '</div>';
       content += "Weekly number of new deaths" + ':<div class="stat covid-deaths">' + numFormat(country[0]['#covid+deaths']) + '</div>';
       content += "Weekly trend (new cases past week / prior week)" + ':<div class="stat covid-pct">' + percentFormat(country[0]['#covid+trend+pct']) + '</div>';
     }
@@ -2436,7 +2438,7 @@ function createMapTooltip(country_code, country_name) {
     tooltip.setHTML(content);
 
     //COVID cases layer charts -- inject this after divs are created in tooltip
-    if (currentIndicator.id=='#covid+cases' && val!='No Data') {
+    if (currentIndicator.id=='#covid+cases+per+capita' && val!='No Data') {
       //weekly cases sparkline
       var sparklineArray = [];
       covidTrendData[country_code].forEach(function(d) {
@@ -2708,6 +2710,7 @@ $( document ).ready(function() {
         //store covid trend data
         var covidByCountry = covidTrendData[item['#country+code']];
         item['#covid+trend+pct'] = (covidByCountry==undefined) ? null : covidByCountry[covidByCountry.length-1].weekly_new_cases_pc_change/100;
+        item['#covid+cases+per+capita'] = (covidByCountry==undefined) ? null : covidByCountry[covidByCountry.length-1].weekly_new_cases_per_ht;
         item['#covid+cases'] = (covidByCountry==undefined) ? null : covidByCountry[covidByCountry.length-1].weekly_new_cases;
         item['#covid+deaths'] = (covidByCountry==undefined) ? null : covidByCountry[covidByCountry.length-1].weekly_new_deaths;
       })
