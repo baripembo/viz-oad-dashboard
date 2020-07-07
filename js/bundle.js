@@ -356,10 +356,12 @@ function createTrendBarChart(data, div) {
 /*************************/
 /*** RANKING BAR CHART ***/
 /*************************/
+var rankingY, rankingBars, rankingData, rankingBarHeight;
 function createRankingChart() {  
   //set title
   $('.global-figures .ranking-title').text( $('.menu-indicators').find('.selected').attr('data-legend') + ' by country' );
 
+  //use risk index values for INFORM
   var indicator = (currentIndicator.id=='#severity+type') ? '#severity+num' : currentIndicator.id;
 
   //format data
@@ -368,31 +370,36 @@ function createRankingChart() {
     .rollup(function(v) { return v[0][indicator]; })
     .entries(nationalData);
 
-  var rankingData = rankingByCountry.filter(function(item) { 
+  rankingData = rankingByCountry.filter(function(item) { 
     return isVal(item.value) && !isNaN(item.value);
   });
   rankingData.sort(function(a, b){ return d3.descending(+a.value, +b.value); });
 
-  console.log(rankingData);
-
   var valueMax = d3.max(rankingData, function(d) { return +d.value; });
-  
   var valueFormat = d3.format(',.2r');
+  $('.ranking-select').val('descending');
   if (indicator.indexOf('funding')>-1 || indicator.indexOf('gdp')>-1) {
     valueFormat = formatValue;
     rankingData.reverse();
+    $('.ranking-select').val('ascending');
   }
   if (indicator.indexOf('pct')>-1) {
     valueFormat = percentFormat;
   }
 
-  //console.log(rankingData);
-
-  var barHeight = 13;
+  //draw chart
+  rankingBarHeight = 13;
   var barPadding = 9;
+
+  //determine height available for chart
+  var availSpace = window.innerHeight - $('.ranking-chart').position().top - 40;
+  var numRows = Math.floor(availSpace/(rankingBarHeight+barPadding));
+  var rankingChartHeight = ((rankingBarHeight+barPadding) * numRows) + 14;
+  $('.ranking-chart').css('height', rankingChartHeight);
+
   var margin = {top: 0, right: 40, bottom: 15, left: 100},
       width = $('.global-figures').width() - margin.left - margin.right,
-      height = (barHeight + barPadding) * rankingData.length;
+      height = (rankingBarHeight + barPadding) * rankingData.length;
 
   var svg = d3.select('.ranking-chart').append('svg')
     .attr('width', width + margin.left + margin.right)
@@ -404,43 +411,38 @@ function createRankingChart() {
     .range([0, width])
     .domain([0, valueMax]);
 
-  var y = d3.scaleBand()
+  rankingY = d3.scaleBand()
     .range([0, height])
     .domain(rankingData.map(function (d) {
       return d.key;
     }));
 
-  var yAxis = d3.axisLeft(y)
+  var yAxis = d3.axisLeft(rankingY)
     .tickSize(0);
 
   var gy = svg.append('g')
     .attr('class', 'y axis')
     .call(yAxis)
 
-  var bars = svg.selectAll('.bar')
+  rankingBars = svg.selectAll('.bar')
     .data(rankingData)
-    .enter()
-    .append('g')
+    .enter().append('g')
+    .attr('class', 'bar-container')
+    .attr('transform', function(d, i) { return 'translate(1,' + (rankingY(d.key) + rankingBarHeight/2) + ')'; });
 
   //append rects
-  bars.append('rect')
+  rankingBars.append('rect')
     .attr('class', 'bar')
-    .attr('y', function (d) {
-      return y(d.key) + barHeight / 2;
-    })
-    .attr('height', barHeight)
-    .attr('x', 1)
+    .attr('height', rankingBarHeight)
     .attr('width', function (d) {
       return x(d.value);
     });
 
   //add country names
-  bars.append('text')
+  rankingBars.append('text')
     .attr('class', 'name')
     .attr('x', -3)
-    .attr('y', function(d) { 
-      return y(d.key) + (barHeight+barPadding)/2 + 5; 
-    })
+    .attr('y', 9)
     .text(function (d) {
       return truncateString(d.key, 15);
       //return d.key;
@@ -448,11 +450,9 @@ function createRankingChart() {
     //.call(wrap, 100);
 
   //add a value label to the right of each bar
-  bars.append('text')
+  rankingBars.append('text')
     .attr('class', 'label')
-    .attr('y', function (d) {
-      return y(d.key) + (barHeight+barPadding)/2 + 5;
-    })
+    .attr('y', 9)
     .attr('x', function (d) {
       return x(d.value) + 3;
     })
@@ -461,6 +461,19 @@ function createRankingChart() {
     });
 }
 
+function updateRankingChart(sortMode) {
+  rankingData.sort(function(a, b){
+    if (sortMode=='ascending')
+      return d3.ascending(+a.value, +b.value); 
+    else
+      return d3.descending(+a.value, +b.value);
+  });
+
+  rankingY.domain(rankingData.map(function(d) { return d.key; }));
+  rankingBars.transition()
+    .duration(400)
+    .attr('transform', function(d, i) { return 'translate(1,' + (rankingY(d.key) + rankingBarHeight/2) + ')'; });
+}
 
 var datastoreID = '12d7c8e3-eff9-4db0-93b7-726825c4fe9a';
 var dataDomain = 'https://data.humdata.org';
@@ -1340,9 +1353,7 @@ function setGlobalFigures() {
 	var globalFigures = $('.global-figures');
 	var globalFiguresSource = $('.global-figures .source-container');
 	globalFigures.find('.figures, .source-container, .ranking-chart').empty();
-
-	//ranking chart
-	createRankingChart();
+	globalFigures.find('.source-container').show();
 
 	//PIN
 	if (currentIndicator.id=='#affected+inneed+pct') {
@@ -1350,6 +1361,10 @@ function setGlobalFigures() {
 		var totalPIN = d3.sum(nationalData, function(d) { return +d['#affected+inneed']; });
 		createKeyFigure('.figures', 'Total Number of People in Need', 'pin', (d3.format('.4s'))(totalPIN));
 		createKeyFigure('.figures', 'Number of Countries', '', worldData.numPINCountries);
+	}
+	//INFORM
+	else if (currentIndicator.id=='#severity+type') {
+		globalFigures.find('.source-container').hide();
 	}
 	//humanitarian funding
 	else if (currentIndicator.id=='#value+funding+hrp+pct') {
@@ -1409,6 +1424,9 @@ function setGlobalFigures() {
     });
     createTrendBarChart(pctArray, '.global-figures .cases-trend');
 	}
+
+	//ranking chart
+	createRankingChart();
 }
 
 function createKeyFigure(target, title, className, value) {
@@ -1581,12 +1599,15 @@ function createEvents() {
     $('.menu-indicators li div').removeClass('expand');
     $(this).addClass('selected');
     if (currentIndicator.id==$(this).attr('data-id')) {
-      toggleGlobalFigures($(this));
+      toggleGlobalFigures(this);
     }
     else {
-      toggleGlobalFigures($(this), 'open');
-    
       currentIndicator = {id: $(this).attr('data-id'), name: $(this).attr('data-legend')};
+      if (currentIndicator.id=='#food-prices' || currentIndicator.id=='#vaccination-campaigns')
+       toggleGlobalFigures(this);
+      else {
+        toggleGlobalFigures(this, 'open');
+      }
 
       //set food prices view
       if (currentIndicator.id=='#food-prices') {
@@ -1621,6 +1642,14 @@ function createEvents() {
     toggleGlobalFigures(currentBtn);
   });
 
+  //ranking select event
+  d3.select('.ranking-select').on('change',function(e) {
+    var selected = d3.select('.ranking-select').node().value;
+    if (selected!='') {
+      updateRankingChart(selected);
+    }
+  });
+
   //country panel indicator select event
   d3.select('.indicator-select').on('change',function(e) {
     var selected = d3.select('.indicator-select').node().value;
@@ -1652,10 +1681,11 @@ function toggleGlobalFigures(currentBtn, state) {
   $('.global-figures').animate({
     left: newPos
   }, 200, function() {
-    if ($('.global-figures').position().left==0)
-      currentBtn.find('div').addClass('expand');
+    var div = $(currentBtn).find('div');
+    if ($('.global-figures').position().left==0 && !div.hasClass('no-expand'))
+      div.addClass('expand');
     else
-      currentBtn.find('div').removeClass('expand');
+      div.removeClass('expand');
   });
 }
 
@@ -1889,9 +1919,9 @@ function getGlobalColorScale() {
     var reverseRange = colorRange.slice().reverse();
     scale = d3.scaleQuantize().domain([0, max]).range(reverseRange);
   }
-  else if (currentIndicator.id=='#covid+cases+per+capita') {
-    scale = d3.scaleQuantile().domain([0, max]).range(colorRange);
-  }
+  // else if (currentIndicator.id=='#covid+cases+per+capita') {
+  //   scale = d3.scaleQuantize().domain([0, max]).range(colorRange);
+  // }
   else if (currentIndicator.id=='#vaccination-campaigns') {
     scale = d3.scaleOrdinal().domain(['Postponed / May postpone', 'On Track']).range(vaccinationColorRange);
   }
@@ -2586,7 +2616,6 @@ $( document ).ready(function() {
     $('.content').height(viewportHeight);
     $('.content-right').width(viewportWidth);
     $('.content-right').css('min-width', viewportWidth);
-    $('.footnote').width(viewportWidth - $('.global-figures').innerWidth() - 50);
     if (viewportHeight<696) $('.map-legend.country').height(viewportHeight - parseInt($('.map-legend.country').css('top')) - 60);
 
     //load static map -- will only work for screens smaller than 1280

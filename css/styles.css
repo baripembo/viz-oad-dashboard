@@ -1362,7 +1362,7 @@ a:visited {
   background-color: #FFF;
   display: none;
   bottom: 36px;
-  padding: 15px;
+  padding: 15px 15px 5px;
   position: absolute;
   right: 24px;
   width: 240px;
@@ -1382,6 +1382,8 @@ a:visited {
   .layer-description .description-legend {
     display: block;
     margin-top: 10px; }
+  .layer-description .footnote {
+    padding-top: 10px; }
 
 .modal-bg-overlay {
   background-color: rgba(51, 51, 51, 0.7);
@@ -1458,6 +1460,8 @@ a:visited {
       right: 20px; }
     .menu-indicators li div.expand:after {
       content: '\e9e8'; }
+    .menu-indicators li div.no-expand:after {
+      content: ''; }
   .menu-indicators li i {
     padding-right: 25px; }
   .menu-indicators li:hover, .menu-indicators li.selected {
@@ -1468,7 +1472,8 @@ a:visited {
       color: #007CE1; }
 
 .country-select,
-.indicator-select {
+.indicator-select,
+.ranking-select {
   background-color: #FFF;
   border-color: #FFF;
   border-radius: 8px;
@@ -1485,6 +1490,15 @@ a:visited {
   top: 30px;
   width: 215px;
   z-index: 3; }
+
+.ranking-select {
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  font-size: 14px;
+  height: 30px;
+  margin-left: 8px;
+  padding: 0;
+  width: 155px; }
 
 .global-figures {
   background-color: rgba(255, 255, 255, 0.9);
@@ -1544,7 +1558,7 @@ a:visited {
 
 .ranking-chart {
   margin-top: 20px;
-  max-height: 234px;
+  min-height: 234px;
   overflow: scroll; }
   .ranking-chart .bar {
     fill: #F2645B; }
@@ -1552,6 +1566,9 @@ a:visited {
     text-anchor: end; }
   .ranking-chart .y.axis text {
     display: none; }
+
+.ranking-select-container {
+  margin-top: 10px; }
 
 .label-header {
   display: block;
