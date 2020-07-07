@@ -1538,7 +1538,7 @@ a:visited {
           position: relative; }
         .global-figures .figures .key-figure .inner svg {
           bottom: 10px;
-          left: 105px;
+          left: 110px;
           position: absolute; }
       .global-figures .figures .key-figure:nth-child(2), .global-figures .figures .key-figure:nth-child(4) {
         flex: 0 0 calc(50%);
