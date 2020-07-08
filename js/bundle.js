@@ -1417,7 +1417,7 @@ function setGlobalFigures() {
 		createSparkline(sparklineArray, '.global-figures .weekly-cases');
 
 		//weekly new deaths
-		createKeyFigure('.figures', 'Weekly number of new cases', 'weekly-deaths', shortenNumFormat(weeklyDeaths));
+		createKeyFigure('.figures', 'Weekly number of new deaths', 'weekly-deaths', shortenNumFormat(weeklyDeaths));
 		var sparklineArray = [];
 		covidGlobal.forEach(function(d) {
       var obj = {date: d.date_epicrv, value: d.weekly_new_deaths};
@@ -1487,7 +1487,7 @@ function initMap() {
     style: 'mapbox://styles/humdata/ckb843tjb46fy1ilaw49redy7/',
     center: [-25, 6],
     minZoom: 1,
-    zoom: 2,
+    zoom: 1.8,
     attributionControl: false
   });
 
@@ -1562,22 +1562,6 @@ function displayMap() {
 
   mapFeatures = map.queryRenderedFeatures();
 
-  //country select event
-  d3.select('.country-select').on('change',function(e) {
-    var selected = d3.select('.country-select').node().value;
-    if (selected=='') {
-      resetMap();
-    }
-    else {        
-      currentCountry.code = selected;
-      currentCountry.name = d3.select('.country-select option:checked').text();
-
-      //find matched features and zoom to country
-      var selectedFeatures = matchMapFeatures(currentCountry.code);
-      selectCountry(selectedFeatures);
-    }
-  });
-
   //init global and country layers
   initGlobalLayer();
   initCountryLayer();
@@ -1640,11 +1624,6 @@ function createEvents() {
       updateGlobalLayer();
     }
   });
-  
-  //back to global event
-  $('.country-panel h2').on('click', function() {
-    resetMap();
-  });
 
   //global figures close button
   $('.global-figures .close-btn').on('click', function() {
@@ -1660,14 +1639,34 @@ function createEvents() {
     }
   });
 
+  //country select event
+  d3.select('.country-select').on('change',function(e) {
+    var selected = d3.select('.country-select').node().value;
+    if (selected=='') {
+      resetMap();
+    }
+    else {        
+      currentCountry.code = selected;
+      currentCountry.name = d3.select('.country-select option:checked').text();
+
+      //find matched features and zoom to country
+      var selectedFeatures = matchMapFeatures(currentCountry.code);
+      selectCountry(selectedFeatures);
+    }
+  });
+  
+  //back to global event
+  $('.country-panel h2').on('click', function() {
+    resetMap();
+  });
+
   //country panel indicator select event
   d3.select('.indicator-select').on('change',function(e) {
     var selected = d3.select('.indicator-select').node().value;
     if (selected!='') {
-      var container = $('.country-panel');
+      var container = $('.panel-content');
       var section = $('.'+selected);
-      var offset = $('.panel-header').innerHeight();
-      container.animate({scrollTop: section.offset().top - container.offset().top + container.scrollTop() - offset}, 300);
+      container.animate({scrollTop: section.offset().top - container.offset().top + container.scrollTop()}, 300);
     }
   });
 
@@ -1706,6 +1705,10 @@ function selectCountry(features) {
     id: $('input[name="countryIndicators"]:checked').val(), 
     name: $('input[name="countryIndicators"]:checked').parent().text()
   };
+
+  //reset panel
+  $('.panel-content').animate({scrollTop: 0}, 300);
+  $('.indicator-select').val('');
 
   updateCountryLayer();
   map.setLayoutProperty(globalLayer, 'visibility', 'none');
@@ -2521,7 +2524,7 @@ function resetMap() {
 
   map.flyTo({ 
     speed: 2,
-    zoom: 2,
+    zoom: 1.8,
     center: [-25, 6] 
   });
   map.once('moveend', function() {
@@ -2640,12 +2643,13 @@ $( document ).ready(function() {
     $('.global-figures').height(viewportHeight-40);
     $('.content').height(viewportHeight);
     $('.content-right').width(viewportWidth);
+    $('.country-panel .panel-content').height(viewportHeight - $('.country-panel .panel-content').position().top);
     //$('.content-right').css('min-width', viewportWidth);
     if (viewportHeight<696) $('.map-legend.country').height(viewportHeight - parseInt($('.map-legend.country').css('top')) - 60);
 
     //load static map -- will only work for screens smaller than 1280
     if (viewportWidth<=1280) {
-      var staticURL = 'https://api.mapbox.com/styles/v1/humdata/ckb843tjb46fy1ilaw49redy7/static/-25,6,2/'+viewportWidth+'x'+viewportHeight+'?access_token='+mapboxgl.accessToken;
+      var staticURL = 'https://api.mapbox.com/styles/v1/humdata/ckb843tjb46fy1ilaw49redy7/static/-25,6,1.8/'+viewportWidth+'x'+viewportHeight+'?access_token='+mapboxgl.accessToken;
       $('#static-map').css('background-image', 'url('+staticURL+')');
     }
   

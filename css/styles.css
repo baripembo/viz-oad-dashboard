@@ -1725,7 +1725,7 @@ table {
 .country-panel {
   background-color: #FFF;
   bottom: 0;
-  overflow: scroll;
+  overflow: hidden;
   padding: 12px 30px 30px;
   position: absolute;
   top: 0;
@@ -1738,11 +1738,7 @@ table {
     padding-left: 0; }
   .country-panel .panel-header {
     background-color: #FFF;
-    padding: 30px 0 15px;
-    position: sticky;
-    top: 0;
-    width: 356px;
-    z-index: 1000; }
+    padding: 30px 0 15px; }
     .country-panel .panel-header .panel-title {
       align-items: center;
       display: flex;
@@ -1751,6 +1747,9 @@ table {
       height: 35px;
       margin-right: 10px;
       width: 35px; }
+  .country-panel .panel-content {
+    height: 100%;
+    overflow: scroll; }
   .country-panel .source {
     min-height: 28px; }
   .country-panel .panel-inner {
