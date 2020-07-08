@@ -1295,7 +1295,8 @@ h6 {
 
 .stat {
   font-family: 'Gotham-Light', sans-serif;
-  font-size: 42px;
+  font-size: 36px;
+  line-height: 40px;
   margin: 30px 0; }
 
 ul {
@@ -1347,16 +1348,13 @@ a:visited {
     left: 0;
     transition: left 0.4s ease-out; }
   .content.food-prices-view .map-legend.global,
-  .content.food-prices-view .count-marker, .content.travel-restrictions-view .map-legend.global,
-  .content.travel-restrictions-view .count-marker {
+  .content.food-prices-view .count-marker {
     display: none; }
-  .content.food-prices-view .layer-description, .content.travel-restrictions-view .layer-description {
+  .content.food-prices-view .layer-description {
     display: block; }
-    .content.food-prices-view .layer-description svg, .content.travel-restrictions-view .layer-description svg {
+    .content.food-prices-view .layer-description svg {
       height: 33px;
       width: 200px; }
-  .content.travel-restrictions-view .description-legend {
-    display: none; }
 
 .layer-description {
   background-color: #FFF;
@@ -1548,8 +1546,8 @@ a:visited {
   .global-figures .num {
     color: #000;
     font-family: 'Gotham-Light', sans-serif;
-    font-size: 42px;
-    line-height: 46px;
+    font-size: 36px;
+    line-height: 40px;
     padding: 5px 0; }
     .global-figures .num span {
       font-size: 26px; }

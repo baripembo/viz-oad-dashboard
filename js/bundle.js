@@ -1363,7 +1363,7 @@ function setGlobalFigures() {
 		createKeyFigure('.figures', 'Number of Countries', '', worldData.numPINCountries);
 	}
 	//INFORM
-	else if (currentIndicator.id=='#severity+type') {
+	else if (currentIndicator.id=='#severity+type' || currentIndicator.id=='#vaccination-campaigns' || currentIndicator.id=='#food-prices') {
 		globalFigures.find('.source-container').hide();
 	}
 	//humanitarian funding
@@ -1485,7 +1485,7 @@ function initMap() {
   map = new mapboxgl.Map({
     container: 'global-map',
     style: 'mapbox://styles/humdata/ckb843tjb46fy1ilaw49redy7/',
-    center: [-25, 6],
+    center: [-25, 0],
     minZoom: 1,
     zoom: zoomLevel,
     attributionControl: false
@@ -1597,11 +1597,7 @@ function createEvents() {
     }
     else {
       currentIndicator = {id: $(this).attr('data-id'), name: $(this).attr('data-legend')};
-      if (currentIndicator.id=='#food-prices' || currentIndicator.id=='#vaccination-campaigns')
-       toggleGlobalFigures(this);
-      else {
-        toggleGlobalFigures(this, 'open');
-      }
+      toggleGlobalFigures(this, 'open');
 
       //set food prices view
       if (currentIndicator.id=='#food-prices') {
@@ -1610,14 +1606,6 @@ function createEvents() {
       else {
         $('.content').removeClass('food-prices-view');
         closeModal();
-      }
-
-      //set travel restrictions view
-      if (currentIndicator.id=='#severity+travel') {
-        $('.content').addClass('travel-restrictions-view');
-      }
-      else {
-        $('.content').removeClass('travel-restrictions-view');
       }
 
       mpTrack('wrl', $(this).find('div').text());
@@ -2500,14 +2488,6 @@ function createCountryMapTooltip(adm1_name) {
 
 
 function resetMap() {
-  // var id = currentCountry.code.toLowerCase();
-  // if (map.getLayer(id+'-popdensity')) {
-  //   map.removeLayer(id+'-popdensity');
-  // }
-  // if (map.getSource(id+'-pop-tileset')) {
-  //   map.removeSource(id+'-pop-tileset');
-  // }
-  
   map.setLayoutProperty(countryLayer, 'visibility', 'none');
   map.setLayoutProperty(countryLabelLayer, 'visibility', 'none');
   $('.content').removeClass('country-view');
@@ -2516,20 +2496,16 @@ function resetMap() {
   if (currentIndicator.id=='#food-prices') {
     $('.content').addClass('food-prices-view');
   }
-  if (currentIndicator.id=='#severity+travel') {
-    $('.content').addClass('travel-restrictions-view');
-  }
 
   updateGlobalLayer();
 
   map.flyTo({ 
     speed: 2,
     zoom: zoomLevel,
-    center: [-25, 6] 
+    center: [-25, 0] 
   });
   map.once('moveend', function() {
     map.setLayoutProperty(globalLayer, 'visibility', 'visible');
-    //map.setLayoutProperty(globalMarkerLayer, 'visibility', 'visible');
   });
 }
 
@@ -2652,7 +2628,7 @@ $( document ).ready(function() {
 
     //load static map -- will only work for screens smaller than 1280
     if (viewportWidth<=1280) {
-      var staticURL = 'https://api.mapbox.com/styles/v1/humdata/ckb843tjb46fy1ilaw49redy7/static/-25,6,'+zoomLevel+'/'+viewportWidth+'x'+viewportHeight+'?access_token='+mapboxgl.accessToken;
+      var staticURL = 'https://api.mapbox.com/styles/v1/humdata/ckb843tjb46fy1ilaw49redy7/static/-25,0,'+zoomLevel+'/'+viewportWidth+'x'+viewportHeight+'?access_token='+mapboxgl.accessToken;
       $('#static-map').css('background-image', 'url('+staticURL+')');
     }
   
