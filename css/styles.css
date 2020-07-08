@@ -1875,12 +1875,4 @@ table {
 
 @media only screen and (max-height: 696px) {
   .map-legend.country {
-    overflow: scroll; }
-  .global-figures {
-    width: 290px; }
-    .global-figures .figures {
-      flex-flow: column; }
-      .global-figures .figures .key-figure {
-        width: 100%; }
-        .global-figures .figures .key-figure:first-child .inner {
-          border-bottom: 0; } }
+    overflow: scroll; } }

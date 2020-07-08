@@ -1487,7 +1487,7 @@ function initMap() {
     style: 'mapbox://styles/humdata/ckb843tjb46fy1ilaw49redy7/',
     center: [-25, 6],
     minZoom: 1,
-    zoom: 1.8,
+    zoom: zoomLevel,
     attributionControl: false
   });
 
@@ -2524,7 +2524,7 @@ function resetMap() {
 
   map.flyTo({ 
     speed: 2,
-    zoom: 1.8,
+    zoom: zoomLevel,
     center: [-25, 6] 
   });
   map.once('moveend', function() {
@@ -2612,6 +2612,7 @@ var colorNoData = '#FFF';
 var worldData, nationalData, subnationalData, vaccinationData, timeseriesData, covidTrendData, dataByCountry, colorScale, viewportWidth, viewportHeight = '';
 var mapLoaded = false;
 var dataLoaded = false;
+var zoomLevel = 2;
 
 var currentIndicator = {};
 var currentCountryIndicator = {};
@@ -2644,12 +2645,14 @@ $( document ).ready(function() {
     $('.content').height(viewportHeight);
     $('.content-right').width(viewportWidth);
     $('.country-panel .panel-content').height(viewportHeight - $('.country-panel .panel-content').position().top);
-    //$('.content-right').css('min-width', viewportWidth);
-    if (viewportHeight<696) $('.map-legend.country').height(viewportHeight - parseInt($('.map-legend.country').css('top')) - 60);
+    if (viewportHeight<696) {
+      $('.map-legend.country').height(viewportHeight - 250);
+      zoomLevel = 1.4;
+    }
 
     //load static map -- will only work for screens smaller than 1280
     if (viewportWidth<=1280) {
-      var staticURL = 'https://api.mapbox.com/styles/v1/humdata/ckb843tjb46fy1ilaw49redy7/static/-25,6,1.8/'+viewportWidth+'x'+viewportHeight+'?access_token='+mapboxgl.accessToken;
+      var staticURL = 'https://api.mapbox.com/styles/v1/humdata/ckb843tjb46fy1ilaw49redy7/static/-25,6,'+zoomLevel+'/'+viewportWidth+'x'+viewportHeight+'?access_token='+mapboxgl.accessToken;
       $('#static-map').css('background-image', 'url('+staticURL+')');
     }
   
