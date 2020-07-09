@@ -369,6 +369,9 @@ function createRankingChart() {
     case '#vaccination-campaigns':
       indicator = '#vaccination+num+ratio';
       break;
+    case '#food-prices':
+      indicator = '#food-prices-ratio';
+      break;
     default:
       indicator = currentIndicator.id;
   }
@@ -392,7 +395,7 @@ function createRankingChart() {
     rankingData.reverse();
     $('.ranking-select').val('ascending');
   }
-  if (indicator.indexOf('pct')>-1 || indicator=='#vaccination+num+ratio') {
+  if (indicator.indexOf('pct')>-1 || indicator.indexOf('ratio')>-1) {
     valueFormat = percentFormat;
   }
 
@@ -1888,7 +1891,7 @@ function updateGlobalLayer() {
 function getGlobalColorScale() {
   var min = d3.min(nationalData, function(d) { return +d[currentIndicator.id]; });
   var max = d3.max(nationalData, function(d) { return +d[currentIndicator.id]; });
-  if (currentIndicator.id.indexOf('pct')>-1 || currentIndicator.id=='#vaccination+num+ratio') max = 1;
+  if (currentIndicator.id.indexOf('pct')>-1 || currentIndicator.id.indexOf('ratio')>-1 || currentIndicator.id=='#food-prices') max = 1;
   else if (currentIndicator.id=='#severity+economic+num') max = 10;
   else if (currentIndicator.id=='#affected+inneed') max = roundUp(max, 1000000);
   else max = max;
@@ -2020,7 +2023,7 @@ function setGlobalLegend(scale) {
       .scale(scale);
   }
   else {
-    var legendFormat = ((currentIndicator.id).indexOf('pct')>-1 || currentIndicator.id=='#vaccination+num+ratio') ? d3.format('.0%') : shortenNumFormat;
+    var legendFormat = (currentIndicator.id.indexOf('pct')>-1 || currentIndicator.id.indexOf('ratio')>-1 || currentIndicator.id=='#food-prices') ? d3.format('.0%') : shortenNumFormat;
     if (currentIndicator.id=='#covid+cases+per+capita') legendFormat = d3.format('.1f');
     legend = d3.legendColor()
       .labelFormat(legendFormat)
@@ -2494,7 +2497,7 @@ var foodPricesColor = '#007CE1';
 var travelColor = '#F2645A';//'#6EB4ED'
 var colorDefault = '#F2F2EF';
 var colorNoData = '#FFF';
-var worldData, nationalData, subnationalData, vaccinationData, timeseriesData, covidTrendData, dataByCountry, colorScale, viewportWidth, viewportHeight = '';
+var worldData, nationalData, subnationalData, vaccinationData, timeseriesData, covidTrendData, foodRankingData, dataByCountry, colorScale, viewportWidth, viewportHeight = '';
 var mapLoaded = false;
 var dataLoaded = false;
 var zoomLevel = 2;
@@ -2550,7 +2553,8 @@ $( document ).ready(function() {
     Promise.all([
       d3.json('https://raw.githubusercontent.com/OCHA-DAP/hdx-scraper-covid-viz/master/out.json'),
       d3.csv(timeseriesPath),
-      d3.json('https://raw.githubusercontent.com/OCHA-DAP/pa-COVID-trend-analysis/master/hrp_covid_weekly_trend.json')
+      d3.json('https://raw.githubusercontent.com/OCHA-DAP/pa-COVID-trend-analysis/master/hrp_covid_weekly_trend.json'),
+      d3.csv('data/food-ranking.csv')
     ]).then(function(data) {
       console.log('Data loaded')
       $('.loader span').text('Initializing map...');
@@ -2559,11 +2563,14 @@ $( document ).ready(function() {
       var allData = data[0];
       timeseriesData = data[1];
       covidTrendData = data[2];
+      foodRankingData = data[3];
       worldData = allData.world_data[0];
       nationalData = allData.national_data;
       subnationalData = allData.subnational_data;
       sourcesData = allData.sources_data;
       vaccinationData = allData.vaccination_campaigns_data;
+
+      console.log(foodRankingData)
 
       //format data
       subnationalData.forEach(function(item) {
@@ -2584,6 +2591,13 @@ $( document ).ready(function() {
       worldData.numCBPFCountries = 0;
       worldData.numIFICountries = 0;
 
+      //temp
+      var foodRankingObject = {};
+      foodRankingData.forEach(function(d) {
+        foodRankingObject[d.Country] = d['Food Price Ratio'];
+      });
+      //
+
       //parse national data
       nationalData.forEach(function(item) {
         //normalize counry names
@@ -2601,7 +2615,10 @@ $( document ).ready(function() {
 
         //vacc ratios
         item['#vaccination+num+ratio'] = 1-item['#vaccination+num+ratio'];
-        
+
+        //food ranking
+        item['#food-prices-ratio'] = foodRankingObject[item['#country+name']];
+
         //store covid trend data
         var covidByCountry = covidTrendData[item['#country+code']];
         item['#covid+trend+pct'] = (covidByCountry==undefined) ? null : covidByCountry[covidByCountry.length-1].weekly_new_cases_pc_change/100;
