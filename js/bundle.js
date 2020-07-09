@@ -2570,8 +2570,6 @@ $( document ).ready(function() {
       sourcesData = allData.sources_data;
       vaccinationData = allData.vaccination_campaigns_data;
 
-      console.log(foodRankingData)
-
       //format data
       subnationalData.forEach(function(item) {
         var pop = item['#population'];
