@@ -370,7 +370,7 @@ function createRankingChart() {
       indicator = '#vaccination+num+ratio';
       break;
     case '#food-prices':
-      indicator = '#food-prices-ratio';
+      indicator = '#value+food+num+ratio';
       break;
     default:
       indicator = currentIndicator.id;
@@ -1456,7 +1456,6 @@ function createKeyFigure(target, title, className, value) {
 /*** SOURCE FUNCTIONS ***/
 /************************/
 function createSource(div, indicator) {
-	if (indicator=='#food-prices-ratio') indicator = '#food-prices';
   var sourceObj = getSource(indicator);
   var date = (sourceObj['#date']==undefined) ? '' : dateFormat(new Date(sourceObj['#date']));
   var sourceName = (sourceObj['#meta+source']==undefined) ? '' : sourceObj['#meta+source'];
@@ -1465,7 +1464,6 @@ function createSource(div, indicator) {
 }
 
 function updateSource(div, indicator) {
-	if (indicator=='#food-prices-ratio') indicator = '#food-prices';
   var sourceObj = getSource(indicator);
   var date = (sourceObj['#date']==undefined) ? '' : dateFormat(new Date(sourceObj['#date']));
   var sourceName = (sourceObj['#meta+source']==undefined) ? '' : sourceObj['#meta+source'];
@@ -1602,7 +1600,7 @@ function createEvents() {
       toggleGlobalFigures(this, 'open');
 
       //set food prices view
-      if (currentIndicator.id!='#food-prices-ratio') {
+      if (currentIndicator.id!='#value+food+num+ratio') {
         closeModal();
       }
 
@@ -1780,7 +1778,7 @@ function handleGlobalEvents(layer) {
   });
 
   map.on('mousemove', function(e) {
-    if (currentIndicator.id!='#food-prices-ratio' && currentIndicator.id!='#severity+travel') {
+    if (currentIndicator.id!='#value+food+num+ratio' && currentIndicator.id!='#severity+travel') {
       var features = map.queryRenderedFeatures(e.point, { layers: [globalLayer, globalLabelLayer, globalMarkerLayer] });
       var target;
       features.forEach(function(feature) {
@@ -1813,7 +1811,7 @@ function handleGlobalEvents(layer) {
       currentCountry.name = (target.properties.Terr_Name=='CuraÃ§ao') ? 'Curaçao' : target.properties.Terr_Name;
 
       if (currentCountry.code!=undefined) {
-        if (currentIndicator.id=='#food-prices-ratio' && getCountryIDByName(currentCountry.name)!=undefined) {
+        if (currentIndicator.id=='#value+food+num+ratio' && getCountryIDByName(currentCountry.name)!=undefined) {
           openModal(currentCountry.name);
         }
         if (currentIndicator.id=='#severity+travel') {
@@ -1980,7 +1978,7 @@ function setGlobalLegend(scale) {
   }
 
   var legendTitle = $('.menu-indicators').find('.selected').attr('data-legend');
-  if (currentIndicator.id=='#food-prices-ratio') legendTitle += '<br>Click on a country to explore commodity prices';
+  if (currentIndicator.id=='#value+food+num+ratio') legendTitle += '<br>Click on a country to explore commodity prices';
   $('.map-legend.global .indicator-title').html(legendTitle);
 
   var noDataKey = $('.map-legend.global .no-data-key');
@@ -2480,7 +2478,7 @@ var foodPricesColor = '#007CE1';
 var travelColor = '#F2645A';//'#6EB4ED'
 var colorDefault = '#F2F2EF';
 var colorNoData = '#FFF';
-var worldData, nationalData, subnationalData, vaccinationData, timeseriesData, covidTrendData, foodRankingData, dataByCountry, colorScale, viewportWidth, viewportHeight = '';
+var worldData, nationalData, subnationalData, vaccinationData, timeseriesData, covidTrendData, dataByCountry, colorScale, viewportWidth, viewportHeight = '';
 var mapLoaded = false;
 var dataLoaded = false;
 var zoomLevel = 2;
@@ -2536,8 +2534,7 @@ $( document ).ready(function() {
     Promise.all([
       d3.json('https://raw.githubusercontent.com/OCHA-DAP/hdx-scraper-covid-viz/master/out.json'),
       d3.csv(timeseriesPath),
-      d3.json('https://raw.githubusercontent.com/OCHA-DAP/pa-COVID-trend-analysis/master/hrp_covid_weekly_trend.json'),
-      d3.csv('data/food-ranking.csv')
+      d3.json('https://raw.githubusercontent.com/OCHA-DAP/pa-COVID-trend-analysis/master/hrp_covid_weekly_trend.json')
     ]).then(function(data) {
       console.log('Data loaded')
       $('.loader span').text('Initializing map...');
@@ -2546,7 +2543,6 @@ $( document ).ready(function() {
       var allData = data[0];
       timeseriesData = data[1];
       covidTrendData = data[2];
-      foodRankingData = data[3];
       worldData = allData.world_data[0];
       nationalData = allData.national_data;
       subnationalData = allData.subnational_data;
@@ -2572,13 +2568,6 @@ $( document ).ready(function() {
       worldData.numCBPFCountries = 0;
       worldData.numIFICountries = 0;
 
-      //temp
-      var foodRankingObject = {};
-      foodRankingData.forEach(function(d) {
-        foodRankingObject[d.Country] = d['Food Price Ratio'];
-      });
-      //
-
       //parse national data
       nationalData.forEach(function(item) {
         //normalize counry names
@@ -2593,9 +2582,6 @@ $( document ).ready(function() {
         if (isVal(item['#value+cerf+covid+funding+total+usd'])) worldData.numCERFCountries++;
         if (isVal(item['#value+cbpf+covid+funding+total+usd'])) worldData.numCBPFCountries++;
         if (isVal(item['#value+gdp+ifi+pct'])) worldData.numIFICountries++;
-
-        //food ranking
-        item['#food-prices-ratio'] = foodRankingObject[item['#country+name']];
 
         //store covid trend data
         var covidByCountry = covidTrendData[item['#country+code']];
