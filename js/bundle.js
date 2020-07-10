@@ -2594,9 +2594,6 @@ $( document ).ready(function() {
         if (isVal(item['#value+cbpf+covid+funding+total+usd'])) worldData.numCBPFCountries++;
         if (isVal(item['#value+gdp+ifi+pct'])) worldData.numIFICountries++;
 
-        //vacc ratios
-        item['#vaccination+num+ratio'] = 1-item['#vaccination+num+ratio'];
-
         //food ranking
         item['#food-prices-ratio'] = foodRankingObject[item['#country+name']];
 
