@@ -379,10 +379,10 @@ function createRankingChart() {
   //format data
   var rankingByCountry = d3.nest()
     .key(function(d) {
-      if (currentRegion=='' || d['#region+name']==currentRegion) return d['#country+name']; 
+      if (regionMatch(d['#region+name'])) return d['#country+name']; 
     })
     .rollup(function(v) {
-      if (currentRegion=='' || v[0]['#region+name']==currentRegion) return v[0][indicator]; 
+      if (regionMatch(v[0]['#region+name'])) return v[0][indicator]; 
     })
     .entries(nationalData);
 
@@ -1331,8 +1331,22 @@ function isVal(value) {
   return (value===undefined || value===null || value==='') ? false : true;
 }
 
+function regionMatch(region) {
+  var match = false;
+  var regions = region.split('|');
+  for (var region of regions) {
+    if (currentRegion=='' || region==currentRegion) {
+      match = true;
+      break;
+    }
+  }
+  return match;
+}
+
+
 //regional id/name list
 const regionalList = [
+  {id: 'H25', name: '25 HRP Locations'},
   {id: 'ROAP', name: 'Asia and the Pacific'},
   {id: 'ROCCA', name: 'Eastern Europe'},
   {id: 'ROLAC', name: 'Latin America and the Caribbean'},
@@ -1389,7 +1403,7 @@ function setGlobalFigures() {
 
 	var totalCountries = 0;
 	nationalData.forEach(function(d) {
-		if (currentRegion=='' || d['#region+name']==currentRegion) {
+		if (regionMatch(d['#region+name'])) {
 			var val = d[currentIndicator.id];
 			if (isVal(val) && !isNaN(val)) {
 				totalCountries++;
@@ -1400,7 +1414,7 @@ function setGlobalFigures() {
 	//PIN
 	if (currentIndicator.id=='#affected+inneed+pct') {
 		var totalPIN = d3.sum(nationalData, function(d) {
-			if (currentRegion=='' || d['#region+name']==currentRegion) {
+			if (regionMatch(d['#region+name'])) {
 				return +d['#affected+inneed']; 
 			}
 		});
@@ -1433,47 +1447,49 @@ function setGlobalFigures() {
 	//covid figures
 	else if (currentIndicator.id=='#covid+cases+per+capita') {
 		var totalCases = d3.sum(nationalData, function(d) { 
-			if (currentRegion=='' || d['#region+name']==currentRegion)
+			if (regionMatch(d['#region+name']))
 				return d['#affected+infected']; 
 		});
 		var totalDeaths = d3.sum(nationalData, function(d) { 
-			if (currentRegion=='' || d['#region+name']==currentRegion)
+			if (regionMatch(d['#region+name']))
 				return d['#affected+killed']; 
 		});
 		createKeyFigure('.figures', 'Total Confirmed Cases', 'cases', shortenNumFormat(totalCases));
 		createKeyFigure('.figures', 'Total Confirmed Deaths', 'deaths', shortenNumFormat(totalDeaths));
 
 		var covidGlobal = (currentRegion!='') ? covidTrendData[currentRegion] : covidTrendData.H63;
-		var weeklyCases = covidGlobal[covidGlobal.length-1].weekly_new_cases;
-		var weeklyDeaths = covidGlobal[covidGlobal.length-1].weekly_new_deaths;
-		var weeklyTrend = covidGlobal[covidGlobal.length-1].weekly_new_cases_pc_change;
+		var weeklyCases = (covidGlobal!=undefined) ? covidGlobal[covidGlobal.length-1].weekly_new_cases : 0;
+		var weeklyDeaths = (covidGlobal!=undefined) ? covidGlobal[covidGlobal.length-1].weekly_new_deaths : 0;
+		var weeklyTrend = (covidGlobal!=undefined) ? covidGlobal[covidGlobal.length-1].weekly_new_cases_pc_change : 0;
 		
-		//weekly new cases
-		createKeyFigure('.figures', 'Weekly number of new cases', 'weekly-cases', shortenNumFormat(weeklyCases));
-		var sparklineArray = [];
-		covidGlobal.forEach(function(d) {
-      var obj = {date: d.date_epicrv, value: d.weekly_new_cases};
-      sparklineArray.push(obj);
-    });
-		createSparkline(sparklineArray, '.global-figures .weekly-cases');
+		if (covidGlobal!=undefined) {
+			//weekly new cases
+			createKeyFigure('.figures', 'Weekly number of new cases', 'weekly-cases', shortenNumFormat(weeklyCases));
+			var sparklineArray = [];
+			covidGlobal.forEach(function(d) {
+	      var obj = {date: d.date_epicrv, value: d.weekly_new_cases};
+	      sparklineArray.push(obj);
+	    });
+			createSparkline(sparklineArray, '.global-figures .weekly-cases');
 
-		//weekly new deaths
-		createKeyFigure('.figures', 'Weekly number of new deaths', 'weekly-deaths', shortenNumFormat(weeklyDeaths));
-		var sparklineArray = [];
-		covidGlobal.forEach(function(d) {
-      var obj = {date: d.date_epicrv, value: d.weekly_new_deaths};
-      sparklineArray.push(obj);
-    });
-		createSparkline(sparklineArray, '.global-figures .weekly-deaths');
+			//weekly new deaths
+			createKeyFigure('.figures', 'Weekly number of new deaths', 'weekly-deaths', shortenNumFormat(weeklyDeaths));
+			var sparklineArray = [];
+			covidGlobal.forEach(function(d) {
+	      var obj = {date: d.date_epicrv, value: d.weekly_new_deaths};
+	      sparklineArray.push(obj);
+	    });
+			createSparkline(sparklineArray, '.global-figures .weekly-deaths');
 
-		//weekly trend
-		createKeyFigure('.figures', 'Weekly trend<br>(new cases past week / prior week)', 'cases-trend', weeklyTrend.toFixed(1) + '%');
-    var pctArray = [];
-    covidGlobal.forEach(function(d) {
-      var obj = {date: d.date_epicrv, value: d.weekly_new_cases_pc_change};
-      pctArray.push(obj);
-    });
-    createTrendBarChart(pctArray, '.global-figures .cases-trend');
+			//weekly trend
+			createKeyFigure('.figures', 'Weekly trend<br>(new cases past week / prior week)', 'cases-trend', weeklyTrend.toFixed(1) + '%');
+	    var pctArray = [];
+	    covidGlobal.forEach(function(d) {
+	      var obj = {date: d.date_epicrv, value: d.weekly_new_cases_pc_change};
+	      pctArray.push(obj);
+	    });
+	    createTrendBarChart(pctArray, '.global-figures .cases-trend');
+		}
 	}
 	else {
 		//no global figures
@@ -1879,7 +1895,7 @@ function updateGlobalLayer() {
   colorNoData = (currentIndicator.id=='#affected+inneed+pct' || currentIndicator.id=='#value+funding+hrp+pct') ? '#E7E4E6' : '#FFF';
 
   var maxCases = d3.max(nationalData, function(d) { 
-    if (currentRegion=='' || d['#region+name']==currentRegion)
+    if (regionMatch(d['#region+name']))
       return +d['#affected+infected']; 
   });
   markerScale.domain([1, maxCases]);
@@ -1888,7 +1904,7 @@ function updateGlobalLayer() {
   var expression = ['match', ['get', 'ISO_3']];
   var expressionMarkers = ['match', ['get', 'ISO_3']];
   nationalData.forEach(function(d) {
-    if (currentRegion=='' || d['#region+name']==currentRegion) {
+    if (regionMatch(d['#region+name'])) {
       var val = d[currentIndicator.id];
       var color = colorDefault;
       
@@ -1923,11 +1939,11 @@ function updateGlobalLayer() {
 function getGlobalColorScale() {
   //get min/max
   var min = d3.min(nationalData, function(d) { 
-    if (currentRegion=='' || d['#region+name']==currentRegion)
+    if (regionMatch(d['#region+name']))
       return +d[currentIndicator.id]; 
   });
   var max = d3.max(nationalData, function(d) { 
-    if (currentRegion=='' || d['#region+name']==currentRegion)
+    if (regionMatch(d['#region+name']))
       return +d[currentIndicator.id];
   });
   if (currentIndicator.id.indexOf('pct')>-1 || currentIndicator.id.indexOf('ratio')>-1) max = 1;
@@ -1947,7 +1963,7 @@ function getGlobalColorScale() {
   else if (currentIndicator.id=='#covid+cases+per+capita') {
     var data = [];
     nationalData.forEach(function(d) {
-      if (d[currentIndicator.id]!=null && (currentRegion=='' || d['#region+name']==currentRegion))
+      if (d[currentIndicator.id]!=null && regionMatch(d['#region+name']))
         data.push(d[currentIndicator.id]);
     })
     scale = d3.scaleQuantile().domain(data).range(colorRange);
@@ -2076,7 +2092,7 @@ function setGlobalLegend(scale) {
 
   //cases
   var maxCases = d3.max(nationalData, function(d) { 
-    if (currentRegion=='' || d['#region+name']==currentRegion)
+    if (regionMatch(d['#region+name']))
       return +d['#affected+infected']; 
   });
   markerScale.domain([1, maxCases]);
