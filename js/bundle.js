@@ -1802,7 +1802,7 @@ function initGlobalLayer() {
     .range([2, 15]);
   
   //color scale
-  colorScale = getGlobalColorScale();
+  colorScale = getGlobalLegendScale();
   setGlobalLegend(colorScale);
 
   //data join
@@ -1891,7 +1891,7 @@ function updateGlobalLayer() {
   setGlobalFigures();
 
   //color scales
-  colorScale = getGlobalColorScale();
+  colorScale = getGlobalLegendScale();
   colorNoData = (currentIndicator.id=='#affected+inneed+pct' || currentIndicator.id=='#value+funding+hrp+pct') ? '#E7E4E6' : '#FFF';
 
   var maxCases = d3.max(nationalData, function(d) { 
@@ -1936,15 +1936,13 @@ function updateGlobalLayer() {
   setGlobalLegend(colorScale);
 }
 
-function getGlobalColorScale() {
+function getGlobalLegendScale() {
   //get min/max
   var min = d3.min(nationalData, function(d) { 
-    if (regionMatch(d['#region+name']))
-      return +d[currentIndicator.id]; 
+    if (regionMatch(d['#region+name'])) return +d[currentIndicator.id]; 
   });
   var max = d3.max(nationalData, function(d) { 
-    if (regionMatch(d['#region+name']))
-      return +d[currentIndicator.id];
+    if (regionMatch(d['#region+name'])) return +d[currentIndicator.id];
   });
   if (currentIndicator.id.indexOf('pct')>-1 || currentIndicator.id.indexOf('ratio')>-1) max = 1;
   else if (currentIndicator.id=='#severity+economic+num') max = 10;
@@ -1966,7 +1964,10 @@ function getGlobalColorScale() {
       if (d[currentIndicator.id]!=null && regionMatch(d['#region+name']))
         data.push(d[currentIndicator.id]);
     })
-    scale = d3.scaleQuantile().domain(data).range(colorRange);
+    if (data.length==1)
+      scale = d3.scaleQuantize().domain([0, max]).range(colorRange);
+    else
+      scale = d3.scaleQuantile().domain(data).range(colorRange);
   }
   else if (currentIndicator.id=='#value+gdp+ifi+pct') {
     var reverseRange = colorRange.slice().reverse();
