@@ -1583,13 +1583,18 @@ a:visited {
   display: none; }
 
 .ranking-container.access-severity .access-category {
-  background-color: #F2645B;
   color: #FFF;
   display: inline-block;
   font-family: 'Gotham-Bold', sans-serif;
   font-size: 12px;
   margin-bottom: 5px;
   padding: 5px 6px 4px; }
+  .ranking-container.access-severity .access-category.high {
+    background-color: #C74B4F; }
+  .ranking-container.access-severity .access-category.medium {
+    background-color: #F6B98E; }
+  .ranking-container.access-severity .access-category.low {
+    background-color: #79B89A; }
 
 .ranking-container.access-severity ul {
   list-style-type: none;

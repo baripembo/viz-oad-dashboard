@@ -393,7 +393,7 @@ function createRankingChart() {
           default:
             categoryName = '';
         }
-        chart.append('<label class="access-category">'+ categoryName +'</label>');
+        chart.append('<label class="access-category '+ categoryName.toLowerCase() +'">'+ categoryName +'</label>');
         var listClass = categoryName.toLowerCase() + '-list';
         chart.append('<ul class="'+ listClass +'"></ul>');
         category.values.forEach(function(level) {
@@ -2535,6 +2535,26 @@ function createMapTooltip(country_code, country_name) {
       if (isVal(country[0]['#affected+displaced'])) content += 'IDPs: '+ numFormat(country[0]['#affected+displaced']) +'<br/>';
       content += '</div>';
     }
+    //access layer
+    else if (currentIndicator.id=='#severity+access+category') {
+      if (val!='No Data') {
+        var accessLabels = ['Top 3 access restrictions into country:', 'Top 3 access restriction within country:', 'Top 3 impacts:'];
+        var accessTags = ['#access+constraints+into','#access+constraints+within','#access+impact'];
+        accessLabels.forEach(function(label, index) {
+          var arr = country[0][accessTags[index]].split('|');
+          content += '<label class="access-label">'+ label + '</label>';
+          content += '<ul>';
+          arr.forEach(function(item, index) {
+            if (index<3)
+              content += '<li>'+ item + '</li>';
+          });
+          content += '</ul>';
+        });
+      }
+      else {
+        content += currentIndicator.name + ':<div class="stat">' + val + '</div>';
+      }
+    }
     //Vaccination campaigns layer
     else if (currentIndicator.id=='#vaccination+num+ratio') {
       var vaccData = [];
@@ -2554,26 +2574,6 @@ function createMapTooltip(country_code, country_name) {
           content += '<tr class="'+className+'"><td>'+row['#service+name']+'</td><td>'+row['#date+start']+'</td><td>'+row['#status+name']+'</td></tr>';
         });
         content += '</table>';
-      }
-    }
-    //access layer
-    else if (currentIndicator.id=='#severity+access+category') {
-      if (val!='No Data') {
-        var accessLabels = ['Top 3 access restrictions into country:', 'Top 3 access restriction within country:', 'Top 3 impacts by country:'];
-        var accessTags = ['#access+constraints+into','#access+constraints+within','#access+impact'];
-        accessLabels.forEach(function(label, index) {
-          var arr = country[0][accessTags[index]].split('|');
-          content += '<label class="access-label">'+ label + '</label>';
-          content += '<ul>';
-          arr.forEach(function(item, index) {
-            if (index<3)
-              content += '<li>'+ item + '</li>';
-          });
-          content += '</ul>';
-        });
-      }
-      else {
-        content += currentIndicator.name + ':<div class="stat">' + val + '</div>';
       }
     }
     //Humanitarian Funding Level layer
