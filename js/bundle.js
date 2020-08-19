@@ -1813,6 +1813,7 @@ function createEvents() {
   //back to global event
   $('.country-panel h2').on('click', function() {
     resetMap();
+    console.log(window.location)
     //window.history.replaceState(null, null, '/');
   });
 
