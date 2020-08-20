@@ -2882,7 +2882,7 @@ $( document ).ready(function() {
       d3.csv(timeseriesPath),
       d3.json('data/ocha-regions-bbox.geojson')
     ]).then(function(data) {
-      console.log('Data is loaded');
+      console.log('Data loaded');
       $('.loader span').text('Initializing map...');
 
       //parse data
@@ -3014,7 +3014,7 @@ $( document ).ready(function() {
 
 
     if (mapLoaded==true && viewInitialized==false)
-      displayMap();
+      deepLinkCountryView();
 
     viewInitialized = true;
   }
