@@ -1743,6 +1743,9 @@ function displayMap() {
 
       //find matched features and zoom to country
       var selectedFeatures = matchMapFeatures(currentCountry.code);
+
+    console.log(currentCountry.code, currentCountry.name)
+    console.log(selectedFeatures)
       selectCountry(selectedFeatures);
     }
   }
