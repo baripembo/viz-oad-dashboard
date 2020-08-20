@@ -2964,9 +2964,9 @@ $( document ).ready(function() {
       //console.log(subnationalData)
 
       dataLoaded = true;
+      initView();
       if (mapLoaded==true) displayMap();
 
-      initView();
     });
   }
 
