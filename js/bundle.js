@@ -1723,11 +1723,12 @@ function displayMap() {
   console.log(location, 'loc length=',location.length, location.indexOf('?c='))
   if (location.indexOf('?c=')>-1) {
     var countryCode = location.split('=')[1].toUpperCase();
+    console.log('countryCode=',countryCode, $('.country-select option[value='+ countryCode +']').length)
     if ($('.country-select option[value='+ countryCode +']').length > 0) {    
       $('.country-select').val(countryCode);
       currentCountry.code = countryCode;
       currentCountry.name = d3.select('.country-select option:checked').text();
-      console.log(currentCountry.code, currentCountry.name)
+      //console.log(currentCountry.code, currentCountry.name)
 
       //find matched features and zoom to country
       var selectedFeatures = matchMapFeatures(currentCountry.code);
