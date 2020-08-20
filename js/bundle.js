@@ -1677,6 +1677,17 @@ function displayMap() {
         url: 'mapbox://humdata.'+raster
       });
 
+      // map.addLayer(
+      //   {
+      //     'id': id+'-popdensity',
+      //     'type': 'raster',
+      //     'source': {
+      //       type: 'raster',
+      //       tiles: ['https://api.mapbox.com/v4/{tileset_id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiaHVtZGF0YSIsImEiOiJja2FvMW1wbDIwMzE2MnFwMW9teHQxOXhpIn0.Uri8IURftz3Jv5It51ISAA'],
+      //     }
+      //   },
+      //   countryBoundaryLayer
+      // );
       map.addLayer(
         {
           'id': id+'-popdensity',
@@ -1723,8 +1734,8 @@ function displayMap() {
   console.log(location, 'loc length=',location.length, location.indexOf('?c='))
   if (location.indexOf('?c=')>-1) {
     var countryCode = location.split('=')[1].toUpperCase();
-    console.log('countryCode=',countryCode, $('.country-select option[value='+ countryCode +']').length)
-    if ($('.country-select option[value='+ countryCode +']').length > 0) {    
+    console.log('countryCode=',countryCode, countryCodeList.hasOwnProperty(countryCode))
+    if (countryCodeList.hasOwnProperty(countryCode)) {    
       $('.country-select').val(countryCode);
       currentCountry.code = countryCode;
       currentCountry.name = d3.select('.country-select option:checked').text();
@@ -1734,9 +1745,6 @@ function displayMap() {
       var selectedFeatures = matchMapFeatures(currentCountry.code);
       selectCountry(selectedFeatures);
     }
-  }
-  else {
-    console.log('no parameter')
   }
 }
 
