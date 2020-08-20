@@ -1717,8 +1717,11 @@ function displayMap() {
     className: 'map-tooltip'
   });
 
-
   //deeplink to country if parameter exists
+  if (viewInitialized==true) deepLinkCountryView();
+}
+
+function deepLinkCountryView() {
   var location = window.location.search;
   console.log(location, location.indexOf('?c='))
   if (location.indexOf('?c=')>-1) {
@@ -2822,6 +2825,7 @@ var colorNoData = '#FFF';
 var regionBoundaryData, regionalData, worldData, nationalData, subnationalData, vaccinationData, timeseriesData, covidTrendData, dataByCountry, countriesByRegion, colorScale, viewportWidth, viewportHeight, currentRegion = '';
 var mapLoaded = false;
 var dataLoaded = false;
+var viewInitialized = false;
 var zoomLevel = 1.4;
 
 var currentIndicator = {};
@@ -2877,7 +2881,7 @@ $( document ).ready(function() {
       d3.csv(timeseriesPath),
       d3.json('data/ocha-regions-bbox.geojson')
     ]).then(function(data) {
-      console.log('Data loaded')
+      console.log('Data loaded');
       $('.loader span').text('Initializing map...');
 
       //parse data
@@ -2964,13 +2968,18 @@ $( document ).ready(function() {
       //console.log(subnationalData)
 
       dataLoaded = true;
-      initView();
       if (mapLoaded==true) displayMap();
 
+      initView();
     });
   }
 
   function initView() {
+    if (mapLoaded==true && viewInitialized==false)
+      deepLinkCountryView();
+    
+    viewInitialized = true;
+
     console.log('initView')
     //create regional select
     $('.region-select').empty();
