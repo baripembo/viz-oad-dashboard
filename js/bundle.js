@@ -1677,17 +1677,6 @@ function displayMap() {
         url: 'mapbox://humdata.'+raster
       });
 
-      // map.addLayer(
-      //   {
-      //     'id': id+'-popdensity',
-      //     'type': 'raster',
-      //     'source': {
-      //       type: 'raster',
-      //       tiles: ['https://api.mapbox.com/v4/{tileset_id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiaHVtZGF0YSIsImEiOiJja2FvMW1wbDIwMzE2MnFwMW9teHQxOXhpIn0.Uri8IURftz3Jv5It51ISAA'],
-      //     }
-      //   },
-      //   countryBoundaryLayer
-      // );
       map.addLayer(
         {
           'id': id+'-popdensity',
@@ -1739,12 +1728,12 @@ function displayMap() {
       $('.country-select').val(countryCode);
       currentCountry.code = countryCode;
       currentCountry.name = d3.select('.country-select option:checked').text();
+    console.log(currentCountry.code, currentCountry.name)
       //console.log(currentCountry.code, currentCountry.name)
 
       //find matched features and zoom to country
       var selectedFeatures = matchMapFeatures(currentCountry.code);
 
-    console.log(currentCountry.code, currentCountry.name)
     console.log(selectedFeatures)
       selectCountry(selectedFeatures);
     }
@@ -2982,6 +2971,7 @@ $( document ).ready(function() {
   }
 
   function initView() {
+    console.log('initView')
     //create regional select
     $('.region-select').empty();
     var regionalSelect = d3.select('.region-select')
