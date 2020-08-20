@@ -1722,6 +1722,7 @@ function displayMap() {
 }
 
 function deepLinkCountryView() {
+  console.log('deepLinkCountryView')
   var location = window.location.search;
   console.log(location, location.indexOf('?c='))
   if (location.indexOf('?c=')>-1) {
@@ -2881,7 +2882,7 @@ $( document ).ready(function() {
       d3.csv(timeseriesPath),
       d3.json('data/ocha-regions-bbox.geojson')
     ]).then(function(data) {
-      console.log('Data loaded');
+      console.log('Data is loaded');
       $('.loader span').text('Initializing map...');
 
       //parse data
@@ -2964,20 +2965,22 @@ $( document ).ready(function() {
         });
       });
 
+      console.log('go to initView')
+      initView();
+
       //console.log(nationalData)
       //console.log(subnationalData)
 
       dataLoaded = true;
       if (mapLoaded==true) displayMap();
 
-      initView();
     });
   }
 
   function initView() {
     if (mapLoaded==true && viewInitialized==false)
       deepLinkCountryView();
-    
+
     viewInitialized = true;
 
     console.log('initView')
