@@ -1720,6 +1720,7 @@ function displayMap() {
 
   //deeplink to country if parameter exists
   var location = window.location.search;
+  console.log(location)
   if (location!='') {
     var countryCode = location.split('=')[1].toUpperCase();
     if ($('.country-select option[value='+ countryCode +']').length > 0) {    
