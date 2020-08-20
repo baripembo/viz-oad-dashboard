@@ -1722,27 +1722,17 @@ function displayMap() {
 }
 
 function deepLinkCountryView() {
-  console.log('deepLinkCountryView')
   var location = window.location.search;
-  console.log(location, location.indexOf('?c='))
   if (location.indexOf('?c=')>-1) {
     var countryCode = location.split('=')[1].toUpperCase();
-    console.log('countryCode=',countryCode, countryCodeList.hasOwnProperty(countryCode))
     if (countryCodeList.hasOwnProperty(countryCode)) {    
       $('.country-select').val(countryCode);
       currentCountry.code = countryCode;
       currentCountry.name = d3.select('.country-select option:checked').text();
-    console.log(currentCountry.code, currentCountry.name)
-      //console.log(currentCountry.code, currentCountry.name)
 
       //find matched features and zoom to country
       var selectedFeatures = matchMapFeatures(currentCountry.code);
-
-    console.log(selectedFeatures)
       selectCountry(selectedFeatures);
-    }
-    else {
-      console.log('nope')
     }
   }
 }
@@ -2882,7 +2872,7 @@ $( document ).ready(function() {
       d3.csv(timeseriesPath),
       d3.json('data/ocha-regions-bbox.geojson')
     ]).then(function(data) {
-      console.log('Data is loaded');
+      console.log('Data loaded');
       $('.loader span').text('Initializing map...');
 
       //parse data
@@ -2970,16 +2960,11 @@ $( document ).ready(function() {
 
       dataLoaded = true;
       if (mapLoaded==true) displayMap();
-
-      console.log('go to initView')
       initView();
-
     });
   }
 
   function initView() {
-    console.log('initView')
-
     //create regional select
     $('.region-select').empty();
     var regionalSelect = d3.select('.region-select')
@@ -3011,8 +2996,7 @@ $( document ).ready(function() {
     //load timeseries for country view 
     initTimeseries(timeseriesData, '.country-timeseries-chart');
 
-
-
+    //check map loaded status
     if (mapLoaded==true && viewInitialized==false)
       deepLinkCountryView();
 
