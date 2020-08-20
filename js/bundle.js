@@ -1731,7 +1731,7 @@ function displayMap() {
 
   //deeplink to country if parameter exists
   var location = window.location.search;
-  console.log(location, 'loc length=',location.length, location.indexOf('?c='))
+  console.log(location, location.indexOf('?c='))
   if (location.indexOf('?c=')>-1) {
     var countryCode = location.split('=')[1].toUpperCase();
     console.log('countryCode=',countryCode, countryCodeList.hasOwnProperty(countryCode))
@@ -1747,6 +1747,9 @@ function displayMap() {
     console.log(currentCountry.code, currentCountry.name)
     console.log(selectedFeatures)
       selectCountry(selectedFeatures);
+    }
+    else {
+      console.log('nope')
     }
   }
 }
