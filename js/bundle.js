@@ -1726,6 +1726,7 @@ function displayMap() {
       $('.country-select').val(countryCode);
       currentCountry.code = countryCode;
       currentCountry.name = d3.select('.country-select option:checked').text();
+      console.log(currentCountry.code, currentCountry.name)
 
       //find matched features and zoom to country
       var selectedFeatures = matchMapFeatures(currentCountry.code);
