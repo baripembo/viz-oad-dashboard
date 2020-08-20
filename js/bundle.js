@@ -2882,7 +2882,7 @@ $( document ).ready(function() {
       d3.csv(timeseriesPath),
       d3.json('data/ocha-regions-bbox.geojson')
     ]).then(function(data) {
-      console.log('Data is loaded');
+      console.log('Data loaded');
       $('.loader span').text('Initializing map...');
 
       //parse data
@@ -2978,12 +2978,8 @@ $( document ).ready(function() {
   }
 
   function initView() {
-    if (mapLoaded==true && viewInitialized==false)
-      deepLinkCountryView();
-
-    viewInitialized = true;
-
     console.log('initView')
+
     //create regional select
     $('.region-select').empty();
     var regionalSelect = d3.select('.region-select')
@@ -3014,6 +3010,13 @@ $( document ).ready(function() {
 
     //load timeseries for country view 
     initTimeseries(timeseriesData, '.country-timeseries-chart');
+
+
+
+    if (mapLoaded==true && viewInitialized==false)
+      deepLinkCountryView();
+
+    viewInitialized = true;
   }
 
 
