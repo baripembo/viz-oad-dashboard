@@ -2190,7 +2190,7 @@ function setGlobalLegend(scale) {
 
     //gender disaggregation explanatory text
     var genderDataText = '*Gender breakdown explanation goes here. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.';
-    $('.map-legend.global').append('<h4>COVID-19 Sex-Disaggregated Data Tracker</h4>');
+    $('.map-legend.global').append('<h4>(On hover) COVID-19 Sex-Disaggregated Data Tracker</h4>');
     createSource($('.map-legend.global'), '#affected+killed+m+pct');
     $('.map-legend.global').append('<p class="footnote gender-data small">'+ truncateString(genderDataText, 65) +' <a href="#" class="expand">MORE</a></p>');
     $('.map-legend.global .gender-data').click(function() {
@@ -2985,7 +2985,7 @@ $( document ).ready(function() {
         });
       });
 
-      console.log(nationalData)
+      //console.log(nationalData)
       //console.log(subnationalData)
 
       dataLoaded = true;
