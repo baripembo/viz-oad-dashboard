@@ -2189,7 +2189,7 @@ function setGlobalLegend(scale) {
       .call(legendSize);
 
     //gender disaggregation explanatory text
-    var genderDataText = '*Distribution of COVID19 cases and deaths by gender are taken from <a href="https://data.humdata.org/organization/global-health-50-50" target="_blank">Global Health 50/50 COVID-19 Sex-disaggregated Data Tracker</a>. Figures refer to the last date where sex-disaggregated data was available and in some cases the gender distribution may only refer to a portion of total cases or deaths. These proportions are intended to be used to understand the breakdown of cases and deaths by gender and not to monitor overall numbers per country. Definitions of COVID-19 cases and deaths recorded may vary by country. ';
+    var genderDataText = '*Distribution of COVID19 cases and deaths by gender are taken from Global Health 50/50 COVID-19 <a href="https://data.humdata.org/organization/global-health-50-50" target="_blank">Sex-disaggregated Data Tracker</a>. Figures refer to the last date where sex-disaggregated data was available and in some cases the gender distribution may only refer to a portion of total cases or deaths. These proportions are intended to be used to understand the breakdown of cases and deaths by gender and not to monitor overall numbers per country. Definitions of COVID-19 cases and deaths recorded may vary by country. ';
     $('.map-legend.global').append('<h4>(On hover) COVID-19 Sex-Disaggregated Data Tracker</h4>');
     createSource($('.map-legend.global'), '#affected+killed+m+pct');
     $('.map-legend.global').append('<p class="footnote gender-data small">'+ truncateString(genderDataText, 65) +' <a href="#" class="expand">MORE</a></p>');
