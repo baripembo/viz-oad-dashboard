@@ -1469,7 +1469,7 @@ function setGlobalFigures() {
 	else if (currentIndicator.id=='#value+cerf+covid+funding+total+usd') {
 		createKeyFigure('.figures', 'Total CERF COVID-19 Funding', '', formatValue(data['#value+cerf+covid+funding+total+usd']));
 		if (data['#value+cerf+covid+funding+total+usd'] > 0) {
-			var gmText = 'Gender age marker: ';
+			var gmText = '**Gender age marker: ';
 			for (var i=0;i<5;i++) {
 				var pct = (data['#value+cerf+covid+funding+gm'+ i +'+total+usd']!=undefined) ? percentFormat(data['#value+cerf+covid+funding+gm'+ i +'+total+usd'] / data['#value+cerf+covid+funding+total+usd']) : '0%';
 				gmText += '['+i+']: ' + pct;
@@ -1485,7 +1485,7 @@ function setGlobalFigures() {
 		
 		//gam
 		if (data['#value+cbpf+covid+funding+total+usd'] > 0) {
-			var gmText = 'Gender age marker: ';
+			var gmText = '**Gender age marker: ';
 			for (var i=0;i<5;i++) {
 				var pct = (data['#value+cbpf+covid+funding+gm'+ i +'+total+usd']!=undefined) ? percentFormat(data['#value+cbpf+covid+funding+gm'+ i +'+total+usd'] / data['#value+cbpf+covid+funding+total+usd']) : '0%';
 				gmText += '['+i+']: ' + pct;
@@ -2686,7 +2686,7 @@ function createMapTooltip(country_code, country_name) {
       content +=  currentIndicator.name + ':<div class="stat">' + val + '</div>';
       if (val!='No Data') {
         if (country[0]['#value+cerf+covid+funding+total+usd'] > 0) {
-          var gmText = 'Gender age marker: ';
+          var gmText = '**Gender age marker: ';
           for (var i=0;i<5;i++) {
             var pct = (country[0]['#value+cerf+covid+funding+gm'+i+'+total+usd']!=undefined) ? percentFormat(country[0]['#value+cerf+covid+funding+gm'+i+'+total+usd'] / country[0]['#value+cerf+covid+funding+total+usd']) : '0%';
             gmText += '['+i+']: ' + pct;
@@ -2705,7 +2705,7 @@ function createMapTooltip(country_code, country_name) {
       if (val!='No Data') {
         //gam
         if (country[0]['#value+cbpf+covid+funding+total+usd'] > 0) {
-          var gmText = 'Gender age marker: ';
+          var gmText = '**Gender age marker: ';
           for (var i=0;i<5;i++) {
             var pct = (country[0]['#value+cbpf+covid+funding+gm'+i+'+total+usd']!=undefined) ? percentFormat(country[0]['#value+cbpf+covid+funding+gm'+i+'+total+usd'] / country[0]['#value+cbpf+covid+funding+total+usd']) : '0%';
             gmText += '['+i+']: ' + pct;
