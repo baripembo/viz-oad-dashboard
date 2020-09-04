@@ -1497,8 +1497,8 @@ function setGlobalFigures() {
 		//beneficieries
 		if (data['#affected+cbpf+covid+funding+total'] > 0) {
 			var beneficiaryText = 'Beneficiary breakdown: ';
-			beneficiaryText += (data['#affected+cbpf+covid+funding+male']!=undefined) ? percentFormat(data['#affected+cbpf+covid+funding+male'] / data['#affected+cbpf+covid+funding+total']) + ' Male, ' : '0% Male, ';
-			beneficiaryText += (data['#affected+cbpf+covid+female+funding']!=undefined) ? percentFormat(data['#affected+cbpf+covid+female+funding'] / data['#affected+cbpf+covid+funding+total']) + ' Female, ' : '0% Female, ';
+			beneficiaryText += (data['#affected+cbpf+covid+funding+men']!=undefined) ? percentFormat(data['#affected+cbpf+covid+funding+men'] / data['#affected+cbpf+covid+funding+total']) + ' Male, ' : '0% Male, ';
+			beneficiaryText += (data['#affected+cbpf+covid+funding+women']!=undefined) ? percentFormat(data['#affected+cbpf+covid+funding+women'] / data['#affected+cbpf+covid+funding+total']) + ' Female, ' : '0% Female, ';
 			beneficiaryText += (data['#affected+boys+cbpf+covid+funding']!=undefined) ? percentFormat(data['#affected+boys+cbpf+covid+funding'] / data['#affected+cbpf+covid+funding+total']) + ' Boys, ' : '0% Boys, ';
 			beneficiaryText += (data['#affected+cbpf+covid+funding+girls']!=undefined) ? percentFormat(data['#affected+cbpf+covid+funding+girls'] / data['#affected+cbpf+covid+funding+total']) + ' Girls' : '0% Girls';
 			$('.figures .key-figure .inner').append('<div class="small">'+ beneficiaryText +'</div>');
@@ -3078,7 +3078,7 @@ $( document ).ready(function() {
         });
       });
 
-      //console.log(nationalData)
+      console.log(nationalData)
       //console.log(subnationalData)
 
       dataLoaded = true;
