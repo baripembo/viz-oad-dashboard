@@ -2717,8 +2717,8 @@ function createMapTooltip(country_code, country_name) {
         //beneficieries
         if (country[0]['#affected+cbpf+covid+funding+total'] > 0) {
           var beneficiaryText = 'Beneficiary breakdown: ';
-          beneficiaryText += (country[0]['#affected+cbpf+covid+funding+male']!=undefined) ? percentFormat(country[0]['#affected+cbpf+covid+funding+male'] / country[0]['#affected+cbpf+covid+funding+total']) + ' Male, ' : '0% Male, ';
-          beneficiaryText += (country[0]['#affected+cbpf+covid+female+funding']!=undefined) ? percentFormat(country[0]['#affected+cbpf+covid+female+funding'] / country[0]['#affected+cbpf+covid+funding+total']) + ' Female, ' : '0% Female, ';
+          beneficiaryText += (country[0]['#affected+cbpf+covid+funding+men']!=undefined) ? percentFormat(country[0]['#affected+cbpf+covid+funding+men'] / country[0]['#affected+cbpf+covid+funding+total']) + ' Male, ' : '0% Male, ';
+          beneficiaryText += (country[0]['#affected+cbpf+covid+funding+women']!=undefined) ? percentFormat(country[0]['#affected+cbpf+covid+funding+women'] / country[0]['#affected+cbpf+covid+funding+total']) + ' Female, ' : '0% Female, ';
           beneficiaryText += (country[0]['#affected+boys+cbpf+covid+funding']!=undefined) ? percentFormat(country[0]['#affected+boys+cbpf+covid+funding'] / country[0]['#affected+cbpf+covid+funding+total']) + ' Boys, ' : '0% Boys, ';
           beneficiaryText += (country[0]['#affected+cbpf+covid+funding+girls']!=undefined) ? percentFormat(country[0]['#affected+cbpf+covid+funding+girls'] / country[0]['#affected+cbpf+covid+funding+total']) + ' Girls' : '0% Girls';
           content += '<div class="gam small">'+ beneficiaryText +'</div>';
