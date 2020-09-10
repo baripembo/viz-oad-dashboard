@@ -1470,6 +1470,9 @@ function setGlobalFigures() {
 		createKeyFigure('.figures', 'Total CERF COVID-19 Funding', '', formatValue(data['#value+cerf+covid+funding+total+usd']));
 		if (data['#value+cerf+covid+funding+total+usd'] > 0) {
 			var gmText = '**Gender age marker: ';
+			gmText += '[NA]: ';
+			gmText += (data['#value+cerf+covid+funding+gmempty+total+usd']!=undefined) ? percentFormat(data['#value+cerf+covid+funding+gmempty+total+usd'] / data['#value+cerf+covid+funding+total+usd']) : '0%';
+			gmText += ', ';
 			for (var i=0;i<5;i++) {
 				var pct = (data['#value+cerf+covid+funding+gm'+ i +'+total+usd']!=undefined) ? percentFormat(data['#value+cerf+covid+funding+gm'+ i +'+total+usd'] / data['#value+cerf+covid+funding+total+usd']) : '0%';
 				gmText += '['+i+']: ' + pct;
@@ -1486,6 +1489,9 @@ function setGlobalFigures() {
 		//gam
 		if (data['#value+cbpf+covid+funding+total+usd'] > 0) {
 			var gmText = '**Gender age marker: ';
+			gmText += '[NA]: ';
+	    gmText += (data['#value+cbpf+covid+funding+gmempty+total+usd']!=undefined) ? percentFormat(data['#value+cbpf+covid+funding+gmempty+total+usd'] / data['#value+cbpf+covid+funding+total+usd']) : '0%';
+	    gmText += ', ';
 			for (var i=0;i<5;i++) {
 				var pct = (data['#value+cbpf+covid+funding+gm'+ i +'+total+usd']!=undefined) ? percentFormat(data['#value+cbpf+covid+funding+gm'+ i +'+total+usd'] / data['#value+cbpf+covid+funding+total+usd']) : '0%';
 				gmText += '['+i+']: ' + pct;
@@ -2687,6 +2693,9 @@ function createMapTooltip(country_code, country_name) {
       if (val!='No Data') {
         if (country[0]['#value+cerf+covid+funding+total+usd'] > 0) {
           var gmText = '**Gender age marker: ';
+          gmText += '[NA]: ';
+          gmText += (country[0]['#value+cerf+covid+funding+gmempty+total+usd']!=undefined) ? percentFormat(country[0]['#value+cerf+covid+funding+gmempty+total+usd'] / country[0]['#value+cerf+covid+funding+total+usd']) : '0%';
+          gmText += ', ';
           for (var i=0;i<5;i++) {
             var pct = (country[0]['#value+cerf+covid+funding+gm'+i+'+total+usd']!=undefined) ? percentFormat(country[0]['#value+cerf+covid+funding+gm'+i+'+total+usd'] / country[0]['#value+cerf+covid+funding+total+usd']) : '0%';
             gmText += '['+i+']: ' + pct;
@@ -2706,6 +2715,10 @@ function createMapTooltip(country_code, country_name) {
         //gam
         if (country[0]['#value+cbpf+covid+funding+total+usd'] > 0) {
           var gmText = '**Gender age marker: ';
+          gmText += '[NA]: ';
+          gmText += (country[0]['#value+cbpf+covid+funding+gmempty+total+usd']!=undefined) ? percentFormat(country[0]['#value+cbpf+covid+funding+gmempty+total+usd'] / country[0]['#value+cbpf+covid+funding+total+usd']) : '0%';
+          gmText += ', ';
+
           for (var i=0;i<5;i++) {
             var pct = (country[0]['#value+cbpf+covid+funding+gm'+i+'+total+usd']!=undefined) ? percentFormat(country[0]['#value+cbpf+covid+funding+gm'+i+'+total+usd'] / country[0]['#value+cbpf+covid+funding+total+usd']) : '0%';
             gmText += '['+i+']: ' + pct;
@@ -3078,7 +3091,7 @@ $( document ).ready(function() {
         });
       });
 
-      console.log(nationalData)
+      //console.log(nationalData)
       //console.log(subnationalData)
 
       dataLoaded = true;
