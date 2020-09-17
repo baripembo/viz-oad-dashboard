@@ -114,6 +114,8 @@ function formatTimeseriesData(data) {
   var dataArray = Object.entries(data);
   dataArray.forEach(function(d) {
     var countryArray = [];
+    if (d[0]=='Syrian Arab Republic') d[0] = 'Syria';
+    if (d[0]=='Venezuela (Bolivarian Republic of)') d[0] = 'Venezuela';
     countryArray.push(d[0])
     var valueArray = d[1].reverse();
     valueArray.forEach(function(val) {
