@@ -2997,6 +2997,7 @@ $( document ).ready(function() {
 
       //parse data
       var allData = data[0];
+      console.log(allData)
       worldData = allData.world_data[0];
       regionBoundaryData = data[1].features;
       timeseriesData = allData.covid_series_data;
@@ -3004,7 +3005,7 @@ $( document ).ready(function() {
       nationalData = allData.national_data;
       subnationalData = allData.subnational_data;
       sourcesData = allData.sources_data;
-      covidTrendData = allData.covid_trend_data;
+      covidTrendData = allData.who_covid_data;
       vaccinationData = allData.vaccination_campaigns_data;
 
       //format data
