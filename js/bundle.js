@@ -2607,7 +2607,7 @@ function createMapTooltip(country_code, country_name, point) {
 
       //testing data
       if (country[0]['#affected+tested+per1000']!=undefined) {
-        var testingVal = Math.round(country[0]['#affected+tested+per1000']);
+        var testingVal = Number(country[0]['#affected+tested+per1000']).toFixed(2);
         content += '<div class="stat-container condensed-stat covid-test-per-capita"><div class="stat-title">New Daily Tests per 1,000 People:</div><div class="stat">'+ testingVal +'</div><div class="sparkline-container"></div></div>';
       }
     }
