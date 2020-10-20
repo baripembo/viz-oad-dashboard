@@ -255,7 +255,7 @@ function updateTimeseries(selected) {
 /*** SPARKLINES ***/
 /******************/
 function createSparkline(data, div, size) {
-  var width = $(div).width() - 6;
+  var width = (div.indexOf('secondary')>-1) ? $(div).width() - 130 : $(div).width() - 6;
   var height = (size=='large') ? 25 : 15;
   var x = d3.scaleLinear().range([0, width]);
   var y = d3.scaleLinear().range([height, 0]);
@@ -293,7 +293,7 @@ function createSparkline(data, div, size) {
 function createTrendBarChart(data, div) {
   var total = data.length;
   var barMargin = 1;
-  var barWidth = ($(div).width() - 6) / total - barMargin;
+  var barWidth = ($(div).width() - 130) / total - barMargin;
   var width = (barWidth+barMargin) * data.length;
   var height = 20;
   var parseDate = d3.timeParse("%Y-%m-%d");
@@ -1564,7 +1564,8 @@ function setKeyFigures() {
 	      var obj = {date: d['#date+reported'], value: d['#affected+infected+new+pct+weekly']};
 	      pctArray.push(obj);
 	    });
-	    createTrendBarChart(pctArray, '.secondary-panel .cases-trend');
+			createSparkline(pctArray, '.secondary-panel .cases-trend');
+	    //createTrendBarChart(pctArray, '.secondary-panel .cases-trend');
 		}
 	}
 	else {
@@ -2261,6 +2262,11 @@ function setGlobalLegend(scale) {
 
     //boundaries disclaimer
     boundariesDisclaimer($('.map-legend.global'));
+
+    //expand/collapse functionality
+    $('.map-legend.global .toggle-icon, .map-legend.global .collapsed-title').on('click', function() {
+      $(this).parent().toggleClass('collapsed');
+    });
   }
   else {
     updateSource($('.indicator-source'), indicator);
@@ -2534,6 +2540,11 @@ function createCountryLegend(scale) {
 
   //boundaries disclaimer
   boundariesDisclaimer($('.map-legend.country'));
+
+  //expand/collapse functionality
+  $('.map-legend.country .toggle-icon, .map-legend.country .collapsed-title').on('click', function() {
+    $(this).parent().toggleClass('collapsed');
+  });
 }
 
 function updateCountryLegend(scale) {
@@ -2840,7 +2851,7 @@ function setTooltipPosition(point) {
   }
   else if (yOffset<0)  {
     $('.mapboxgl-popup-tip').css('align-self', 'flex-end');
-    $('.mapboxgl-popup-tip').css('margin-bottom', viewportHeight-point.y);
+    $('.mapboxgl-popup-tip').css('margin-bottom', viewportHeight-point.y-10);
   }
   else {
     $('.mapboxgl-popup-tip').css('align-self', 'center');
