@@ -2810,7 +2810,8 @@ function createMapTooltip(country_code, country_name, point) {
           var obj = {date: d['#date+reported'], value: d['#affected+infected+new+pct+weekly']};
           pctArray.push(obj);
         });
-        createTrendBarChart(pctArray, '.mapboxgl-popup-content .covid-pct .sparkline-container');
+        createSparkline(pctArray, '.mapboxgl-popup-content .covid-pct .sparkline-container');
+        //createTrendBarChart(pctArray, '.mapboxgl-popup-content .covid-pct .sparkline-container');
       }
     }
   }
