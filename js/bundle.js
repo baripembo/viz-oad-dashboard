@@ -145,7 +145,7 @@ function formatTimeseriesData(data) {
 var countryTimeseriesChart;
 function createTimeSeries(array, div) {
   var isGlobal = (div.indexOf('global')>-1) ? true : false;
-  var chartWidth = (isGlobal) ? $(div).parent().width() : 336;
+  var chartWidth = (isGlobal) ? viewportWidth - $('.secondary-panel').width() - 75 : 336;
   var chartHeight = (isGlobal) ? $(div).parent().height()-200 : 240;
   var tickCount = (isGlobal) ? 15 : 5;
   var colorArray = (isGlobal) ? 
@@ -229,7 +229,6 @@ function createTimeSeries(array, div) {
     var itemHeight = 18;
     var numItems = Math.round((chartHeight-160)/itemHeight);
     var availSpace = itemHeight*numItems;
-    console.log(chartHeight, numItems, availSpace)
     $('.global-timeseries-chart .timeseries-legend').css('max-height', availSpace);
   }
 }
@@ -1685,6 +1684,7 @@ function displayMap() {
   //position global figures
   if (window.innerWidth>=1440) {
     $('.menu-indicators li:first-child div').addClass('expand');
+    $('.tab-menubar, #chart-view').addClass('panel-expand');
     $('.secondary-panel').animate({
       left: 0
     }, 200);
@@ -1850,6 +1850,21 @@ function createEvents() {
 
       mpTrack('wrl', $(this).find('div').text());
       updateGlobalLayer();
+    }
+
+    //handle tab views
+    if (currentIndicator.id=='#affected+infected+new+per100000+weekly') {
+      $('.tab-menubar .tab-button').removeClass('active');
+      $('.tab-menubar .tab-button:first-child').addClass('active')
+      $('.tab-menubar').show();
+      $('#countrySelect').css('top', '80px');
+      $('.mapboxgl-ctrl-top-right').css('top', '134px');
+    }
+    else {
+      $('.tab-menubar').hide();
+      $('#chart-view').hide();
+      $('#countrySelect').css('top', '30px');
+      $('.mapboxgl-ctrl-top-right').css('top', '84px');
     }
   });
 
