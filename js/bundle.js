@@ -142,15 +142,23 @@ function formatTimeseriesData(data) {
   return timeseriesArray;
 }
 
-var countryTimeseriesChart;
+
 function createTimeSeries(array, div) {
   var isGlobal = (div.indexOf('global')>-1) ? true : false;
   var chartWidth = (isGlobal) ? viewportWidth - $('.secondary-panel').width() - 75 : 336;
   var chartHeight = (isGlobal) ? $(div).parent().height()-200 : 240;
-  var tickCount = (isGlobal) ? 15 : 5;
   var colorArray = (isGlobal) ? 
     ['#1ebfb3', '#f2645a', '#007ce1', '#9c27b0', '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'] :
     ['#999'];
+
+  //get date values for x axis labels
+  var dateSet = new Set();
+  array[0].forEach(function(d, i) {
+    if (i>0 && d.getDate()==1) {
+      dateSet.add(d);
+    }
+  });
+  var dateArray = [...dateSet];
 
 	var chart = c3.generate({
     size: {
@@ -171,10 +179,7 @@ function createTimeSeries(array, div) {
 		data: {
 			x: 'x',
 			columns: array,
-      type: 'spline',
-      // color: function() {
-      //   return '#999';
-      // }
+      type: 'spline'
 		},    
     color: {
       pattern: colorArray
@@ -189,9 +194,11 @@ function createTimeSeries(array, div) {
 			x: {
 				type: 'timeseries',
 				tick: {
-          count: tickCount,
-          format: '%b %d, %Y',
-          outer: false
+          outer: false,
+          values: dateArray,
+          format: function(d) {
+            return d.getMonth()+1 + '/' + d.getDate() + '/' + d.getFullYear().toString().substr(-2);
+          }
 				}
 			},
 			y: {
@@ -217,25 +224,21 @@ function createTimeSeries(array, div) {
     transition: { duration: 300 }
 	});
 
-  if (!isGlobal) {
+  createTimeseriesLegend(chart, div, chartHeight);
+
+  if (isGlobal) {
+    globalTimeseriesChart = chart;
+  }
+  else {
     countryTimeseriesChart = chart;
     createSource($('.cases-timeseries'), '#affected+infected');
-  }
-
-  createTimeseriesLegend(chart, div);
-
-  //set max height for global legend
-  if (isGlobal) {
-    var itemHeight = 18;
-    var numItems = Math.round((chartHeight-160)/itemHeight);
-    var availSpace = itemHeight*numItems;
-    $('.global-timeseries-chart .timeseries-legend').css('max-height', availSpace);
   }
 }
 
 
-function createTimeseriesLegend(chart, div, country) {
+function createTimeseriesLegend(chart, div, chartHeight, country) {
   var isGlobal = (div.indexOf('global')>-1) ? true : false;
+  if (isGlobal && $('.timeseries-legend').length>0) $('.global-timeseries-chart .timeseries-legend').remove();
   var names = [];
   chart.data.shown().forEach(function(d) {
     if (d.id==country || country==undefined)
@@ -263,18 +266,27 @@ function createTimeseriesLegend(chart, div, country) {
       if (isGlobal) chart.revert();
     });
 
+    //set max height for legend
+    if (isGlobal) {
+      var itemHeight = 18;
+      var numItems = Math.round((chartHeight-160)/itemHeight);
+      var availSpace = itemHeight*numItems;
+      $('.global-timeseries-chart .timeseries-legend').css('max-height', availSpace);
+    }
 }
 
 function updateTimeseries(selected) {
+  var maxValue = d3.max(countryTimeseriesChart.data(selected)[0].values, function(d) { return +d.value; });
   if (selected=='Syrian Arab Republic') selected = 'Syria';
   if (selected=='Venezuela (Bolivarian Republic of)') selected = 'Venezuela';
 
+  countryTimeseriesChart.axis.max(maxValue*2);
   countryTimeseriesChart.focus(selected);
   $('.country-timeseries-chart .c3-chart-lines .c3-line').css('stroke', '#999');
   $('.country-timeseries-chart .c3-chart-lines .c3-line-'+selected).css('stroke', '#007CE1');
 
   $('.country-timeseries-chart .timeseries-legend').remove();
-  createTimeseriesLegend(countryTimeseriesChart, '.country-timeseries-chart', selected);
+  createTimeseriesLegend(countryTimeseriesChart, '.country-timeseries-chart', '', selected);
 }
 
 
@@ -1440,7 +1452,7 @@ function setKeyFigures() {
 
 	//global stats
 	var globalData = regionalData.filter(function(region) { return region['#region+name']=='global'; });
-	secondaryPanel.find('.global-figures').html('Global Figures:<br>'+ numFormat(globalData[0]['#affected+infected']) +' total confirmed cases<br>'+ numFormat(globalData[0]['#affected+killed']) +' total confirmed deaths');
+	secondaryPanel.find('.global-figures').html('<b>Global Figures:</b><br>'+ shortenNumFormat(globalData[0]['#affected+infected']) +' total confirmed cases<br>'+ shortenNumFormat(globalData[0]['#affected+killed']) +' total confirmed deaths');
 
 	var data = worldData;
 	if (currentRegion!='') {
@@ -1469,12 +1481,12 @@ function setKeyFigures() {
 
 	//PIN
 	if (currentIndicator.id=='#affected+inneed+pct') {
-		var totalPIN = d3.sum(nationalData, function(d) {
-			if (regionMatch(d['#region+name'])) {
-				return +d['#affected+inneed']; 
-			}
-		});
-		createKeyFigure('.figures', 'Total Number of People in Need', 'pin', (d3.format('.4s'))(totalPIN));
+		// var totalPIN = d3.sum(nationalData, function(d) {
+		// 	if (regionMatch(d['#region+name'])) {
+		// 		return +d['#affected+inneed']; 
+		// 	}
+		// });
+		createKeyFigure('.figures', 'Total Number of People in Need', 'pin', '431M');//(d3.format('.4s'))(totalPIN)
 		createKeyFigure('.figures', 'Number of Countries', '', totalCountries);
 	}
 	//access security
@@ -2008,49 +2020,6 @@ function selectCountry(features) {
 /****************************/
 /*** GLOBAL MAP FUNCTIONS ***/
 /****************************/
-function initGlobalLayer() {
-  //create log scale for circle markers
-  var maxCases = d3.max(nationalData, function(d) { return +d['#affected+infected']; })
-  markerScale = d3.scaleSqrt()
-    .domain([1, maxCases])
-    .range([2, 15]);
-  
-  //color scale
-  colorScale = getGlobalLegendScale();
-  setGlobalLegend(colorScale);
-
-  //data join
-  var expression = ['match', ['get', 'ISO_3']];
-  var expressionMarkers = ['match', ['get', 'ISO_3']];
-  nationalData.forEach(function(d) {
-    var val = d[currentIndicator.id];
-    var color = (val==null) ? colorNoData : colorScale(val);
-    expression.push(d['#country+code'], color);
-
-    //covid markers
-    var covidVal = d['#affected+infected'];
-    var size = (!isVal(covidVal)) ? 0 : markerScale(covidVal);
-    expressionMarkers.push(d['#country+code'], size);
-  });
-
-  //default value for no data
-  expression.push(colorDefault);
-  expressionMarkers.push(0);
-  
-  //set properties
-  map.setPaintProperty(globalLayer, 'fill-color', expression);
-  map.setPaintProperty(globalMarkerLayer, 'circle-stroke-opacity', 1);
-  map.setPaintProperty(globalMarkerLayer, 'circle-opacity', 1);
-  map.setPaintProperty(globalMarkerLayer, 'circle-radius', expressionMarkers);
-  map.setPaintProperty(globalMarkerLayer, 'circle-translate', [0,-7]);
-
-  //define mouse events
-  handleGlobalEvents();
-
-  //global figures
-  setKeyFigures();
-}
-
 function handleGlobalEvents(layer) {
   map.on('mouseenter', globalLayer, function(e) {
     map.getCanvas().style.cursor = 'pointer';
@@ -2102,6 +2071,50 @@ function handleGlobalEvents(layer) {
   });
 }
 
+
+function initGlobalLayer() {
+  //create log scale for circle markers
+  var maxCases = d3.max(nationalData, function(d) { return +d['#affected+infected']; })
+  markerScale = d3.scaleSqrt()
+    .domain([1, maxCases])
+    .range([2, 15]);
+  
+  //color scale
+  colorScale = getGlobalLegendScale();
+  setGlobalLegend(colorScale);
+
+  //data join
+  var expression = ['match', ['get', 'ISO_3']];
+  var expressionMarkers = ['match', ['get', 'ISO_3']];
+  nationalData.forEach(function(d) {
+    var val = d[currentIndicator.id];
+    var color = (val==null) ? colorNoData : colorScale(val);
+    expression.push(d['#country+code'], color);
+
+    //covid markers
+    var covidVal = d['#affected+infected'];
+    var size = (!isVal(covidVal)) ? 0 : markerScale(covidVal);
+    expressionMarkers.push(d['#country+code'], size);
+  });
+
+  //default value for no data
+  expression.push(colorDefault);
+  expressionMarkers.push(0);
+  
+  //set properties
+  map.setPaintProperty(globalLayer, 'fill-color', expression);
+  map.setPaintProperty(globalMarkerLayer, 'circle-stroke-opacity', 1);
+  map.setPaintProperty(globalMarkerLayer, 'circle-opacity', 1);
+  map.setPaintProperty(globalMarkerLayer, 'circle-radius', expressionMarkers);
+  map.setPaintProperty(globalMarkerLayer, 'circle-translate', [0,-7]);
+
+  //define mouse events
+  handleGlobalEvents();
+
+  //global figures
+  setKeyFigures();
+}
+
 function updateGlobalLayer() {
   setKeyFigures();
 
@@ -2116,6 +2129,7 @@ function updateGlobalLayer() {
   markerScale.domain([1, maxCases]);
 
   //data join
+  var countryList = [];
   var expression = ['match', ['get', 'ISO_3']];
   var expressionMarkers = ['match', ['get', 'ISO_3']];
   nationalData.forEach(function(d) {
@@ -2138,6 +2152,9 @@ function updateGlobalLayer() {
       var covidVal = d['#affected+infected'];
       var size = (!isVal(covidVal)) ? 0 : markerScale(covidVal);
       expressionMarkers.push(d['#country+code'], size);
+
+      //create country list for global timeseries chart
+      countryList.push(d['#country+name']);
     }
   });
 
@@ -2149,6 +2166,12 @@ function updateGlobalLayer() {
   map.setLayoutProperty(globalMarkerLayer, 'visibility', 'visible');
   map.setPaintProperty(globalMarkerLayer, 'circle-radius', expressionMarkers);
   setGlobalLegend(colorScale);
+
+  //update global timeseries chart
+  console.log(countryList, globalTimeseriesChart);
+  globalTimeseriesChart.hide();
+  globalTimeseriesChart.show(countryList);
+  createTimeseriesLegend(globalTimeseriesChart, '.global-timeseries-chart');
 }
 
 function getGlobalLegendScale() {
@@ -2233,6 +2256,17 @@ function setGlobalLegend(scale) {
     //secondary source
     $('.map-legend.global').append('<div class="source-secondary"></div>');
 
+    //covid positive testing explanatory text
+    var covidTestText = 'Positive Testing Rate: This is the daily positive rate, given as a rolling 7-day average. According WHO, a positive rate of less than 5% is one indicator that the epidemic is under control in a country.';
+    $('.map-legend.global').append('<p class="footnote test-methodology small">'+ truncateString(covidTestText, 65) +' <a href="#" class="expand">MORE</a></p>');
+    $('.map-legend.global .test-methodology').click(function() {
+      if ($(this).find('a').hasClass('collapse')) {
+        $(this).html(truncateString(covidTestText, 65) + ' <a href="#" class="expand">MORE</a>');
+      }
+      else {
+        $(this).html(covidTestText + ' <a href="#" class="collapse">LESS</a>');
+      }
+    });
     //vacc methodology explanatory text
     var vaccinationMethodologyText = 'Methodology: Information about interrupted vaccination campaigns contains both official and unofficial information sources. The country ranking has been determined by calculating the ratio of total number of postponed or cancelled campaigns and total vaccination campaigns. Note: data collection is ongoing and may not reflect all the campaigns in every country.';
     $('.map-legend.global').append('<p class="footnote vacc-methodology small">'+ truncateString(vaccinationMethodologyText, 60) +' <a href="#" class="expand">MORE</a></p>');
@@ -2376,6 +2410,11 @@ function setGlobalLegend(scale) {
   }
 
   //methodology
+  if (currentIndicator.id=='#affected+infected+new+per100000+weekly')
+    $('.test-methodology').show();
+  else
+    $('.test-methodology').hide();
+  
   if (currentIndicator.id=='#vaccination+num+ratio')
     $('.vacc-methodology').show();
   else
@@ -2661,7 +2700,6 @@ function createMapTooltip(country_code, country_name, point) {
       content += '<div class="stat-container condensed-stat covid-deaths"><div class="stat-title">Weekly Number of New Deaths:</div><div class="stat">' + numFormat(country[0]['#affected+killed+new+weekly']) + '</div><div class="sparkline-container"></div></div>';
       content += '<div class="stat-container condensed-stat covid-pct"><div class="stat-title">Weekly Trend (new cases past week / prior week):</div><div class="stat">' + percentFormat(country[0]['#covid+trend+pct']) + '</div><div class="sparkline-container"></div></div>';
 
-      //testing data
       if (country[0]['#affected+tested+positive+pct']!=undefined) {
         var testingVal = percentFormat(country[0]['#affected+tested+positive+pct']);
         content += '<div class="stat-container condensed-stat covid-test-per-capita"><div class="stat-title">Positive Test Rate (rolling 7-day avg):</div><div class="stat">'+ testingVal +'</div><div class="sparkline-container"></div></div>';
@@ -3041,6 +3079,7 @@ var oxfordColorRange = ['#ffffd9','#c7e9b4','#41b6c4','#225ea8','#172976'];
 var colorDefault = '#F2F2EF';
 var colorNoData = '#FFF';
 var regionBoundaryData, regionalData, worldData, nationalData, subnationalData, vaccinationData, timeseriesData, covidTrendData, dataByCountry, countriesByRegion, colorScale, viewportWidth, viewportHeight, currentRegion = '';
+var globalTimeseriesChart, countryTimeseriesChart = '';
 var mapLoaded = false;
 var dataLoaded = false;
 var viewInitialized = false;
@@ -3077,7 +3116,7 @@ $( document ).ready(function() {
     $('.content-right').width(viewportWidth);
     $('#chart-view').height(viewportHeight - $('.tab-menubar').height());
     $('.country-panel .panel-content').height(viewportHeight - $('.country-panel .panel-content').position().top);
-    $('.map-legend.global, .map-legend.country').css('max-height', viewportHeight - 250);
+    $('.map-legend.global, .map-legend.country').css('max-height', viewportHeight - 200);
     if (viewportHeight<696) {
       zoomLevel = 1.4;
     }
