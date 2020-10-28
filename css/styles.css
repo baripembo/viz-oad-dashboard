@@ -1395,8 +1395,6 @@ a:visited {
     .tab-menubar .tab-button.active, .tab-menubar .tab-button:hover {
       border-color: #F05449;
       color: #F05449; }
-  .tab-menubar.panel-expand {
-    padding-left: 285px; }
 
 .layer-description {
   background-color: #FFF;
@@ -1559,8 +1557,8 @@ a:visited {
   .secondary-panel .close-btn {
     cursor: pointer;
     color: #888;
-    right: 20px;
     position: absolute;
+    right: 20px;
     top: 20px; }
   .secondary-panel .source-container .source {
     padding-right: 50px; }
@@ -1720,6 +1718,8 @@ a:visited {
     top: 9px; }
   .map-legend .toggle-icon:hover:before {
     color: #007CE1; }
+  .map-legend .indicator-title {
+    padding-right: 4px; }
   .map-legend .collapsed-title {
     cursor: pointer;
     display: none; }
@@ -2070,8 +2070,6 @@ table {
   top: 50px;
   width: 100%;
   z-index: 3; }
-  #chart-view.panel-expand {
-    left: 255px; }
   #chart-view .source-container {
     margin-bottom: 40px; }
 

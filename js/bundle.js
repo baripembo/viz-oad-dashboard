@@ -151,6 +151,17 @@ function createTimeSeries(array, div) {
     ['#1ebfb3', '#f2645a', '#007ce1', '#9c27b0', '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'] :
     ['#999'];
 
+  //filter HRP countries for countrytimeseries
+  if (!isGlobal) {
+    var hrpList = [];
+    hrpData.forEach(function(d) {
+      hrpList.push(d['#country+name']);
+    });
+    var hrpArray = array.filter((row) => hrpList.includes(row[0]));
+    hrpArray.unshift(array[0]);
+    array = hrpArray;
+  }
+
   //get date values for x axis labels
   var dateSet = new Set();
   array[0].forEach(function(d, i) {
@@ -180,7 +191,7 @@ function createTimeSeries(array, div) {
 			x: 'x',
 			columns: array,
       type: 'spline'
-		},    
+		},
     color: {
       pattern: colorArray
     },
@@ -202,6 +213,7 @@ function createTimeSeries(array, div) {
 				}
 			},
 			y: {
+        //type: 'log',
 				min: 0,
 				padding: { top:0, bottom:0 },
         tick: { 
@@ -1379,7 +1391,7 @@ function hasGamData(data, indicator) {
 }
 
 function getGamText(data, indicator) {
-  var gmText = '**Gender age marker: ';
+  var gmText = '**Gender-Age Marker: ';
   for (var i=0;i<5;i++) {
     var pct = (data['#value+'+ indicator + '+covid+funding+gm'+ i +'+total+usd']!=undefined) ? percentFormat(data['#value+'+ indicator + '+covid+funding+gm'+ i +'+total+usd'] / data['#value+'+ indicator + '+covid+funding+total+usd']) : '0%';
     gmText += '['+i+']: ' + pct;
@@ -1452,7 +1464,7 @@ function setKeyFigures() {
 
 	//global stats
 	var globalData = regionalData.filter(function(region) { return region['#region+name']=='global'; });
-	secondaryPanel.find('.global-figures').html('<b>Global Figures:</b><br>'+ shortenNumFormat(globalData[0]['#affected+infected']) +' total confirmed cases<br>'+ shortenNumFormat(globalData[0]['#affected+killed']) +' total confirmed deaths');
+	secondaryPanel.find('.global-figures').html('<b>Global COVID-19 Figures:</b><br>'+ shortenNumFormat(globalData[0]['#affected+infected']) +' total confirmed cases<br>'+ shortenNumFormat(globalData[0]['#affected+killed']) +' total confirmed deaths');
 
 	var data = worldData;
 	if (currentRegion!='') {
@@ -1486,6 +1498,7 @@ function setKeyFigures() {
 		// 		return +d['#affected+inneed']; 
 		// 	}
 		// });
+		//hardcoding PIN to match OCHA data
 		createKeyFigure('.figures', 'Total Number of People in Need', 'pin', '431M');//(d3.format('.4s'))(totalPIN)
 		createKeyFigure('.figures', 'Number of Countries', '', totalCountries);
 	}
@@ -1556,7 +1569,7 @@ function setKeyFigures() {
 	}
 	//IFI
 	else if (currentIndicator.id=='#value+gdp+ifi+pct') {
-		createKeyFigure('.figures', 'Total Funding (IMF/World Bank)', '', formatValue(data['#value+ifi+total']));
+		createKeyFigure('.figures', 'Total Funding', '', formatValue(data['#value+ifi+total']));
 		createKeyFigure('.figures', 'Number of Countries', '', totalCountries);
 	}
 	//covid figures
@@ -1696,7 +1709,7 @@ function displayMap() {
   //position global figures
   if (window.innerWidth>=1440) {
     $('.menu-indicators li:first-child div').addClass('expand');
-    $('.tab-menubar, #chart-view').addClass('panel-expand');
+    $('.tab-menubar, #chart-view').css('left', $('.secondary-panel').outerWidth());
     $('.secondary-panel').animate({
       left: 0
     }, 200);
@@ -1866,8 +1879,8 @@ function createEvents() {
 
     //handle tab views
     if (currentIndicator.id=='#affected+infected+new+per100000+weekly') {
-      $('.tab-menubar .tab-button').removeClass('active');
-      $('.tab-menubar .tab-button:first-child').addClass('active')
+      // $('.tab-menubar .tab-button').removeClass('active');
+      // $('.tab-menubar .tab-button:first-child').addClass('active')
       $('.tab-menubar').show();
       $('#countrySelect').css('top', '80px');
       $('.mapboxgl-ctrl-top-right').css('top', '134px');
@@ -1950,9 +1963,8 @@ function toggleSecondaryPanel(currentBtn, state) {
   var width = $('.secondary-panel').outerWidth();
   var pos = $('.secondary-panel').position().left;
   var newPos = (pos<0) ? 0 : -width;
-  if (state=='open') {
-    newPos = 0;
-  }
+  if (state=='open') { newPos = 0; }
+  var newTabPos = (newPos==0) ? width : 0;
   
   $('.secondary-panel').animate({
     left: newPos
@@ -1960,13 +1972,15 @@ function toggleSecondaryPanel(currentBtn, state) {
     var div = $(currentBtn).find('div');
     if ($('.secondary-panel').position().left==0) {
       div.addClass('expand');
-      $('.tab-menubar, #chart-view').addClass('panel-expand');
     }
-    else{
+    else {
       div.removeClass('expand');
-      $('.tab-menubar, #chart-view').removeClass('panel-expand');
     }
   });
+
+  $('.tab-menubar, #chart-view').animate({
+    left: newTabPos
+  }, 200);
 }
 
 
@@ -2168,7 +2182,6 @@ function updateGlobalLayer() {
   setGlobalLegend(colorScale);
 
   //update global timeseries chart
-  console.log(countryList, globalTimeseriesChart);
   globalTimeseriesChart.hide();
   globalTimeseriesChart.show(countryList);
   createTimeseriesLegend(globalTimeseriesChart, '.global-timeseries-chart');
@@ -2289,6 +2302,17 @@ function setGlobalLegend(scale) {
         $(this).html(foodMethodologyText + ' <a href="#" class="collapse">LESS</a>');
       }
     });
+    //oxford methodology text
+    var oxfordMethodologyText = 'Methodology: This is a composite measure based on nine response indicators including school closures, workplace closures, and travel bans, rescaled to a value from 0 to 100 (100 = strictest)';
+    $('.map-legend.global').append('<p class="footnote oxford-methodology small">'+ truncateString(oxfordMethodologyText, 65) +' <a href="#" class="expand">MORE</a></p>');
+    $('.map-legend.global .oxford-methodology').click(function() {
+      if ($(this).find('a').hasClass('collapse')) {
+        $(this).html(truncateString(oxfordMethodologyText, 65) + ' <a href="#" class="expand">MORE</a>');
+      }
+      else {
+        $(this).html(oxfordMethodologyText + ' <a href="#" class="collapse">LESS</a>');
+      }
+    });
 
     //cases
     $('.map-legend.global').append('<h4>Number of COVID-19 Cases</h4>');
@@ -2328,7 +2352,7 @@ function setGlobalLegend(scale) {
     });
 
     //GAM explanatory text
-    var gamDataText = '**Gender age marker: 0- Does not systematically link programming actions<br>1- Unlikely to contribute to gender equality (no gender equality measure and no age consideration)<br>2- Unlikely to contribute to gender equality (no gender equality measure but includes age consideration)<br>3- Likely to contribute to gender equality, but without attention to age groups<br>4- Likely to contribute to gender equality, including across age groups';
+    var gamDataText = '**Gender-Age Marker: 0- Does not systematically link programming actions<br>1- Unlikely to contribute to gender equality (no gender equality measure and no age consideration)<br>2- Unlikely to contribute to gender equality (no gender equality measure but includes age consideration)<br>3- Likely to contribute to gender equality, but without attention to age groups<br>4- Likely to contribute to gender equality, including across age groups';
     $('.map-legend.global').append('<p class="footnote gam-methodology small">'+ truncateString(gamDataText, 65) +' <a href="#" class="expand">MORE</a></p>');
     $('.map-legend.global .gam-methodology').click(function() {
       if ($(this).find('a').hasClass('collapse')) {
@@ -2414,7 +2438,7 @@ function setGlobalLegend(scale) {
     $('.test-methodology').show();
   else
     $('.test-methodology').hide();
-  
+
   if (currentIndicator.id=='#vaccination+num+ratio')
     $('.vacc-methodology').show();
   else
@@ -2429,6 +2453,11 @@ function setGlobalLegend(scale) {
     $('.gam-methodology').show();
   else
     $('.gam-methodology').hide();
+
+  if (currentIndicator.id=='#severity+stringency+num')
+    $('.oxford-methodology').show();
+  else
+    $('.oxford-methodology').hide();
 
   //cases
   var maxCases = d3.max(nationalData, function(d) { 
@@ -3085,6 +3114,7 @@ var dataLoaded = false;
 var viewInitialized = false;
 var zoomLevel = 1.4;
 
+var hrpData = [];
 var currentIndicator = {};
 var currentCountryIndicator = {};
 var currentCountry = {};
@@ -3244,7 +3274,7 @@ $( document ).ready(function() {
 
     //create country select
     var countryArray = Object.keys(countryCodeList);
-    var hrpData = nationalData.filter((row) => countryArray.includes(row['#country+code']));
+    hrpData = nationalData.filter((row) => countryArray.includes(row['#country+code']));
     hrpData.sort(function(a, b){
       return d3.ascending(a['#country+name'].toLowerCase(), b['#country+name'].toLowerCase());
     })
