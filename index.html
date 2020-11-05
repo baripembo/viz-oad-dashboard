@@ -44,7 +44,7 @@
 
     <main>
       
-      <div class='content'>
+      <div class='content tab-view'>
         <div class='content-left'>
           <div class='menu'>
             <div class='hdx-logo'>
@@ -53,11 +53,11 @@
               </a>
             </div>
 
-            <h1>COVID-19 Data Explorer:<br>63 GHRP Locations</h1>
-<!--             <h4>Download:</h4>
+            <h1>COVID-19 Data Explorer:<br>Global Humanitarian Operations</h1>
+            <h4>Download:</h4>
             <div class='download-link'>
-              <a href='#'><span><b>DAILY SNAPSHOT</b><br>SEP 28, 2020 (192kb, pdf)</span><i class='humanitarianicons-Download'></i></a>
-            </div> -->
+              <a href='https://tools.humdata.org/snap?output=pdf&pdfFormat=A4&pdfLandscape=true&pdfMarginTop=35&pdfMarginLeft=20&pdfMarginRight=20&url=https%3A%2F%2Fsimonbjohnson.github.io%2Fhdx-covid-1pager%2F' target='_blank' rel='noopener'><span><b>DAILY SNAPSHOT</b><br><span class='today-date'></span> (pdf)</span><i class='humanitarianicons-Download'></i></a>
+            </div>
 
             <div class='global-menu'>
               <label for="regionSelect" class="visuallyhidden">Select a region: </label>
@@ -73,12 +73,12 @@
                 <li data-id='#affected+inneed+pct' data-legend='Percentage of People in Need'>
                   <div><i class='humanitarianicons-People-in-need'></i>People in Need 2020</div>
                 </li>
-                <li data-id='#severity+access+category' data-legend='Access Severity Level'>
+                <!-- <li data-id='#severity+access+category' data-legend='Access Severity Level'>
                   <div><i class='humanitarianicons-Humanitarian-access'></i>Access Severity</div>
-                </li>
-                <!-- <li data-id='#affected+food+p3plus+pct' data-legend='IPC Acute Food Insecurity (% of population in IPC Phase 3+)'>
-                  <div><i class='humanitarianicons-Food-Security'></i>IPC Acute Food Insecurity</div>
                 </li> -->
+                <li data-id='#affected+food+p3plus+pct' data-legend='IPC Acute Food Insecurity (% of population in IPC Phase 3+)'>
+                  <div><i class='humanitarianicons-Food-Security'></i>IPC Acute Food Insecurity</div>
+                </li>
                 <li data-id='#value+food+num+ratio' data-legend='Food Market Prices (% in crisis)'>
                   <div><i class='humanitarianicons-Livelihood'></i>Food Market Prices</div>
                 </li>
@@ -114,6 +114,7 @@
 
           <div class='logos'>
             <a href='mailto:hdx@un.org?subject=Feedback on COVID-19 Map Explorer'>Send us feedback</a>
+            <p class='footnote small'>The countries represented here have inter-agency plans that address the humanitarian needs of the most vulnerable, including refugees and migrants.</p>
             <a href='https://centre.humdata.org' target='_blank' rel='noopener'>
               <img src='assets/logo-centre-gray.png' alt='Centre for Humanitarian Data logo'>
             </a>
@@ -240,7 +241,7 @@
           </div>
 
           <h1>COVID-19 Map Explorer</h1>
-          <h2><a href='#'>< Back to Global View</a></h2>
+          <h2 class='backtoGlobal'><a href='#'>< Back to Global View</a></h2>
 
           <div class='panel-header'>
             <div class='panel-title'>

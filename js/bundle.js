@@ -242,7 +242,7 @@ function createTimeSeries(array, div) {
     transition: { duration: 300 }
 	});
 
-  createTimeseriesLegend(chart, div);
+  createTimeseriesLegend(chart);
 
   if (isGlobal) {
     globalTimeseriesChart = chart;
@@ -254,8 +254,9 @@ function createTimeSeries(array, div) {
 }
 
 
-function createTimeseriesLegend(chart, div, country) {
-  var isGlobal = (div.indexOf('global')>-1) ? true : false;
+function createTimeseriesLegend(chart, country) {
+  var element = $(chart.element).attr('class');
+  var isGlobal = (element.indexOf('global')>-1) ? true : false;
   if (isGlobal && $('.timeseries-legend').length>0) {
     $('.global-timeseries-chart .timeseries-legend').remove();
   }
@@ -266,7 +267,7 @@ function createTimeseriesLegend(chart, div, country) {
   });
 
   //custom legend
-  d3.select(div).insert('div').attr('class', 'timeseries-legend').selectAll('div')
+  d3.select(chart.element).insert('div').attr('class', 'timeseries-legend').selectAll('div')
     .data(names)
     .enter().append('div')
     .attr('data-id', function(id) {
@@ -288,7 +289,7 @@ function createTimeseriesLegend(chart, div, country) {
 
   //set max height for legend
   if (isGlobal) {
-    var chartHeight = $(div).parent().height()-200;
+    var chartHeight = $(chart.element).parent().height()-200;
     var itemHeight = 18;
     var numItems = Math.round((chartHeight-160)/itemHeight);
     var availSpace = itemHeight*numItems;
@@ -307,7 +308,7 @@ function updateTimeseries(selected) {
   $('.country-timeseries-chart .c3-chart-lines .c3-line-'+selected).css('stroke', '#007CE1');
 
   $('.country-timeseries-chart .timeseries-legend').remove();
-  createTimeseriesLegend(countryTimeseriesChart, '.country-timeseries-chart', selected);
+  createTimeseriesLegend(countryTimeseriesChart, selected);
 }
 
 
@@ -1420,9 +1421,24 @@ function getBeneficiaryText(data) {
   return beneficiaryText;
 }
 
+function createFootnote(target, text, indicator) {
+  var className = (indicator==undefined) ? 'footnote' : 'footnote footnote-indicator';
+  var indicatorName = (indicator==undefined) ? '' : indicator;
+  var footnote = $('<p class="'+ className +'" data-indicator="'+ indicatorName +'">'+ truncateString(text, 65) +' <a href="#" class="expand">MORE</a></p>');
+  $(target).append(footnote);
+  footnote.click(function() {
+    if ($(this).find('a').hasClass('collapse')) {
+      $(this).html(truncateString(text, 65) + ' <a href="#" class="expand">MORE</a>');
+    }
+    else {
+      $(this).html(text + ' <a href="#" class="collapse">LESS</a>');
+    }
+  });
+}
+
 //regional id/name list
 const regionalList = [
-  {id: 'H25', name: '25 HRP Locations'},
+  {id: 'H25', name: 'Humanitarian Response Plan Countries'},
   {id: 'ROAP', name: 'Asia and the Pacific'},
   {id: 'ROCCA', name: 'Eastern Europe'},
   {id: 'ROLAC', name: 'Latin America and the Caribbean'},
@@ -1673,6 +1689,7 @@ function updateSource(div, indicator) {
 
 function getSource(indicator) {
 	if (indicator=='#severity+access+category') indicator = '#severity+access+category+num';
+	if (indicator=='#affected+food+p3plus+pct') indicator = '#affected+food+ipc+p3plus+pct';
   var obj = {};
   sourcesData.forEach(function(item) {
     if (item['#indicator+name']==indicator) {
@@ -1888,17 +1905,13 @@ function createEvents() {
 
     //handle tab views
     if (currentIndicator.id=='#affected+infected+new+per100000+weekly') {
-      // $('.tab-menubar .tab-button').removeClass('active');
-      // $('.tab-menubar .tab-button:first-child').addClass('active')
+      $('.content').addClass('tab-view');
       $('.tab-menubar').show();
-      $('#countrySelect').css('top', '80px');
-      $('.mapboxgl-ctrl-top-right').css('top', '134px');
     }
     else {
+      $('.content').removeClass('tab-view');
       $('.tab-menubar').hide();
       $('#chart-view').hide();
-      $('#countrySelect').css('top', '30px');
-      $('.mapboxgl-ctrl-top-right').css('top', '84px');
     }
   });
 
@@ -1944,7 +1957,7 @@ function createEvents() {
   });
   
   //back to global event
-  $('.country-panel h2').on('click', function() {
+  $('.backtoGlobal').on('click', function() {
     resetMap();
     window.history.replaceState(null, null, window.location.pathname);
   });
@@ -2193,7 +2206,7 @@ function updateGlobalLayer() {
   //update global timeseries chart
   globalTimeseriesChart.hide();
   globalTimeseriesChart.show(countryList);
-  createTimeseriesLegend(globalTimeseriesChart, '.global-timeseries-chart');
+  createTimeseriesLegend(globalTimeseriesChart);
 }
 
 function getGlobalLegendScale() {
@@ -2278,50 +2291,15 @@ function setGlobalLegend(scale) {
     //secondary source
     $('.map-legend.global').append('<div class="source-secondary"></div>');
 
-    //covid positive testing explanatory text
-    var covidTestText = 'Positive Testing Rate: This is the daily positive rate, given as a rolling 7-day average. According WHO, a positive rate of less than 5% is one indicator that the epidemic is under control in a country.';
-    $('.map-legend.global').append('<p class="footnote test-methodology small">'+ truncateString(covidTestText, 65) +' <a href="#" class="expand">MORE</a></p>');
-    $('.map-legend.global .test-methodology').click(function() {
-      if ($(this).find('a').hasClass('collapse')) {
-        $(this).html(truncateString(covidTestText, 65) + ' <a href="#" class="expand">MORE</a>');
-      }
-      else {
-        $(this).html(covidTestText + ' <a href="#" class="collapse">LESS</a>');
-      }
-    });
-    //vacc methodology explanatory text
-    var vaccinationMethodologyText = 'Methodology: Information about interrupted vaccination campaigns contains both official and unofficial information sources. The country ranking has been determined by calculating the ratio of total number of postponed or cancelled campaigns and total vaccination campaigns. Note: data collection is ongoing and may not reflect all the campaigns in every country.';
-    $('.map-legend.global').append('<p class="footnote vacc-methodology small">'+ truncateString(vaccinationMethodologyText, 60) +' <a href="#" class="expand">MORE</a></p>');
-    $('.map-legend.global .vacc-methodology').click(function() {
-      if ($(this).find('a').hasClass('collapse')) {
-        $(this).html(truncateString(vaccinationMethodologyText, 60) + ' <a href="#" class="expand">MORE</a>');
-      }
-      else {
-        $(this).html(vaccinationMethodologyText + ' <a href="#" class="collapse">LESS</a>');
-      }
-    });
-    //food methodology explanatory text
-    var foodMethodologyText = 'Methodology: Information about food prices is collected from data during the last 6 month moving window. The country ranking for food prices has been determined by calculating the ratio of the number of commodities in alert, stress or crisis and the total number of commodities. The commodity status comes from <a href="https://dataviz.vam.wfp.org" target="_blank" rel="noopener">WFP’s model</a>.';
-    $('.map-legend.global').append('<p class="footnote food-methodology small">'+ truncateString(foodMethodologyText, 65) +' <a href="#" class="expand">MORE</a></p>');
-    $('.map-legend.global .food-methodology').click(function() {
-      if ($(this).find('a').hasClass('collapse')) {
-        $(this).html(truncateString(foodMethodologyText, 65) + ' <a href="#" class="expand">MORE</a>');
-      }
-      else {
-        $(this).html(foodMethodologyText + ' <a href="#" class="collapse">LESS</a>');
-      }
-    });
-    //oxford methodology text
-    var oxfordMethodologyText = 'Note: This is a composite measure based on nine response indicators including school closures, workplace closures, and travel bans, rescaled to a value from 0 to 100 (100 = strictest)';
-    $('.map-legend.global').append('<p class="footnote oxford-methodology small">'+ truncateString(oxfordMethodologyText, 65) +' <a href="#" class="expand">MORE</a></p>');
-    $('.map-legend.global .oxford-methodology').click(function() {
-      if ($(this).find('a').hasClass('collapse')) {
-        $(this).html(truncateString(oxfordMethodologyText, 65) + ' <a href="#" class="expand">MORE</a>');
-      }
-      else {
-        $(this).html(oxfordMethodologyText + ' <a href="#" class="collapse">LESS</a>');
-      }
-    });
+    //covid positive testing footnote
+    createFootnote('.map-legend.global', 'Positive Testing Rate: This is the daily positive rate, given as a rolling 7-day average. According WHO, a positive rate of less than 5% is one indicator that the epidemic is under control in a country.', '#affected+infected+new+per100000+weekly');
+    //vacc footnote
+    createFootnote('.map-legend.global', 'Methodology: Information about interrupted vaccination campaigns contains both official and unofficial information sources. The country ranking has been determined by calculating the ratio of total number of postponed or cancelled campaigns and total vaccination campaigns. Note: data collection is ongoing and may not reflect all the campaigns in every country.', '#vaccination+num+ratio');
+    //food prices footnote
+    createFootnote('.map-legend.global', 'Methodology: Information about food prices is collected from data during the last 6 month moving window. The country ranking for food prices has been determined by calculating the ratio of the number of commodities in alert, stress or crisis and the total number of commodities. The commodity status comes from <a href="https://dataviz.vam.wfp.org" target="_blank" rel="noopener">WFP’s model</a>.', '#value+food+num+ratio');
+    //oxford footnote
+    createFootnote('.map-legend.global', 'Note: This is a composite measure based on nine response indicators including school closures, workplace closures, and travel bans, rescaled to a value from 0 to 100 (100 = strictest)', '#severity+stringency+num');
+    
 
     //cases
     $('.map-legend.global').append('<h4>Number of COVID-19 Cases</h4>');
@@ -2347,33 +2325,16 @@ function setGlobalLegend(scale) {
       .call(legendSize);
 
     //gender disaggregation explanatory text
-    var genderDataText = '*Distribution of COVID19 cases and deaths by gender are taken from Global Health 50/50 COVID-19 <a href="https://data.humdata.org/organization/global-health-50-50" target="_blank" rel="noopener">Sex-disaggregated Data Tracker</a>. Figures refer to the last date where sex-disaggregated data was available and in some cases the gender distribution may only refer to a portion of total cases or deaths. These proportions are intended to be used to understand the breakdown of cases and deaths by gender and not to monitor overall numbers per country. Definitions of COVID-19 cases and deaths recorded may vary by country. ';
     $('.map-legend.global').append('<h4><i class="humanitarianicons-User"></i> (On hover) COVID-19 Sex-Disaggregated Data Tracker</h4>');
     createSource($('.map-legend.global'), '#affected+killed+m+pct');
-    $('.map-legend.global').append('<p class="footnote gender-data small">'+ truncateString(genderDataText, 65) +' <a href="#" class="expand">MORE</a></p>');
-    $('.map-legend.global .gender-data').click(function() {
-      if ($(this).find('a').hasClass('collapse')) {
-        $(this).html(truncateString(genderDataText, 65) + ' <a href="#" class="expand">MORE</a>');
-      }
-      else {
-        $(this).html(genderDataText + ' <a href="#" class="collapse">LESS</a>');
-      }
-    });
+    createFootnote('.map-legend.global', '*Distribution of COVID19 cases and deaths by gender are taken from Global Health 50/50 COVID-19 <a href="https://data.humdata.org/organization/global-health-50-50" target="_blank" rel="noopener">Sex-disaggregated Data Tracker</a>. Figures refer to the last date where sex-disaggregated data was available and in some cases the gender distribution may only refer to a portion of total cases or deaths. These proportions are intended to be used to understand the breakdown of cases and deaths by gender and not to monitor overall numbers per country. Definitions of COVID-19 cases and deaths recorded may vary by country.');
 
-    //GAM explanatory text
-    var gamDataText = '**Gender-Age Marker: 0- Does not systematically link programming actions<br>1- Unlikely to contribute to gender equality (no gender equality measure and no age consideration)<br>2- Unlikely to contribute to gender equality (no gender equality measure but includes age consideration)<br>3- Likely to contribute to gender equality, but without attention to age groups<br>4- Likely to contribute to gender equality, including across age groups';
-    $('.map-legend.global').append('<p class="footnote gam-methodology small">'+ truncateString(gamDataText, 65) +' <a href="#" class="expand">MORE</a></p>');
-    $('.map-legend.global .gam-methodology').click(function() {
-      if ($(this).find('a').hasClass('collapse')) {
-        $(this).html(truncateString(gamDataText, 65) + ' <a href="#" class="expand">MORE</a>');
-      }
-      else {
-        $(this).html(gamDataText + ' <a href="#" class="collapse">LESS</a>');
-      }
-    });
+    //GAM footnote
+    createFootnote('.map-legend.global', '**Gender-Age Marker: 0- Does not systematically link programming actions<br>1- Unlikely to contribute to gender equality (no gender equality measure and no age consideration)<br>2- Unlikely to contribute to gender equality (no gender equality measure but includes age consideration)<br>3- Likely to contribute to gender equality, but without attention to age groups<br>4- Likely to contribute to gender equality, including across age groups', '#value+cerf+covid+funding+total+usd');
+    createFootnote('.map-legend.global', '**Gender-Age Marker: 0- Does not systematically link programming actions<br>1- Unlikely to contribute to gender equality (no gender equality measure and no age consideration)<br>2- Unlikely to contribute to gender equality (no gender equality measure but includes age consideration)<br>3- Likely to contribute to gender equality, but without attention to age groups<br>4- Likely to contribute to gender equality, including across age groups', '#value+cbpf+covid+funding+total+usd');
 
     //boundaries disclaimer
-    boundariesDisclaimer($('.map-legend.global'));
+    createFootnote('.map-legend.global', 'The boundaries and names shown and the designations used on this map do not imply official endorsement or acceptance by the United Nations.');
 
     //expand/collapse functionality
     $('.map-legend.global .toggle-icon, .map-legend.global .collapsed-title').on('click', function() {
@@ -2442,31 +2403,9 @@ function setGlobalLegend(scale) {
     noDataKey.find('rect').css('fill', '#FFF');
   }
 
-  //methodology
-  if (currentIndicator.id=='#affected+infected+new+per100000+weekly')
-    $('.test-methodology').show();
-  else
-    $('.test-methodology').hide();
-
-  if (currentIndicator.id=='#vaccination+num+ratio')
-    $('.vacc-methodology').show();
-  else
-    $('.vacc-methodology').hide();
-
-  if (currentIndicator.id=='#value+food+num+ratio')
-    $('.food-methodology').show();
-  else
-    $('.food-methodology').hide();
-
-  if (currentIndicator.id=='#value+cerf+covid+funding+total+usd' || currentIndicator.id=='#value+cbpf+covid+funding+total+usd')
-    $('.gam-methodology').show();
-  else
-    $('.gam-methodology').hide();
-
-  if (currentIndicator.id=='#severity+stringency+num')
-    $('.oxford-methodology').show();
-  else
-    $('.oxford-methodology').hide();
+  //show/hide footnotes
+  $('.footnote-indicator').hide();
+  $('.footnote-indicator[data-indicator="'+ currentIndicator.id +'"]').show();
 
   //cases
   var maxCases = d3.max(nationalData, function(d) { 
@@ -2483,7 +2422,7 @@ function setGlobalLegend(scale) {
 /*** COUNTRY MAP FUNCTIONS ***/
 /*****************************/
 function initCountryView() {
-  $('.content').addClass('country-view');
+  $('.content').removeClass('tab-view').addClass('country-view');
   $('.country-panel').scrollTop(0);
 
   initCountryPanel();
@@ -2661,7 +2600,7 @@ function createCountryLegend(scale) {
     .text('No Data');
 
   //boundaries disclaimer
-  boundariesDisclaimer($('.map-legend.country'));
+  createFootnote('.map-legend.country', 'The boundaries and names shown and the designations used on this map do not imply official endorsement or acceptance by the United Nations.');
 
   //expand/collapse functionality
   $('.map-legend.country .toggle-icon, .map-legend.country .collapsed-title').on('click', function() {
@@ -2690,19 +2629,6 @@ function updateCountryLegend(scale) {
 
   var g = d3.select('.map-legend.country .scale');
   g.call(legend);
-}
-
-function boundariesDisclaimer(target) {
-  var disclaimerText = 'The boundaries and names shown and the designations used on this map do not imply official endorsement or acceptance by the United Nations.';
-  target.append('<p class="footnote disclaimer small">'+ truncateString(disclaimerText, 65) +' <a href="#" class="expand">MORE</a></p>');
-  target.find('.disclaimer').click(function() {
-    if ($(this).find('a').hasClass('collapse')) {
-      $(this).html(truncateString(disclaimerText, 65) + ' <a href="#" class="expand">MORE</a>');
-    }
-    else {
-      $(this).html(disclaimerText + ' <a href="#" class="collapse">LESS</a>');
-    }
-  });
 }
 
 
@@ -2795,7 +2721,13 @@ function createMapTooltip(country_code, country_name, point) {
     }
     //IPC layer
     else if (currentIndicator.id=='#affected+food+p3plus+pct') {
-      content += 'Total % Population in IPC Phase 3+:<div class="stat">' + val + '</div>';
+      var dateSpan = '';
+      if (country[0]['#date+ipc+start']!=undefined) {
+        var startDate = new Date(country[0]['#date+ipc+start']);
+        var endDate = new Date(country[0]['#date+ipc+end']);
+        var dateSpan = '<span class="subtext">('+ d3.utcFormat('%b')(startDate) +'-'+ d3.utcFormat('%b %Y')(endDate) +' - '+ country[0]['#date+ipc+period'] +')</span>';
+      }
+      content += 'Total % Population in IPC Phase 3+ '+ dateSpan +':<div class="stat">' + val + '</div>';
       if (val!='No Data') {
         content += '<span>('+ percentFormat(country[0]['#affected+food+analysed+pct']) +' of Total Country Population Analysed)</span>';
         var tableArray = [{label: 'IPC Phase 3 (Critical)', value: country[0]['#affected+food+p3+pct']},
@@ -3056,6 +2988,7 @@ function resetMap() {
   $('.content').removeClass('country-view');
   $('.country-select').val('');
 
+  //reset region
   if (currentRegion!='') {
     selectRegion();
     map.setLayoutProperty(globalLayer, 'visibility', 'visible');
@@ -3071,6 +3004,11 @@ function resetMap() {
     map.once('moveend', function() {
       map.setLayoutProperty(globalLayer, 'visibility', 'visible');
     });
+  }
+
+  //reset tab view
+  if (currentIndicator.id=='#affected+infected+new+per100000+weekly') {
+    $('.content').addClass('tab-view');
   }
 }
 
@@ -3204,7 +3142,12 @@ $( document ).ready(function() {
       var staticURL = 'https://api.mapbox.com/styles/v1/humdata/ckb843tjb46fy1ilaw49redy7/static/-25,0,'+zoomLevel+'/'+viewportWidth+'x'+viewportHeight+'?access_token='+mapboxgl.accessToken;
       $('#static-map').css('background-image', 'url('+staticURL+')');
     }
-  
+
+    //set daily download date
+    var today = new Date();
+    $('.download-link .today-date').text(dateFormat(today));
+
+
     getData();
     initMap();
   }
@@ -3264,19 +3207,19 @@ $( document ).ready(function() {
 
         //consolidate IPC data
         if (item['#affected+food+ipc+analysed+pct'] || item['#affected+ch+food+analysed+pct']) {
-          item['#affected+food+analysed+pct'] = (item['#affected+food+ipc+analysed+pct']) ? item['#affected+food+ipc+analysed+pct'] : item['#affected+ch+food+analysed+pct'];
+          item['#affected+food+analysed+pct'] = (item['#affected+ch+food+analysed+pct']) ? item['#affected+ch+food+analysed+pct'] : item['#affected+food+ipc+analysed+pct'];
         }
         if (item['#affected+food+ipc+p3+pct'] || item['#affected+ch+food+p3+pct']) {
-          item['#affected+food+p3+pct'] = (item['#affected+food+ipc+p3+pct']) ? item['#affected+food+ipc+p3+pct'] : item['#affected+ch+food+p3+pct'];
+          item['#affected+food+p3+pct'] = (item['#affected+ch+food+p3+pct']) ? item['#affected+ch+food+p3+pct'] : item['#affected+food+ipc+p3+pct'];
         }
         if (item['#affected+food+ipc+p3plus+pct'] || item['#affected+ch+food+p3plus+pct']) {
-          item['#affected+food+p3plus+pct'] = (item['#affected+food+ipc+p3plus+pct']) ? item['#affected+food+ipc+p3plus+pct'] : item['#affected+ch+food+p3plus+pct'];
+          item['#affected+food+p3plus+pct'] = (item['#affected+ch+food+p3plus+pct']) ? item['#affected+ch+food+p3plus+pct'] : item['#affected+food+ipc+p3plus+pct'];
         }
         if (item['#affected+food+ipc+p4+pct'] || item['#affected+ch+food+p4+pct']) {
-          item['#affected+food+p4+pct'] = (item['#affected+food+ipc+p4+pct']) ? item['#affected+food+ipc+p4+pct'] : item['#affected+ch+food+p4+pct'];
+          item['#affected+food+p4+pct'] = (item['#affected+ch+food+p4+pct']) ? item['#affected+ch+food+p4+pct'] : item['#affected+food+ipc+p4+pct'];
         }
         if (item['#affected+food+ipc+p5+pct'] || item['#affected+ch+food+p5+pct']) {
-          item['#affected+food+p5+pct'] = (item['#affected+food+ipc+p5+pct']) ? item['#affected+food+ipc+p5+pct'] : item['#affected+ch+food+p5+pct'];
+          item['#affected+food+p5+pct'] = (item['#affected+ch+food+p5+pct']) ? item['#affected+ch+food+p5+pct'] : item['#affected+food+ipc+p5+pct'];
         }
       });
 
@@ -3315,7 +3258,7 @@ $( document ).ready(function() {
         });
       });
 
-      //console.log(nationalData)
+      console.log(nationalData)
       //console.log(subnationalData)
 
       dataLoaded = true;
@@ -3363,6 +3306,7 @@ $( document ).ready(function() {
       else {
         $('#chart-view').hide();
       }
+      mpTrack($(this).data('id'), currentIndicator.name);
     });
 
     //load timeseries for global view 
