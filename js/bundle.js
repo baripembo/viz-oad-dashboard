@@ -1502,7 +1502,7 @@ function setKeyFigures() {
 	nationalData.forEach(function(d) {
 		if (regionMatch(d['#region+name'])) {
 			var val = d[currentIndicator.id];
-			if (currentIndicator.id=='#severity+access+category' || currentIndicator.id=='#severity+inform+type') {
+			if (currentIndicator.id=='#access+visas+pct' || currentIndicator.id=='#severity+inform+type') {
 				if (val!=undefined)
 					totalCountries++;
 			}
@@ -1525,28 +1525,14 @@ function setKeyFigures() {
 		createKeyFigure('.figures', 'Total Number of People in Need', 'pin', '431M');//(d3.format('.4s'))(totalPIN)
 		createKeyFigure('.figures', 'Number of Countries', '', totalCountries);
 	}
-	//access security
-	else if (currentIndicator.id=='#severity+access+category') {
+	//access severity
+	else if (currentIndicator.id=='#access+visas+pct') {
 		createKeyFigure('.figures', 'Number of Countries', '', totalCountries);
-		var accessLabels = ['Top Access Constraints into Country','Top Access Constraints within Country','Top Impacts','Countries with Existing Mitigation Measures'];
-		var accessTags = ['#access+constraints+into','#access+constraints+within','#access+impact','#access+mitigation'];
-		var content;
-		accessTags.forEach(function(tag, index) {
-			var descArr = (data[tag+'+desc']!=undefined) ? data[tag+'+desc'].split('|') : [];
-			var pctArr = (data[tag+'+pct']!=undefined) ? data[tag+'+pct'].split('|') : [];
-			content = '<h6>'+ accessLabels[index] +'</h6><ul class="access-figures">';
-			pctArr.forEach(function(item, index) {
-				if (tag=='#access+mitigation') {
-					content += '<li><div class="pct">'+ Math.round(item*100)+'%' + '</div><div class="desc">Yes</div></li>';
-					content += '<li><div class="pct">'+ Math.round((1-item)*100)+'%' + '</div><div class="desc">No</div></li>';
-				}
-				else {
-					content += '<li><div class="pct">'+ Math.round(item*100)+'%' + '</div><div class="desc">' + descArr[index] +'</div></li>';
-				}
-			})
-			content += '</ul>';
-			$('.figures').append(content);
-		});
+		createKeyFigure('.figures', 'Average of all countries visas pending', '', 'XX');
+		createKeyFigure('.figures', 'Average of all countries travel authorizations', '', 'XX');
+		createKeyFigure('.figures', 'Total incidents in 2020', '', 'XX');
+		createKeyFigure('.figures', 'Average of CERF projects affected', '', 'XX');
+		createKeyFigure('.figures', 'Average of CBPF projects affected', '', 'XX');
 	}
 	//humanitarian funding
 	else if (currentIndicator.id=='#value+funding+hrp+pct') {
@@ -1649,7 +1635,7 @@ function setKeyFigures() {
 	}
 
 	//ranking chart
-	if (currentIndicator.id!='#severity+access+category') {
+	if (currentIndicator.id!='#access+visas+pct') {
 		$('.ranking-container').show();
 		createRankingChart();
 	}
@@ -1686,7 +1672,7 @@ function updateSource(div, indicator) {
 }
 
 function getSource(indicator) {
-	if (indicator=='#severity+access+category') indicator = '#severity+access+category+num';
+	if (indicator=='#access+visas+pct') indicator = '#access+visas+pct+num';
 	if (indicator=='#affected+food+p3plus+pct') indicator = '#affected+food+ipc+p3plus+pct';
   var obj = {};
   sourcesData.forEach(function(item) {
@@ -2184,7 +2170,7 @@ function updateGlobalLayer() {
       if (currentIndicator.id=='#affected+infected+new+weekly') {
         color = (val==null) ? colorNoData : colorScale(val);
       }
-      else if (currentIndicator.id=='#severity+inform+type' || currentIndicator.id=='#severity+access+category') {
+      else if (currentIndicator.id=='#severity+inform+type' || currentIndicator.id=='#access+visas+pct') {
         color = (!isVal(val)) ? colorNoData : colorScale(val);
       }
       else {
@@ -2228,7 +2214,7 @@ function getGlobalLegendScale() {
   if (currentIndicator.id.indexOf('pct')>-1 || currentIndicator.id.indexOf('ratio')>-1) max = 1;
   else if (currentIndicator.id=='#severity+economic+num') max = 10;
   else if (currentIndicator.id=='#affected+inneed') max = roundUp(max, 1000000);
-  else if (currentIndicator.id=='#severity+inform+type' || currentIndicator.id=='#severity+access+category') max = 0;
+  else if (currentIndicator.id=='#severity+inform+type' || currentIndicator.id=='#access+visas+pct') max = 0;
   else max = max;
 
   //set scale
@@ -2244,7 +2230,7 @@ function getGlobalLegendScale() {
     else
       scale = d3.scaleQuantile().domain(data).range(colorRange);
   }
-  else if (currentIndicator.id=='#severity+access+category') {
+  else if (currentIndicator.id=='#access+visas+pct') {
     scale = d3.scaleOrdinal().domain(['Low', 'Medium', 'High']).range(accessColorRange);
   }
   else if (currentIndicator.id=='#severity+stringency+num') {
@@ -2375,7 +2361,7 @@ function setGlobalLegend(scale) {
         .labels(d3.legendHelpers.thresholdLabels)
         //.useClass(true);
     }
-    else if (currentIndicator.id=='#severity+access+category') {
+    else if (currentIndicator.id=='#access+visas+pct') {
       $('.legend-container').addClass('access-severity');
       legend = d3.legendColor()
         .cells(3)
@@ -2705,31 +2691,21 @@ function createMapTooltip(country_code, country_name, point) {
       content += '</div>';
     }
     //Access layer
-    else if (currentIndicator.id=='#severity+access+category') {
-      if (val!='No Data') {
-        var accessArray = [{label: 'Top Access Constraints into Country', value: country[0]['#access+constraints+into+desc']},
-                           {label: 'Top Access Constraints within Country', value: country[0]['#access+constraints+within+desc']},
-                           {label: 'Top Impacts', value: country[0]['#access+impact+desc']},
-                           {label: 'Mitigation Measures', value: country[0]['#access+mitigation+desc']}];
-        accessArray.forEach(function(row) {
-          if (row.label=='Mitigation Measures' && row.value!=undefined) {
-            content += '<label class="access-label">'+ row.label + ':</label> '+ row.value.toUpperCase();
-          }
-          else {
-            var arr = (row.value!=undefined) ? row.value.split('|') : [];
-            content += '<label class="access-label">'+ row.label + ':</label>';
-            content += '<ul>';
-            arr.forEach(function(item, index) {
-              if (index<3)
-                content += '<li>'+ item + '</li>';
-            });
-            content += '</ul>';
-          }
+    else if (currentIndicator.id=='#access+visas+pct') {
+      //content += currentIndicator.name + ':<div class="stat">' + val + '</div>';
+      //if (val!='No Data') {
+        var tableArray = [{label: 'Percentage of visas pending or denied', value: country[0]['#access+visas+pct']},
+                          {label: 'Percentage of travel authorizations denied', value: country[0]['#access+travel+pct']},
+                          {label: 'Number of security incidents', value: country[0]['#event+year+todate+num']},
+                          {label: 'Percentage of CERF projects affected by insecurity', value: country[0]['#activity+cerf+project+insecurity+pct']},
+                          {label: 'Percentage of CBPF projects affected by insecurity', value: country[0]['#activity+cbpf+project+insecurity+pct']},
+                          {label: 'Status of schools', value: country[0]['#impact+type']}];
+        content += '<div class="table-display">';
+        tableArray.forEach(function(row) {
+          if (row.value!=undefined) content += '<div class="table-row row-separator">'+ row.label +':<span>'+ row.value +'</span></div>';
         });
-      }
-      else {
-        content += currentIndicator.name + ':<div class="stat">' + val + '</div>';
-      }
+        content += '</div>';
+      //}
     }
     //IPC layer
     else if (currentIndicator.id=='#affected+food+p3plus+pct') {
@@ -3168,8 +3144,8 @@ $( document ).ready(function() {
   function getData() {
     console.log('Loading data...')
     Promise.all([
-      //d3.json('https://raw.githubusercontent.com/OCHA-DAP/hdx-scraper-covid-viz/access/out.json'),
-      d3.json('https://raw.githubusercontent.com/OCHA-DAP/hdx-scraper-covid-viz/master/out.json'),
+      d3.json('https://raw.githubusercontent.com/OCHA-DAP/hdx-scraper-covid-viz/access/out.json'),
+      //d3.json('https://raw.githubusercontent.com/OCHA-DAP/hdx-scraper-covid-viz/master/out.json'),
       d3.json('data/ocha-regions-bbox.geojson')
     ]).then(function(data) {
       console.log('Data loaded');
@@ -3215,9 +3191,9 @@ $( document ).ready(function() {
         item['#covid+total+cases+per+capita'] = (item['#affected+infected'] / item['#population']) * 100000;
 
         //assign access categories
-        if (item['#severity+access+category+num']==0) item['#severity+access+category'] = 'Low';
-        if (item['#severity+access+category+num']==1) item['#severity+access+category'] = 'Medium';
-        if (item['#severity+access+category+num']==2) item['#severity+access+category'] = 'High';
+        if (item['#access+visas+pct+num']==0) item['#access+visas+pct'] = 'Low';
+        if (item['#access+visas+pct+num']==1) item['#access+visas+pct'] = 'Medium';
+        if (item['#access+visas+pct+num']==2) item['#access+visas+pct'] = 'High';
 
         //consolidate IPC data
         if (item['#affected+food+ipc+analysed+pct'] || item['#affected+ch+food+analysed+pct']) {
@@ -3272,7 +3248,8 @@ $( document ).ready(function() {
         });
       });
 
-      console.log(nationalData)
+      // console.log(nationalData)
+      // console.log(regionalData)
       //console.log(subnationalData)
 
       dataLoaded = true;

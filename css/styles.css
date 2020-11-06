@@ -1301,11 +1301,18 @@ h6 {
   color: #888; }
 
 .table-display .table-row {
+  align-items: center;
   display: flex;
   justify-content: space-between; }
   .table-display .table-row span {
     display: block;
-    padding-left: 5px; }
+    padding-left: 5px;
+    text-align: right; }
+  .table-display .table-row.row-separator {
+    border-bottom: 1px solid #CCC;
+    padding: 8px 0; }
+    .table-display .table-row.row-separator:first-child {
+      border-top: 1px solid #CCC; }
 
 .stat {
   font-family: 'Gotham-Light', sans-serif;
