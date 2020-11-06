@@ -114,7 +114,6 @@ function formatTimeseriesData(data) {
   var dataArray = Object.entries(data);
   dataArray.forEach(function(d) {
     var countryArray = [];
-    if (d[0]=='Syrian Arab Republic') d[0] = 'Syria';
     if (d[0]=='Venezuela (Bolivarian Republic of)') d[0] = 'Venezuela';
     countryArray.push(d[0])
     var valueArray = d[1].reverse();
@@ -151,7 +150,7 @@ function createTimeSeries(array, div) {
     ['#1ebfb3', '#f2645a', '#007ce1', '#9c27b0', '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'] :
     ['#999'];
 
-  //filter HRP countries for countrytimeseries
+  //filter HRP countries for country timeseries
   if (!isGlobal) {
     var hrpList = [];
     hrpData.forEach(function(d) {
@@ -299,7 +298,6 @@ function createTimeseriesLegend(chart, country) {
 
 function updateTimeseries(selected) {
   var maxValue = d3.max(countryTimeseriesChart.data(selected)[0].values, function(d) { return +d.value; });
-  if (selected=='Syrian Arab Republic') selected = 'Syria';
   if (selected=='Venezuela (Bolivarian Republic of)') selected = 'Venezuela';
 
   countryTimeseriesChart.axis.max(maxValue*2);
@@ -2048,6 +2046,16 @@ function selectCountry(features) {
   map.once('moveend', initCountryView);
   mpTrack(currentCountry.code, currentCountryIndicator.name);
 
+  //special case for IPC source date in legend
+  var data = dataByCountry[currentCountry.code][0];
+  if (data['#date+ipc+start']!=undefined && data['#date+ipc+end']!=undefined) {
+    var startDate = new Date(data['#date+ipc+start']);
+    var endDate = new Date(data['#date+ipc+end']);
+    startDate = (startDate.getFullYear()==endDate.getFullYear()) ? d3.utcFormat('%b')(startDate) : d3.utcFormat('%b %Y')(startDate);
+    var dateRange = startDate +'-'+ d3.utcFormat('%b %Y')(endDate);// +' - '+ data['#date+ipc+period'];
+    $('.map-legend.country').find('.food-security-source .source .date').text(dateRange);
+  }
+
   //append country code to url
   window.history.replaceState(null, null, '?c='+currentCountry.code);
 }
@@ -2324,14 +2332,15 @@ function setGlobalLegend(scale) {
     markersvg.select('.legendSize')
       .call(legendSize);
 
-    //gender disaggregation explanatory text
+    //gender disaggregation footnote
     $('.map-legend.global').append('<h4><i class="humanitarianicons-User"></i> (On hover) COVID-19 Sex-Disaggregated Data Tracker</h4>');
     createSource($('.map-legend.global'), '#affected+killed+m+pct');
     createFootnote('.map-legend.global', '*Distribution of COVID19 cases and deaths by gender are taken from Global Health 50/50 COVID-19 <a href="https://data.humdata.org/organization/global-health-50-50" target="_blank" rel="noopener">Sex-disaggregated Data Tracker</a>. Figures refer to the last date where sex-disaggregated data was available and in some cases the gender distribution may only refer to a portion of total cases or deaths. These proportions are intended to be used to understand the breakdown of cases and deaths by gender and not to monitor overall numbers per country. Definitions of COVID-19 cases and deaths recorded may vary by country.');
 
     //GAM footnote
-    createFootnote('.map-legend.global', '**Gender-Age Marker: 0- Does not systematically link programming actions<br>1- Unlikely to contribute to gender equality (no gender equality measure and no age consideration)<br>2- Unlikely to contribute to gender equality (no gender equality measure but includes age consideration)<br>3- Likely to contribute to gender equality, but without attention to age groups<br>4- Likely to contribute to gender equality, including across age groups', '#value+cerf+covid+funding+total+usd');
-    createFootnote('.map-legend.global', '**Gender-Age Marker: 0- Does not systematically link programming actions<br>1- Unlikely to contribute to gender equality (no gender equality measure and no age consideration)<br>2- Unlikely to contribute to gender equality (no gender equality measure but includes age consideration)<br>3- Likely to contribute to gender equality, but without attention to age groups<br>4- Likely to contribute to gender equality, including across age groups', '#value+cbpf+covid+funding+total+usd');
+    var gamText = '**Gender-Age Marker: 0- Does not systematically link programming actions<br>1- Unlikely to contribute to gender equality (no gender equality measure and no age consideration)<br>2- Unlikely to contribute to gender equality (no gender equality measure but includes age consideration)<br>3- Likely to contribute to gender equality, but without attention to age groups<br>4- Likely to contribute to gender equality, including across age groups';
+    createFootnote('.map-legend.global', gamText, '#value+cerf+covid+funding+total+usd');
+    createFootnote('.map-legend.global', gamText, '#value+cbpf+covid+funding+total+usd');
 
     //boundaries disclaimer
     createFootnote('.map-legend.global', 'The boundaries and names shown and the designations used on this map do not imply official endorsement or acceptance by the United Nations.');
@@ -2675,21 +2684,24 @@ function createMapTooltip(country_code, country_name, point) {
     //PIN layer shows refugees and IDPs
     else if (currentIndicator.id=='#affected+inneed+pct') {
       if (val!='No Data') {
-        content +=  currentIndicator.name + '<br>(of total population):<div class="stat">' + val + '</div>';
+        content += currentIndicator.name + ':<div class="stat">' + val + '</div>';
       }
 
-      var tableArray = [{label: 'People in Need', value: country[0]['#affected+inneed']},
-                        {label: 'Refugees & Migrants', value: country[0]['#affected+refugees']},
-                        {label: 'IDPs', value: country[0]['#affected+displaced']}];
       content += '<div class="table-display">';
-      tableArray.forEach(function(row) {
-        if (row.value!=undefined) {
-          if (country_code=='COL') 
-            content += '<div class="table-row">Refugees & Migrants:<span>1,700,000</span></div>';
-          else
+      if (country_code=='COL') {
+        //hardcode PIN for COL
+        content += '<div class="table-row">Refugees & Migrants:<span>1,700,000</span></div>';
+      }
+      else {
+        var tableArray = [{label: 'People in Need', value: country[0]['#affected+inneed']},
+                          {label: 'Refugees & Migrants', value: country[0]['#affected+refugees']},
+                          {label: 'IDPs', value: country[0]['#affected+displaced']}];
+        tableArray.forEach(function(row, index) {
+          if (row.value!=undefined) {
             content += '<div class="table-row">'+ row.label +':<span>'+ numFormat(row.value) +'</span></div>';
-        }
-      });
+          }
+        });
+      }
       content += '</div>';
     }
     //Access layer
@@ -2725,7 +2737,8 @@ function createMapTooltip(country_code, country_name, point) {
       if (country[0]['#date+ipc+start']!=undefined) {
         var startDate = new Date(country[0]['#date+ipc+start']);
         var endDate = new Date(country[0]['#date+ipc+end']);
-        var dateSpan = '<span class="subtext">('+ d3.utcFormat('%b')(startDate) +'-'+ d3.utcFormat('%b %Y')(endDate) +' - '+ country[0]['#date+ipc+period'] +')</span>';
+        startDate = (startDate.getFullYear()==endDate.getFullYear()) ? d3.utcFormat('%b')(startDate) : d3.utcFormat('%b %Y')(startDate);
+        var dateSpan = '<span class="subtext">('+ startDate +'-'+ d3.utcFormat('%b %Y')(endDate) +' - '+ country[0]['#date+ipc+period'] +')</span>';
       }
       content += 'Total % Population in IPC Phase 3+ '+ dateSpan +':<div class="stat">' + val + '</div>';
       if (val!='No Data') {
@@ -3155,7 +3168,8 @@ $( document ).ready(function() {
   function getData() {
     console.log('Loading data...')
     Promise.all([
-      d3.json('https://raw.githubusercontent.com/OCHA-DAP/hdx-scraper-covid-viz/master/out.json'),
+      d3.json('https://raw.githubusercontent.com/OCHA-DAP/hdx-scraper-covid-viz/access/out.json'),
+     // d3.json('https://raw.githubusercontent.com/OCHA-DAP/hdx-scraper-covid-viz/master/out.json'),
       d3.json('data/ocha-regions-bbox.geojson')
     ]).then(function(data) {
       console.log('Data loaded');
