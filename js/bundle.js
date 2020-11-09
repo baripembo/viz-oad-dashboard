@@ -2590,7 +2590,6 @@ function updateCountryLegend(scale) {
   
   //special case for IPC source date in legend
   var data = dataByCountry[currentCountry.code][0];
-  console.log('--',data)
   if (data['#date+ipc+start']!=undefined && data['#date+ipc+end']!=undefined) {
     var startDate = new Date(data['#date+ipc+start']);
     var endDate = new Date(data['#date+ipc+end']);
@@ -3238,7 +3237,7 @@ $( document ).ready(function() {
         });
       });
 
-      console.log(nationalData)
+      //console.log(nationalData)
       // console.log(regionalData)
       //console.log(subnationalData)
 
