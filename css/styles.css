@@ -1910,13 +1910,12 @@ circle.swatch {
       color: #333;
       font-size: 14px;
       line-height: 15px;
+      margin-top: 2px; }
+    .mapboxgl-popup.map-tooltip .mapboxgl-popup-content .cases-total {
       margin-top: 8px; }
-      .mapboxgl-popup.map-tooltip .mapboxgl-popup-content .cases-total span,
-      .mapboxgl-popup.map-tooltip .mapboxgl-popup-content .deaths-total span {
-        color: #888; }
-        .mapboxgl-popup.map-tooltip .mapboxgl-popup-content .cases-total span i,
-        .mapboxgl-popup.map-tooltip .mapboxgl-popup-content .deaths-total span i {
-          font-size: 10px; }
+      .mapboxgl-popup.map-tooltip .mapboxgl-popup-content .cases-total .subtext {
+        display: block;
+        margin-bottom: 8px; }
     .mapboxgl-popup.map-tooltip .mapboxgl-popup-content ul {
       color: #888;
       list-style-type: disc;

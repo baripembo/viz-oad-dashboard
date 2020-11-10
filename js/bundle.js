@@ -1527,6 +1527,9 @@ function setKeyFigures() {
 	}
 	//access severity
 	else if (currentIndicator.id=='#access+visas+pct') {
+		//special case for access -- get world data from regional H63
+		if (currentRegion=='') data = regionalData[0];
+
 		createKeyFigure('.figures', 'Number of Countries', '', totalCountries);
 		if (data['#access+visas+pct']!=undefined) createKeyFigure('.figures', 'Average of all countries visas pending', '', percentFormat(data['#access+visas+pct']));
 		if (data['#access+travel+pct']!=undefined) createKeyFigure('.figures', 'Average of all countries travel authorizations', '', percentFormat(data['#access+travel+pct']));
@@ -1629,6 +1632,21 @@ function setKeyFigures() {
 	    //createTrendBarChart(pctArray, '.secondary-panel .cases-trend');
 		}
 	}
+	else if (currentIndicator.id=='#affected+infected+gender+new+per100000+weekly') {
+		//num countries
+		createKeyFigure('.figures', 'Number of Countries', '', totalCountries);
+
+		var totalCases = d3.sum(nationalData, function(d) { 
+			if (regionMatch(d['#region+name']) && d['#affected+infected+gender+new+per100000+weekly']!=null)
+				return d['#affected+infected']; 
+		});
+		var totalDeaths = d3.sum(nationalData, function(d) { 
+			if (regionMatch(d['#region+name']) && d['#affected+infected+gender+new+per100000+weekly']!=null)
+				return d['#affected+killed']; 
+		});
+		createKeyFigure('.figures', 'Total Confirmed Cases', 'cases', shortenNumFormat(totalCases));
+		createKeyFigure('.figures', 'Total Confirmed Deaths', 'deaths', shortenNumFormat(totalDeaths));
+	}
 	else {
 		//no global figures
 		createKeyFigure('.figures', 'Number of Countries', '', totalCountries);
@@ -1673,6 +1691,7 @@ function updateSource(div, indicator) {
 
 function getSource(indicator) {
 	if (indicator=='#affected+food+p3plus+pct') indicator = '#affected+food+ipc+p3plus+pct';
+	if (indicator=='#affected+infected+gender+new+per100000+weekly') indicator = '#affected+infected+new+per100000+weekly';
   var obj = {};
   sourcesData.forEach(function(item) {
     if (item['#indicator+name']==indicator) {
@@ -2208,7 +2227,7 @@ function getGlobalLegendScale() {
 
   //set scale
   var scale;
-  if (currentIndicator.id=='#affected+infected+new+per100000+weekly') {
+  if (currentIndicator.id=='#affected+infected+new+per100000+weekly' || currentIndicator.id=='#affected+infected+gender+new+per100000+weekly') {
     var data = [];
     nationalData.forEach(function(d) {
       if (d[currentIndicator.id]!=null && regionMatch(d['#region+name']))
@@ -2305,9 +2324,9 @@ function setGlobalLegend(scale) {
       .call(legendSize);
 
     //gender disaggregation footnote
-    $('.map-legend.global').append('<h4><i class="humanitarianicons-User"></i> (On hover) COVID-19 Sex-Disaggregated Data Tracker</h4>');
-    createSource($('.map-legend.global'), '#affected+killed+m+pct');
-    createFootnote('.map-legend.global', '*Distribution of COVID19 cases and deaths by gender are taken from Global Health 50/50 COVID-19 <a href="https://data.humdata.org/organization/global-health-50-50" target="_blank" rel="noopener">Sex-disaggregated Data Tracker</a>. Figures refer to the last date where sex-disaggregated data was available and in some cases the gender distribution may only refer to a portion of total cases or deaths. These proportions are intended to be used to understand the breakdown of cases and deaths by gender and not to monitor overall numbers per country. Definitions of COVID-19 cases and deaths recorded may vary by country.');
+    // $('.map-legend.global').append('<h4><i class="humanitarianicons-User"></i> (On hover) COVID-19 Sex-Disaggregated Data Tracker</h4>');
+    // createSource($('.map-legend.global'), '#affected+killed+m+pct');
+    createFootnote('.map-legend.global', '*Distribution of COVID19 cases and deaths by gender are taken from Global Health 50/50 COVID-19 <a href="https://data.humdata.org/organization/global-health-50-50" target="_blank" rel="noopener">Sex-disaggregated Data Tracker</a>. Figures refer to the last date where sex-disaggregated data was available and in some cases the gender distribution may only refer to a portion of total cases or deaths. These proportions are intended to be used to understand the breakdown of cases and deaths by gender and not to monitor overall numbers per country. Definitions of COVID-19 cases and deaths recorded may vary by country.', '#affected+infected+gender+new+per100000+weekly');
 
     //GAM footnote
     var gamText = '**Gender-Age Marker: 0- Does not systematically link programming actions<br>1- Unlikely to contribute to gender equality (no gender equality measure and no age consideration)<br>2- Unlikely to contribute to gender equality (no gender equality measure but includes age consideration)<br>3- Likely to contribute to gender equality, but without attention to age groups<br>4- Likely to contribute to gender equality, including across age groups';
@@ -2349,7 +2368,7 @@ function setGlobalLegend(scale) {
     }
     else {
       var legendFormat = (currentIndicator.id.indexOf('pct')>-1 || currentIndicator.id.indexOf('ratio')>-1) ? d3.format('.0%') : shortenNumFormat;
-      if (currentIndicator.id=='#affected+infected+new+per100000+weekly') legendFormat = d3.format('.1f');
+      if (currentIndicator.id=='#affected+infected+new+per100000+weekly' || currentIndicator.id=='#affected+infected+gender+new+per100000+weekly') legendFormat = d3.format('.1f');
       legend = d3.legendColor()
         .labelFormat(legendFormat)
         .cells(colorRange.length)
@@ -2642,25 +2661,26 @@ function createMapTooltip(country_code, country_name, point) {
     }
 
     //format content for display
-    var content = '<h2>' + country_name;
-    if (hasGamData(country[0])) content += ' <i class="humanitarianicons-User"></i>';
-    content += '</h2>';
+    var content = '<h2>'+ country_name +'</h2>';
 
     //COVID trend layer shows sparklines
-    if (currentIndicator.id=='#affected+infected+new+per100000+weekly') {
-      content += '<div class="stat-container covid-cases-per-capita"><div class="stat-title">Weekly Number of New Cases per 100,000 People:</div><div class="stat">' + d3.format('.1f')(country[0]['#affected+infected+new+per100000+weekly']) + '</div><div class="sparkline-container"></div></div>';
-      content += '<div class="stat-container condensed-stat covid-cases"><div class="stat-title">Weekly Number of New Cases:</div><div class="stat">' + numFormat(country[0]['#affected+infected+new+weekly']) + '</div><div class="sparkline-container"></div></div>';
-      content += '<div class="stat-container condensed-stat covid-deaths"><div class="stat-title">Weekly Number of New Deaths:</div><div class="stat">' + numFormat(country[0]['#affected+killed+new+weekly']) + '</div><div class="sparkline-container"></div></div>';
-      content += '<div class="stat-container condensed-stat covid-pct"><div class="stat-title">Weekly Trend (new cases past week / prior week):</div><div class="stat">' + percentFormat(country[0]['#covid+trend+pct']) + '</div><div class="sparkline-container"></div></div>';
+    if (currentIndicator.id=='#affected+infected+new+per100000+weekly' || currentIndicator.id=='#affected+infected+gender+new+per100000+weekly') {
+      if (val!='No Data') {
+        content += '<div class="stat-container covid-cases-per-capita"><div class="stat-title">'+ currentIndicator.name +':</div><div class="stat">' + d3.format('.1f')(country[0]['#affected+infected+new+per100000+weekly']) + '</div><div class="sparkline-container"></div></div>';
+        content += '<div class="stat-container condensed-stat covid-cases"><div class="stat-title">Weekly Number of New Cases:</div><div class="stat">' + numFormat(country[0]['#affected+infected+new+weekly']) + '</div><div class="sparkline-container"></div></div>';
+        content += '<div class="stat-container condensed-stat covid-deaths"><div class="stat-title">Weekly Number of New Deaths:</div><div class="stat">' + numFormat(country[0]['#affected+killed+new+weekly']) + '</div><div class="sparkline-container"></div></div>';
+        content += '<div class="stat-container condensed-stat covid-pct"><div class="stat-title">Weekly Trend (new cases past week / prior week):</div><div class="stat">' + percentFormat(country[0]['#covid+trend+pct']) + '</div><div class="sparkline-container"></div></div>';
 
-
-      //testing data
-      if (country[0]['#affected+tested+positive+pct']!=undefined) {
-        var testingVal = percentFormat(country[0]['#affected+tested+positive+pct']);
-        content += '<div class="stat-container condensed-stat covid-test-per-capita"><div class="stat-title">Positive Test Rate (rolling 7-day avg):</div><div class="stat">'+ testingVal +'</div><div class="sparkline-container"></div></div>';
+        //testing data
+        if (country[0]['#affected+tested+positive+pct']!=undefined) {
+          var testingVal = percentFormat(country[0]['#affected+tested+positive+pct']);
+          content += '<div class="stat-container condensed-stat covid-test-per-capita"><div class="stat-title">Positive Test Rate (rolling 7-day avg):</div><div class="stat">'+ testingVal +'</div><div class="sparkline-container"></div></div>';
+        }
+      }
+      else {
+        content += currentIndicator.name + ':<div class="stat">' + val + '</div>';
       }
     }
-
     //PIN layer shows refugees and IDPs
     else if (currentIndicator.id=='#affected+inneed+pct') {
       if (val!='No Data') {
@@ -2850,22 +2870,23 @@ function createMapTooltip(country_code, country_name, point) {
     var numCases = (isVal(country[0]['#affected+infected'])) ? numFormat(country[0]['#affected+infected']) : 'NA';
     var numDeaths = (isVal(country[0]['#affected+killed'])) ? numFormat(country[0]['#affected+killed']) : 'NA';
     var genderCases = (hasGamData(country[0], 'cases')) 
-      ? '<i class="humanitarianicons-User"></i> (*' + percentFormat(country[0]['#affected+infected+m+pct']) + ' Male, ' + percentFormat(country[0]['#affected+f+infected+pct']) + ' Female)'
-      : '(*Sex-disaggregation not reported)';
+      ? '<span class="subtext">(*' + percentFormat(country[0]['#affected+infected+m+pct']) + ' Male, ' + percentFormat(country[0]['#affected+f+infected+pct']) + ' Female)</span>'
+      : '';//(*Sex-disaggregation not reported)
     var genderDeaths = (hasGamData(country[0], 'deaths')) 
-      ? '<i class="humanitarianicons-User"></i> (*' + percentFormat(country[0]['#affected+killed+m+pct']) + ' Male, ' + percentFormat(country[0]['#affected+f+killed+pct']) + ' Female)'
-      : '(*Sex-disaggregation not reported)';
+      ? '<span class="subtext">(*' + percentFormat(country[0]['#affected+killed+m+pct']) + ' Male, ' + percentFormat(country[0]['#affected+f+killed+pct']) + ' Female)</span>'
+      : '';
 
     content += '<div class="cases-total">Total COVID-19 Cases: ' + numCases + '<br/>';
-    content += '<span>' + genderCases + '</span></div>';
-    content += '<div class="deaths-total">Total COVID-19 Deaths: ' + numDeaths + '<br/>';
-    content += '<span>' + genderDeaths + '</span></div>';
+    if (currentIndicator.id=='#affected+infected+gender+new+per100000+weekly') content += genderCases + '</div>';
+    content += '</div><div class="deaths-total">Total COVID-19 Deaths: ' + numDeaths + '<br/>';
+    if (currentIndicator.id=='#affected+infected+gender+new+per100000+weekly') content += genderDeaths + '</div>';
+    content += '</div>';
 
     //set content for tooltip
     tooltip.setHTML(content);
 
     //COVID cases layer charts -- inject this after divs are created in tooltip
-    if (currentIndicator.id=='#affected+infected+new+per100000+weekly' && val!='No Data') {
+    if (currentIndicator.id=='#affected+infected+new+per100000+weekly' || currentIndicator.id=='#affected+infected+gender+new+per100000+weekly' && val!='No Data') {
       //weekly cases per capita sparkline
       var sparklineArray = [];
       covidTrendData[country_code].forEach(function(d) {
@@ -3166,7 +3187,7 @@ $( document ).ready(function() {
 
       //parse national data
       nationalData.forEach(function(item) {
-        //normalize counry names
+        //normalize country names
         if (item['#country+name']=='State of Palestine') item['#country+name'] = 'occupied Palestinian territory';
         if (item['#country+name']=='Bolivia (Plurinational State of)') item['#country+name'] = 'Bolivia';
 
@@ -3184,6 +3205,9 @@ $( document ).ready(function() {
         item['#affected+killed+new+weekly'] = (covidByCountry==undefined) ? null : covidByCountry[covidByCountry.length-1]['#affected+killed+new+weekly'];
         item['#covid+total+cases+per+capita'] = (item['#affected+infected'] / item['#population']) * 100000;
 
+        //create cases by gender indicator
+        item['#affected+infected+gender+new+per100000+weekly'] = (item['#affected+infected+m+pct']!=undefined || item['#affected+f+infected+pct']!=undefined) ? item['#affected+infected+new+per100000+weekly'] : null;
+        
         //consolidate IPC data
         if (item['#affected+food+ipc+analysed+pct'] || item['#affected+ch+food+analysed+pct']) {
           item['#affected+food+analysed+pct'] = (item['#affected+ch+food+analysed+pct']) ? item['#affected+ch+food+analysed+pct'] : item['#affected+food+ipc+analysed+pct'];
@@ -3238,7 +3262,6 @@ $( document ).ready(function() {
       });
 
       //console.log(nationalData)
-      // console.log(regionalData)
       //console.log(subnationalData)
 
       dataLoaded = true;
