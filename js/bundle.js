@@ -2598,7 +2598,7 @@ function updateCountryLegend(scale) {
     $('.map-legend.country').find('.food-security-source .source .date').text(dateRange);
   }
   else {
-    var sourceObj = getSource('#affected+ch+food+p3plus+pct');
+    var sourceObj = getSource('#affected+food+ipc+p3plus+pct');
     var date = (sourceObj['#date']==undefined) ? '' : dateFormat(new Date(sourceObj['#date']));
     $('.map-legend.country').find('.food-security-source .source .date').text(date);
   }
