@@ -1527,9 +1527,6 @@ function setKeyFigures() {
 	}
 	//access severity
 	else if (currentIndicator.id=='#access+visas+pct') {
-		//special case for access -- get world data from regional H63
-		if (currentRegion=='') data = regionalData[0];
-
 		createKeyFigure('.figures', 'Number of Countries', '', totalCountries);
 		if (data['#access+visas+pct']!=undefined) createKeyFigure('.figures', 'Average of all countries visas pending', '', percentFormat(data['#access+visas+pct']));
 		if (data['#access+travel+pct']!=undefined) createKeyFigure('.figures', 'Average of all countries travel authorizations', '', percentFormat(data['#access+travel+pct']));
@@ -1594,6 +1591,7 @@ function setKeyFigures() {
 			if (regionMatch(d['#region+name']))
 				return d['#affected+killed']; 
 		});
+		createKeyFigure('.figures', 'Number of Countries', '', totalCountries);
 		createKeyFigure('.figures', 'Total Confirmed Cases', 'cases', shortenNumFormat(totalCases));
 		createKeyFigure('.figures', 'Total Confirmed Deaths', 'deaths', shortenNumFormat(totalDeaths));
 
@@ -2708,9 +2706,9 @@ function createMapTooltip(country_code, country_name, point) {
     else if (currentIndicator.id=='#access+visas+pct') {
       var tableArray = [{label: '% of visas pending or denied', value: (country[0]['#access+visas+pct'])},
                         {label: '% of travel authorizations denied', value: (country[0]['#access+travel+pct'])},
-                        {label: 'Number of security incidents in 2020', value: country[0]['#event+year+previous+todate+num']},
-                        {label: '% of CERF projects affected by insecurity', value: (country[0]['#activity+cerf+project+insecurity+pct'])},
-                        {label: '% of CBPF projects affected by insecurity', value: (country[0]['#activity+cbpf+project+insecurity+pct'])},
+                        {label: 'Security incidents affecting humanitarian workers since Jan 2019', value: country[0]['#event+year+previous+todate+num']},
+                        {label: '% of CERF projects affected by access constraints', value: (country[0]['#activity+cerf+project+insecurity+pct'])},
+                        {label: '% of CBPF projects affected by access constraints', value: (country[0]['#activity+cbpf+project+insecurity+pct'])},
                         {label: 'Status of vaccination campaigns', value: country[0]['#status+name']},
                         {label: 'Status of schools', value: country[0]['#impact+type']}];
       content += '<div class="table-display">';
