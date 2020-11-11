@@ -1528,11 +1528,11 @@ function setKeyFigures() {
 	//access severity
 	else if (currentIndicator.id=='#event+year+todate+num') {
 		createKeyFigure('.figures', 'Number of Countries', '', totalCountries);
-		if (data['#event+year+todate+num']!=undefined) createKeyFigure('.figures', 'Total incidents in 2020', '', data['#event+year+todate+num']);
-		if (data['#access+visas+pct']!=undefined) createKeyFigure('.figures', 'Average of all countries visas pending', '', percentFormat(data['#access+visas+pct']));
-		if (data['#access+travel+pct']!=undefined) createKeyFigure('.figures', 'Average of all countries travel authorizations', '', percentFormat(data['#access+travel+pct']));
-		if (data['#activity+cerf+project+insecurity+pct']!=undefined) createKeyFigure('.figures', 'Average of CERF projects affected', '', percentFormat(data['#activity+cerf+project+insecurity+pct']));
-		if (data['#activity+cbpf+project+insecurity+pct']!=undefined) createKeyFigure('.figures', 'Average of CBPF projects affected', '', percentFormat(data['#activity+cbpf+project+insecurity+pct']));
+		if (data['#event+year+todate+num']!=undefined) createKeyFigure('.figures', 'Total security incidents affecting humanitarian workers since Jan 2020', '', data['#event+year+todate+num']);
+		if (data['#access+visas+pct']!=undefined) createKeyFigure('.figures', 'Average of visas pending or denied', '', percentFormat(data['#access+visas+pct']));
+		if (data['#access+travel+pct']!=undefined) createKeyFigure('.figures', 'Average of travel authorizations denied', '', percentFormat(data['#access+travel+pct']));
+		if (data['#activity+cerf+project+insecurity+pct']!=undefined) createKeyFigure('.figures', 'Average of CERF projects affected by access constraints', '', percentFormat(data['#activity+cerf+project+insecurity+pct']));
+		if (data['#activity+cbpf+project+insecurity+pct']!=undefined) createKeyFigure('.figures', 'Average of CBPF projects affected by access constraints', '', percentFormat(data['#activity+cbpf+project+insecurity+pct']));
 	}
 	//humanitarian funding
 	else if (currentIndicator.id=='#value+funding+hrp+pct') {
