@@ -1526,11 +1526,11 @@ function setKeyFigures() {
 		createKeyFigure('.figures', 'Number of Countries', '', totalCountries);
 	}
 	//access severity
-	else if (currentIndicator.id=='#access+visas+pct') {
+	else if (currentIndicator.id=='#event+year+todate+num') {
 		createKeyFigure('.figures', 'Number of Countries', '', totalCountries);
+		if (data['#event+year+todate+num']!=undefined) createKeyFigure('.figures', 'Total incidents in 2020', '', data['#event+year+todate+num']);
 		if (data['#access+visas+pct']!=undefined) createKeyFigure('.figures', 'Average of all countries visas pending', '', percentFormat(data['#access+visas+pct']));
 		if (data['#access+travel+pct']!=undefined) createKeyFigure('.figures', 'Average of all countries travel authorizations', '', percentFormat(data['#access+travel+pct']));
-		if (data['#event+year+previous+todate+num']!=undefined) createKeyFigure('.figures', 'Total incidents in 2020', '', data['#event+year+previous+todate+num']);
 		if (data['#activity+cerf+project+insecurity+pct']!=undefined) createKeyFigure('.figures', 'Average of CERF projects affected', '', percentFormat(data['#activity+cerf+project+insecurity+pct']));
 		if (data['#activity+cbpf+project+insecurity+pct']!=undefined) createKeyFigure('.figures', 'Average of CBPF projects affected', '', percentFormat(data['#activity+cbpf+project+insecurity+pct']));
 	}
@@ -1651,13 +1651,13 @@ function setKeyFigures() {
 	}
 
 	//ranking chart
-	if (currentIndicator.id!='#access+visas+pct') {
+	//if (currentIndicator.id!='#event+year+todate+num') {
 		$('.ranking-container').show();
 		createRankingChart();
-	}
-	else {
-		$('.ranking-container').hide();
-	}
+	// }
+	// else {
+	// 	$('.ranking-container').hide();
+	// }
 }
 
 function createKeyFigure(target, title, className, value) {
@@ -2703,10 +2703,10 @@ function createMapTooltip(country_code, country_name, point) {
       content += '</div>';
     }
     //Access layer
-    else if (currentIndicator.id=='#access+visas+pct') {
-      var tableArray = [{label: '% of visas pending or denied', value: (country[0]['#access+visas+pct'])},
+    else if (currentIndicator.id=='#event+year+todate+num') {
+      var tableArray = [{label: 'Security incidents affecting humanitarian workers since Jan 2020', value: country[0]['#event+year+todate+num']},
+                        {label: '% of visas pending or denied', value: (country[0]['#access+visas+pct'])},
                         {label: '% of travel authorizations denied', value: (country[0]['#access+travel+pct'])},
-                        {label: 'Security incidents affecting humanitarian workers since Jan 2019', value: country[0]['#event+year+previous+todate+num']},
                         {label: '% of CERF projects affected by access constraints', value: (country[0]['#activity+cerf+project+insecurity+pct'])},
                         {label: '% of CBPF projects affected by access constraints', value: (country[0]['#activity+cbpf+project+insecurity+pct'])},
                         {label: 'Status of vaccination campaigns', value: country[0]['#status+name']},
@@ -2851,7 +2851,7 @@ function createMapTooltip(country_code, country_name, point) {
         content += '</div>';
 
         content += '<div class="table-display subtext">Breakdown:';
-        var fundingArray = ['adb','afdb','ec','eib','idb','imf','isdb','unmptf','wb'];
+        var fundingArray = ['adb','afdb','eib','idb','ifc','imf','isdb','unmptf','wb'];
         fundingArray.forEach(function(fund) {
           var fundName = (fund=='wb') ? 'World Bank' : fund.toUpperCase(); 
           if (isVal(country[0]['#value+'+fund+'+total'])) content += '<div class="table-row">'+ fundName +': <span>'+ formatValue(country[0]['#value+'+fund+'+total']) +'</span></div>';
