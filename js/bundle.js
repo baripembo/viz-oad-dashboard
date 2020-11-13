@@ -1632,16 +1632,16 @@ function setKeyFigures() {
 	    //createTrendBarChart(pctArray, '.secondary-panel .cases-trend');
 		}
 	}
-	else if (currentIndicator.id=='#affected+infected+sex+new+per100000+weekly') {
+	else if (currentIndicator.id=='#affected+infected+sex+new+avg+per100000') {
 		//num countries
 		createKeyFigure('.figures', 'Number of Countries with Sex-disaggregated data', '', totalCountries);
 
 		var totalCases = d3.sum(nationalData, function(d) { 
-			if (regionMatch(d['#region+name']) && d['#affected+infected+sex+new+per100000+weekly']!=null)
+			if (regionMatch(d['#region+name']) && d['#affected+infected+sex+new+avg+per100000']!=null)
 				return d['#affected+infected']; 
 		});
 		var totalDeaths = d3.sum(nationalData, function(d) { 
-			if (regionMatch(d['#region+name']) && d['#affected+infected+sex+new+per100000+weekly']!=null)
+			if (regionMatch(d['#region+name']) && d['#affected+infected+sex+new+avg+per100000']!=null)
 				return d['#affected+killed']; 
 		});
 		createKeyFigure('.figures', 'Total Confirmed Cases', 'cases', shortenNumFormat(totalCases));
@@ -2221,7 +2221,7 @@ function getGlobalLegendScale() {
 
   //set scale
   var scale;
-  if (currentIndicator.id=='#affected+infected+new+per100000+weekly' || currentIndicator.id=='#affected+infected+sex+new+per100000+weekly') {
+  if (currentIndicator.id=='#affected+infected+new+per100000+weekly' || currentIndicator.id=='#affected+infected+sex+new+avg+per100000') {
     var data = [];
     nationalData.forEach(function(d) {
       if (d[currentIndicator.id]!=null && regionMatch(d['#region+name']))
@@ -2320,7 +2320,7 @@ function setGlobalLegend(scale) {
     //gender disaggregation footnote
     // $('.map-legend.global').append('<h4><i class="humanitarianicons-User"></i> (On hover) COVID-19 Sex-Disaggregated Data Tracker</h4>');
     // createSource($('.map-legend.global'), '#affected+killed+m+pct');
-    createFootnote('.map-legend.global', '*Distribution of COVID19 cases and deaths by gender are taken from Global Health 50/50 COVID-19 <a href="https://data.humdata.org/organization/global-health-50-50" target="_blank" rel="noopener">Sex-disaggregated Data Tracker</a>. Figures refer to the last date where sex-disaggregated data was available and in some cases the gender distribution may only refer to a portion of total cases or deaths. These proportions are intended to be used to understand the breakdown of cases and deaths by gender and not to monitor overall numbers per country. Definitions of COVID-19 cases and deaths recorded may vary by country.', '#affected+infected+sex+new+per100000+weekly');
+    createFootnote('.map-legend.global', '*Distribution of COVID19 cases and deaths by gender are taken from Global Health 50/50 COVID-19 <a href="https://data.humdata.org/organization/global-health-50-50" target="_blank" rel="noopener">Sex-disaggregated Data Tracker</a>. Figures refer to the last date where sex-disaggregated data was available and in some cases the gender distribution may only refer to a portion of total cases or deaths. These proportions are intended to be used to understand the breakdown of cases and deaths by gender and not to monitor overall numbers per country. Definitions of COVID-19 cases and deaths recorded may vary by country.', '#affected+infected+sex+new+avg+per100000');
 
     //GAM footnote
     var gamText = '**Gender-Age Marker: 0- Does not systematically link programming actions<br>1- Unlikely to contribute to gender equality (no gender equality measure and no age consideration)<br>2- Unlikely to contribute to gender equality (no gender equality measure but includes age consideration)<br>3- Likely to contribute to gender equality, but without attention to age groups<br>4- Likely to contribute to gender equality, including across age groups';
@@ -2362,7 +2362,7 @@ function setGlobalLegend(scale) {
     }
     else {
       var legendFormat = (currentIndicator.id.indexOf('pct')>-1 || currentIndicator.id.indexOf('ratio')>-1) ? d3.format('.0%') : shortenNumFormat;
-      if (currentIndicator.id=='#affected+infected+new+per100000+weekly' || currentIndicator.id=='#affected+infected+sex+new+per100000+weekly') legendFormat = d3.format('.1f');
+      if (currentIndicator.id=='#affected+infected+new+per100000+weekly' || currentIndicator.id=='#affected+infected+sex+new+avg+per100000') legendFormat = d3.format('.1f');
       legend = d3.legendColor()
         .labelFormat(legendFormat)
         .cells(colorRange.length)
@@ -2681,7 +2681,7 @@ function createMapTooltip(country_code, country_name, point) {
       }
     }
     //COVID by gender layer
-    else if (currentIndicator.id=='#affected+infected+sex+new+per100000+weekly') {
+    else if (currentIndicator.id=='#affected+infected+sex+new+avg+per100000') {
       //if (val!='No Data') {
         content += '<div class="table-display">';
         content += '<div class="table-row"><div>'+ currentIndicator.name +':</div><div>'+ d3.format('.1f')(country[0]['#affected+infected+new+per100000+weekly']) +'</div></div>';
@@ -2904,7 +2904,7 @@ function createMapTooltip(country_code, country_name, point) {
     }
 
     //covid cases and deaths
-    if (currentIndicator.id!='#affected+infected+sex+new+per100000+weekly') {
+    if (currentIndicator.id!='#affected+infected+sex+new+avg+per100000') {
       var numCases = (isVal(country[0]['#affected+infected'])) ? numFormat(country[0]['#affected+infected']) : 'NA';
       var numDeaths = (isVal(country[0]['#affected+killed'])) ? numFormat(country[0]['#affected+killed']) : 'NA';
       content += '<div class="cases-total">Total COVID-19 Cases: ' + numCases + '</div>';
@@ -2915,7 +2915,7 @@ function createMapTooltip(country_code, country_name, point) {
     tooltip.setHTML(content);
 
     //COVID cases layer charts -- inject this after divs are created in tooltip
-    if (currentIndicator.id=='#affected+infected+new+per100000+weekly' || currentIndicator.id=='#affected+infected+sex+new+per100000+weekly' && val!='No Data') {
+    if (currentIndicator.id=='#affected+infected+new+per100000+weekly' || currentIndicator.id=='#affected+infected+sex+new+avg+per100000' && val!='No Data') {
       //weekly cases per capita sparkline
       var sparklineArray = [];
       covidTrendData[country_code].forEach(function(d) {
@@ -3235,7 +3235,7 @@ $( document ).ready(function() {
         item['#covid+total+cases+per+capita'] = (item['#affected+infected'] / item['#population']) * 100000;
 
         //create cases by gender indicator
-        item['#affected+infected+sex+new+per100000+weekly'] = (item['#affected+infected+m+pct']!=undefined || item['#affected+f+infected+pct']!=undefined) ? item['#affected+infected+new+per100000+weekly'] : null;
+        item['#affected+infected+sex+new+avg+per100000'] = (item['#affected+infected+m+pct']!=undefined || item['#affected+f+infected+pct']!=undefined) ? item['#affected+infected+new+per100000+weekly'] : null;
         
         //consolidate IPC data
         if (item['#affected+food+ipc+analysed+pct'] || item['#affected+ch+food+analysed+pct']) {
