@@ -1634,7 +1634,7 @@ function setKeyFigures() {
 	}
 	else if (currentIndicator.id=='#affected+infected+sex+new+per100000+weekly') {
 		//num countries
-		createKeyFigure('.figures', 'Number of Countries with sex-disaggregated data', '', totalCountries);
+		createKeyFigure('.figures', 'Number of Countries with Sex-Disaggregated data', '', totalCountries);
 
 		var totalCases = d3.sum(nationalData, function(d) { 
 			if (regionMatch(d['#region+name']) && d['#affected+infected+sex+new+per100000+weekly']!=null)
