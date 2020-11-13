@@ -1399,7 +1399,7 @@ function hasGamData(data, indicator) {
 }
 
 function getGamText(data, indicator) {
-  var gmText = '**Gender-Age Marker: ';
+  var gmText = '**Gender-Age Marker:<br>';
   for (var i=0;i<5;i++) {
     var pct = (data['#value+'+ indicator + '+covid+funding+gm'+ i +'+total+usd']!=undefined) ? percentFormat(data['#value+'+ indicator + '+covid+funding+gm'+ i +'+total+usd'] / data['#value+'+ indicator + '+covid+funding+total+usd']) : '0%';
     gmText += '['+i+']: ' + pct;
@@ -1411,7 +1411,7 @@ function getGamText(data, indicator) {
 }
 
 function getBeneficiaryText(data) {
-  var beneficiaryText = 'Beneficiary breakdown: ';
+  var beneficiaryText = 'Beneficiary breakdown:<br>';
   beneficiaryText += (data['#affected+cbpf+covid+funding+men']!=undefined) ? percentFormat(data['#affected+cbpf+covid+funding+men'] / data['#affected+cbpf+covid+funding+total']) + ' Male, ' : '0% Male, ';
   beneficiaryText += (data['#affected+cbpf+covid+funding+women']!=undefined) ? percentFormat(data['#affected+cbpf+covid+funding+women'] / data['#affected+cbpf+covid+funding+total']) + ' Female, ' : '0% Female, ';
   beneficiaryText += (data['#affected+boys+cbpf+covid+funding']!=undefined) ? percentFormat(data['#affected+boys+cbpf+covid+funding'] / data['#affected+cbpf+covid+funding+total']) + ' Boys, ' : '0% Boys, ';
@@ -1634,7 +1634,7 @@ function setKeyFigures() {
 	}
 	else if (currentIndicator.id=='#affected+infected+sex+new+per100000+weekly') {
 		//num countries
-		createKeyFigure('.figures', 'Number of Countries with Sex-Disaggregated data', '', totalCountries);
+		createKeyFigure('.figures', 'Number of Countries with Sex-disaggregated data', '', totalCountries);
 
 		var totalCases = d3.sum(nationalData, function(d) { 
 			if (regionMatch(d['#region+name']) && d['#affected+infected+sex+new+per100000+weekly']!=null)
@@ -2285,7 +2285,7 @@ function setGlobalLegend(scale) {
     $('.map-legend.global').append('<div class="source-secondary"></div>');
 
     //covid positive testing footnote
-    createFootnote('.map-legend.global', 'Positive Testing Rate: This is the daily positive rate, given as a rolling 7-day average. According WHO, a positive rate of less than 5% is one indicator that the epidemic is under control in a country.', '#affected+infected+new+per100000+weekly');
+    createFootnote('.map-legend.global', 'Positive Testing Rate: This is the daily positive rate, given as a rolling 7-day average. According WHO, a positive rate of less than 5% is one indicator that the pandemic may be under control in a country.', '#affected+infected+new+per100000+weekly');
     //vacc footnote
     createFootnote('.map-legend.global', 'Methodology: Information about interrupted vaccination campaigns contains both official and unofficial information sources. The country ranking has been determined by calculating the ratio of total number of postponed or cancelled campaigns and total vaccination campaigns. Note: data collection is ongoing and may not reflect all the campaigns in every country.', '#vaccination+num+ratio');
     //food prices footnote
