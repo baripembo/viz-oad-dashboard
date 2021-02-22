@@ -627,6 +627,8 @@ function updateRankingChart(sortMode) {
     rankingBars.append('rect')
       .attr('class', 'bar')
       .attr('height', rankingBarHeight)
+      .transition()
+        .duration(400)
       .attr('width', function (d) {
         return (d.value<0) ? 0 : rankingX(d.value);
       });
@@ -650,35 +652,6 @@ function updateRankingChart(sortMode) {
       .text(function (d) {
         return valueFormat(d.value);
       });
-
-    // var height = (rankingBarHeight + 9) * rankingData.length;
-    // rankingY = d3.scaleBand()
-    //   .range([0, height])
-    //   .domain(rankingData.map(function (d) {
-    //     return d.key;
-    //   }));
-
-    // var valueMax = d3.max(rankingData, function(d) { return +d.value; });
-    // rankingX.domain([0, valueMax]);
-    // rankingY.domain(rankingData.map(function (d) { return d.key; }));
-    // rankingBars.data(rankingData);
-
-    // rankingBars.transition()
-    //   .duration(400)
-    //   .attr('transform', function(d, i) { 
-    //     return 'translate(1,' + (rankingY(d.key) + rankingBarHeight/2) + ')'; 
-    //   });
-
-    // rankingBars.select('.bar').transition()
-    //   .duration(400)
-    //   .attr('width', function (d) { return (d.value<0) ? 0 : rankingX(d.value); });
-
-    // rankingBars.select('.name')
-    //   .text(function (d) { return truncateString(d.key, 15); })
-
-    // rankingBars.select('.label')
-    //   .attr('x', function (d) { return rankingX(d.value) + 3; })
-    //   .text(function (d) { return d3.format(',.0f')(d.value); });
   }
 }
 
@@ -1633,7 +1606,9 @@ function setKeyFigures() {
 	//vaccine rollout
 	else if (currentIndicator.id=='#targeted+doses+delivered+pct') {
 		createKeyFigure('.figures', 'COVAX Interim Forecast (Number of Doses)', '', data['#capacity+doses+forecast+covax']==undefined ? 'NA' : shortenNumFormat(data['#capacity+doses+forecast+covax']));
-		createKeyFigure('.figures', 'COVAX Delivered (Number of Doses)', '', data['#capacity+doses+delivered+covax']==undefined ? 'NA' : (data['#capacity+doses+delivered+covax']));
+		var covaxDelivered = data['#capacity+doses+delivered+covax'];
+		covaxDelivered = (covaxDelivered > 0) ? shortenNumFormat(covaxDelivered) : covaxDelivered;
+		createKeyFigure('.figures', 'COVAX Delivered (Number of Doses)', '', covaxDelivered);
 		createKeyFigure('.figures', 'Other Delivered (Number of Doses)', '', data['#capacity+doses+delivered+others']==undefined ? 'NA' : shortenNumFormat(data['#capacity+doses+delivered+others']));
 		createKeyFigure('.figures', 'Total Delivered (Number of Doses)', '', data['#capacity+doses+delivered+total']==undefined ? 'NA' : shortenNumFormat(data['#capacity+doses+delivered+total']));
 		createKeyFigure('.figures', 'Number of Countries', '', totalCountries);
@@ -2284,6 +2259,15 @@ function updateGlobalLayer() {
       else if (currentIndicator.id=='#severity+inform+type') {
         color = (!isVal(val)) ? colorNoData : colorScale(val);
       }
+      else if (currentIndicator.id=='#targeted+doses+delivered+pct') {
+        color = (!isVal(val)) ? colorNoData : colorScale(val);
+        if (isVal(val)) {
+          color = (val==0) ? '#E7E4E6' : colorScale(val);
+        }
+        else {
+          color = colorNoData;
+        }
+      }
       else {
         color = (val<0 || isNaN(val) || !isVal(val)) ? colorNoData : colorScale(val);
       }
@@ -2363,8 +2347,8 @@ function getGlobalLegendScale() {
   else if (currentIndicator.id=='#targeted+doses+delivered+pct') {
     var reverseRange = colorRange.slice().reverse();
     scale = d3.scaleThreshold()
-      .domain([ 0.03, 0.05, 0.1, 0.15, 0.20 ])
-      .range(reverseRange);
+      .domain([ 0.03, 0.05, 0.1, 0.15 ])
+      .range(colorRange);
       //0- 3%; 3-5%; 5-10%; 10-15%; 15-20%"
   }
   else {
@@ -2389,6 +2373,19 @@ function setGlobalLegend(scale) {
     svg.append('g')
       .attr('class', 'scale');
 
+    //bucket reserved for special cases
+    var special = div.append('svg')
+      .attr('class', 'special-key');
+
+    special.append('rect')
+      .attr('width', 15)
+      .attr('height', 15);
+
+    special.append('text')
+      .attr('class', 'label')
+      .text('');
+
+    //no data bucket
     var nodata = div.append('svg')
       .attr('class', 'no-data-key');
 
@@ -2399,6 +2396,7 @@ function setGlobalLegend(scale) {
     nodata.append('text')
       .attr('class', 'label')
       .text('No Data');
+
 
     //secondary source
     $('.map-legend.global').append('<div class="source-secondary"></div>');
@@ -2499,6 +2497,7 @@ function setGlobalLegend(scale) {
 
   //no data
   var noDataKey = $('.map-legend.global .no-data-key');
+  var specialKey = $('.map-legend.global .special-key');
   if (currentIndicator.id=='#affected+inneed+pct') {
     noDataKey.find('.label').text('Refugee/IDP data only');
     noDataKey.find('rect').css('fill', '#E7E4E6');
@@ -2510,9 +2509,18 @@ function setGlobalLegend(scale) {
     noDataKey.find('.label').text('Other response plans');
     noDataKey.find('rect').css('fill', '#E7E4E6');
   }
+  else if (currentIndicator.id=='#targeted+doses+delivered+pct') {
+    noDataKey.find('.label').text('Not Included');
+    noDataKey.find('rect').css('fill', '#FFF');
+
+    specialKey.css('display', 'block');
+    specialKey.find('.label').text('Forecast Only');
+    specialKey.find('rect').css('fill', '#E7E4E6');
+  }
   else {
     noDataKey.find('.label').text('No Data');
     noDataKey.find('rect').css('fill', '#FFF');
+    specialKey.hide();
   }
 
   //show/hide footnotes
@@ -2762,8 +2770,12 @@ function createMapTooltip(country_code, country_name, point) {
     //set formats for value
     if (isVal(val)) {
       if (currentIndicator.id.indexOf('pct')>-1) {
-        if (currentIndicator.id=='#value+gdp+ifi+pct' || currentIndicator.id=='#targeted+doses+delivered+pct')
-          val = (isNaN(val)) ? 'No Data' : d3.format('.2%')(val);
+        if (currentIndicator.id=='#value+gdp+ifi+pct' || currentIndicator.id=='#targeted+doses+delivered+pct') {
+          if (isNaN(val))
+            val = 'No Data'
+          else
+            val = (val==0) ? '0%' : d3.format('.2%')(val);
+        }
         else
           val = (isNaN(val)) ? 'No Data' : percentFormat(val);
       }
@@ -2822,21 +2834,26 @@ function createMapTooltip(country_code, country_name, point) {
     }
     //vaccine layer
     else if (currentIndicator.id=='#targeted+doses+delivered+pct') {
-      content += currentIndicator.name + ':<div class="stat">' + val + '</div>';
       if (val!='No Data') {
         var tableArray = [{label: 'COVAX - Pfizer/BioNTech', value: country[0]['#capacity+doses+covax+pfizerbiontech']},
                           {label: 'COVAX - AstraZeneca/SII', value: country[0]['#capacity+doses+covax+astrazenecasii']},
                           {label: 'COVAX - AstraZeneca/SKBio', value: country[0]['#capacity+doses+covax+astrazenecaskbio']},
                           {label: 'Other - Source Country', value: country[0]['#capacity+doses+delivered+others']}];
 
+
+        content += currentIndicator.name + ':<div class="stat">' + val + '</div>';
         content += 'Breakdown (doses):<div class="table-display">';
         tableArray.forEach(function(row, index) {
           if (row.value!=undefined) {
+            var status = (row.label=='Other - Source Country') ? '(delivered)' : '(forecasted)';
             var otherSource = (row.label=='Other - Source Country' && country[0]['#meta+source+doses+country+name']!=undefined) ? '<div class="small">'+ country[0]['#meta+source+doses+country+name'] +'</div>' : '';
-            content += '<div class="table-row row-separator"><div>'+ row.label +':'+ otherSource +'</div><div>'+ numFormat(row.value) +'</div></div>';
+            content += '<div class="table-row row-separator"><div>'+ row.label +' '+ status +':'+ otherSource +'</div><div>'+ numFormat(row.value) +'</div></div>';
           }
         });
         content += '</div>';
+      }
+      else {
+        content += currentIndicator.name + ':<div class="stat">Not Included</div>';
       }
     }
     //PIN layer shows refugees and IDPs
@@ -3277,7 +3294,7 @@ $( document ).ready(function() {
   var prod = (window.location.href.indexOf('ocha-dap')>-1 || window.location.href.indexOf('data.humdata.org')>-1) ? true : false;
   //console.log(prod);
 
-  mapboxgl.accessToken = 'pk.eyJ1IjoiaHVtZGF0YSIsImEiOiJja2FvMW1wbDIwMzE2MnFwMW9teHQxOXhpIn0.Uri8IURftz3Jv5It51ISAA';
+  mapboxgl.accessToken = 'pk.eyJ1IjoiaHVtZGF0YSIsImEiOiJja2hnbWs5NzkxMXh2MnNvcmF6dXIxMWE0In0.0GfmJoEJyWFQ5UzNxl2WgA';
   var tooltip = d3.select('.tooltip');
   var minWidth = 1000;
   viewportWidth = (window.innerWidth<minWidth) ? minWidth - $('.content-left').innerWidth() : window.innerWidth - $('.content-left').innerWidth();
@@ -3318,8 +3335,7 @@ $( document ).ready(function() {
   function getData() {
     console.log('Loading data...')
     Promise.all([
-      d3.json('data/data.json'),
-      //d3.json('https://raw.githubusercontent.com/OCHA-DAP/hdx-scraper-covid-viz/master/out.json'),
+      d3.json('https://raw.githubusercontent.com/OCHA-DAP/hdx-scraper-covid-viz/master/out.json'),
       d3.json('data/ocha-regions-bbox.geojson')
     ]).then(function(data) {
       console.log('Data loaded');
@@ -3337,8 +3353,6 @@ $( document ).ready(function() {
       sourcesData = allData.sources_data;
       covidTrendData = allData.who_covid_data;
       immunizationData = allData.vaccination_campaigns_data;
-      
-      console.log(allData)
 
       //format data
       subnationalData.forEach(function(item) {
