@@ -579,7 +579,7 @@ function updateRankingChart(sortMode) {
     console.log(rankingData)
 
     if (rankingData.length<1) {
-      $('.ranking-chart').append('<p>No Data</p>');
+      $('.ranking-chart').append('<p>No Doses Delivered</p>');
       $('.ranking-chart > p').css('text-align', 'center');
     }
 
