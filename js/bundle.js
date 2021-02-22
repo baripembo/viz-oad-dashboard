@@ -1632,10 +1632,10 @@ function setKeyFigures() {
 	}
 	//vaccine rollout
 	else if (currentIndicator.id=='#targeted+doses+delivered+pct') {
-		createKeyFigure('.figures', 'COVAX Interim Forecast (Number of Doses)', '', data['#capacity+doses+forecast+covax']==undefined ? 'NA' : data['#capacity+doses+forecast+covax']);
-		createKeyFigure('.figures', 'COVAX Delivered (Number of Doses)', '', data['#capacity+doses+delivered+covax']==undefined ? 'NA' : data['#capacity+doses+delivered+covax']);
-		createKeyFigure('.figures', 'Other Delivered (Number of Doses)', '', data['#capacity+doses+delivered+others']==undefined ? 'NA' : data['#capacity+doses+delivered+others']);
-		createKeyFigure('.figures', 'Total Delivered (Number of Doses)', '', data['#capacity+doses+delivered+total']==undefined ? 'NA' : data['#capacity+doses+delivered+total']);
+		createKeyFigure('.figures', 'COVAX Interim Forecast (Number of Doses)', '', data['#capacity+doses+forecast+covax']==undefined ? 'NA' : shortenNumFormat(data['#capacity+doses+forecast+covax']));
+		createKeyFigure('.figures', 'COVAX Delivered (Number of Doses)', '', data['#capacity+doses+delivered+covax']==undefined ? 'NA' : shortenNumFormat(data['#capacity+doses+delivered+covax']));
+		createKeyFigure('.figures', 'Other Delivered (Number of Doses)', '', data['#capacity+doses+delivered+others']==undefined ? 'NA' : shortenNumFormat(data['#capacity+doses+delivered+others']));
+		createKeyFigure('.figures', 'Total Delivered (Number of Doses)', '', data['#capacity+doses+delivered+total']==undefined ? 'NA' : shortenNumFormat(data['#capacity+doses+delivered+total']));
 		createKeyFigure('.figures', 'Number of Countries', '', totalCountries);
 	}
 	//access severity
@@ -2825,8 +2825,8 @@ function createMapTooltip(country_code, country_name, point) {
       content += currentIndicator.name + ':<div class="stat">' + val + '</div>';
       if (val!='No Data') {
         var tableArray = [{label: 'COVAX - Pfizer/BioNTech', value: country[0]['#capacity+doses+covax+pfizerbiontech']},
-                          {label: 'COVAX - AstraZeneca', value: country[0]['#capacity+doses+covax+astrazeneca']},
-                          //{label: 'COVAX - AstraZeneca/SKII', value: country[0]['#capacity+doses+covax+astrazenecaskii']},
+                          {label: 'COVAX - AstraZeneca/SII', value: country[0]['#capacity+doses+covax+astrazenecasii']},
+                          {label: 'COVAX - AstraZeneca/SKBio', value: country[0]['#capacity+doses+covax+astrazenecaskbio']},
                           {label: 'Other - Source Country', value: country[0]['#capacity+doses+delivered+others']}];
 
         content += 'Breakdown (doses):<div class="table-display">';
