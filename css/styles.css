@@ -1310,7 +1310,8 @@ label.label-small {
     margin-top: 2px; }
 
 .subtext {
-  color: #888; }
+  color: #888;
+  text-transform: capitalize; }
 
 .table-display {
   margin: 5px 0 20px; }
@@ -1318,15 +1319,19 @@ label.label-small {
     align-items: center;
     display: flex;
     justify-content: space-between; }
-    .table-display .table-row .val {
-      min-width: 58px;
-      padding-left: 7px;
-      text-align: right; }
+    .table-display .table-row > div:first-child {
+      padding-right: 20px; }
     .table-display .table-row.row-separator {
       border-bottom: 1px solid #CCC;
       padding: 8px 0; }
       .table-display .table-row.row-separator:first-child {
         border-top: 1px solid #CCC; }
+  .table-display.layer-covax .table-row {
+    color: #888; }
+    .table-display.layer-covax .table-row.row-separator {
+      border-top: 0;
+      color: #000;
+      margin: 6px 0; }
 
 .stat {
   font-family: 'Gotham-Light', sans-serif;
@@ -1787,10 +1792,8 @@ a:visited {
     display: block; }
     .map-legend.global .legend-container {
       height: 83px; }
-      .map-legend.global .legend-container.immunization-campaign {
-        height: 32px; }
-      .map-legend.global .legend-container.access-severity {
-        height: 50px; }
+      .map-legend.global .legend-container.impact-type {
+        height: 68px; }
     .map-legend.global .source-secondary {
       margin-bottom: 10px;
       margin-top: -8px; }
@@ -1917,6 +1920,8 @@ circle.swatch {
       display: block;
       margin-top: -10px;
       margin-bottom: 10px; }
+      .mapboxgl-popup.map-tooltip .mapboxgl-popup-content .stat + span.inline {
+        display: inline-block; }
     .mapboxgl-popup.map-tooltip .mapboxgl-popup-content .cases-total,
     .mapboxgl-popup.map-tooltip .mapboxgl-popup-content .deaths-total {
       color: #333;
