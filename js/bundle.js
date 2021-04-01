@@ -1550,7 +1550,7 @@ const countryCodeList = {
   MOZ: '5jojox7h',
   NER: '9gbs4a2a',
   NGA: '3ceksugh',
-  PAK: '94y0veay',
+  //PAK: '94y0veay',
   PSE: '1emy37d7',
   SDN: 'a2zw3leb',
   SOM: '3s7xeitz',
@@ -1825,7 +1825,7 @@ function initMap() {
   console.log('Loading map...')
   map = new mapboxgl.Map({
     container: 'global-map',
-    style: 'mapbox://styles/humdata/ckmw4fgj215dn17mr2jhhyqva/draft',
+    style: 'mapbox://styles/humdata/ckb843tjb46fy1ilaw49redy7',
     center: [-25, 0],
     minZoom: 1,
     zoom: zoomLevel,
@@ -1882,7 +1882,7 @@ function displayMap() {
       case 'adm0-centroids':
         globalMarkerLayer = layer.id;
         break;
-      case 'hrp27-polbnda-adm1-simplified-3m1uwf':
+      case 'adm1-fills':
         countryLayer = layer.id;
         map.setLayoutProperty(countryLayer, 'visibility', 'none');
         break;
@@ -2625,7 +2625,6 @@ function initCountryLayer() {
 
   //mouse events
   map.on('mouseenter', countryLayer, function(e) {
-    console.log('mouseenter', e.features[0].properties.ADM0_REF, e.features[0].properties.ADM1_REF)
     map.getCanvas().style.cursor = 'pointer';
     tooltip.addTo(map);
   });
@@ -3358,7 +3357,7 @@ $( document ).ready(function() {
   var prod = (window.location.href.indexOf('ocha-dap')>-1 || window.location.href.indexOf('data.humdata.org')>-1) ? true : false;
   //console.log(prod);
 
-  mapboxgl.accessToken = 'pk.eyJ1IjoiaHVtZGF0YSIsImEiOiJja2FvMW1wbDIwMzE2MnFwMW9teHQxOXhpIn0.Uri8IURftz3Jv5It51ISAA';
+  mapboxgl.accessToken = 'pk.eyJ1IjoiaHVtZGF0YSIsImEiOiJja2hnbWs5NzkxMXh2MnNvcmF6dXIxMWE0In0.0GfmJoEJyWFQ5UzNxl2WgA';
   var tooltip = d3.select('.tooltip');
   var minWidth = 1000;
   viewportWidth = (window.innerWidth<minWidth) ? minWidth - $('.content-left').innerWidth() : window.innerWidth - $('.content-left').innerWidth();
