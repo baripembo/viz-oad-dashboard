@@ -446,12 +446,15 @@ function createRankingChart() {
     $('.ranking-container').addClass('ranking-vaccine');
     $('.ranking-select').val(indicator);
   }
+  else if (currentIndicator.id=='#targeted+doses+delivered+pct') {
+    $('.ranking-chart').append('<p>Sort by:</p>');
+  }
   else {
     $('.ranking-select').val('descending');
   }
 
   //format data
-  rankingData = formatRankingData(indicator);
+  rankingData = formatRankingData(indicator, d3.select('#vaccineSortingSelect').node().value);
 
   var valueMax = d3.max(rankingData, function(d) { return +d.value; });
   valueFormat = d3.format(',.0f');
@@ -540,15 +543,29 @@ function createRankingChart() {
     });
 }
 
-function formatRankingData(indicator) {
-  var rankingByCountry = d3.nest()
-    .key(function(d) {
-      if (regionMatch(d['#region+name'])) return d['#country+name']; 
-    })
-    .rollup(function(v) {
-      if (regionMatch(v[0]['#region+name'])) return v[0][indicator];
-    })
-    .entries(nationalData);
+function formatRankingData(indicator, sorter) {
+  var isCovaxLayer = (indicator.indexOf('#capacity+doses')>-1) ? true : false;
+  if (isCovaxLayer) {
+    if (sorter==undefined) sorter = '#country+name';
+    var rankingByCountry = d3.nest()
+      .key(function(d) {
+        if (regionMatch(d['#region+name'])) return d[sorter]; 
+      })
+      .rollup(function(v) {
+        if (regionMatch(v[0]['#region+name'])) return v[0][indicator];
+      })
+      .entries(nationalData);
+  }
+  else {  
+    var rankingByCountry = d3.nest()
+      .key(function(d) {
+        if (regionMatch(d['#region+name'])) return d['#country+name']; 
+      })
+      .rollup(function(v) {
+        if (regionMatch(v[0]['#region+name'])) return v[0][indicator];
+      })
+      .entries(nationalData);
+  }
 
   var data = rankingByCountry.filter(function(item) {
     return isVal(item.value) && !isNaN(item.value);
@@ -557,7 +574,7 @@ function formatRankingData(indicator) {
   return data;
 }
 
-function updateRankingChart(sortMode) {
+function updateRankingChart(sortMode, secondarySortMode) {
   if (sortMode=='ascending' || sortMode=='descending') {
     //sort the chart
     rankingData.sort(function(a, b){
@@ -577,7 +594,7 @@ function updateRankingChart(sortMode) {
     //empty and redraw chart with new indicator
     $('.secondary-panel').find('.ranking-chart').empty();
 
-    rankingData = formatRankingData(sortMode);
+    rankingData = formatRankingData(sortMode, secondarySortMode);
     rankingData.sort(function(a, b){
        return d3.descending(+a.value, +b.value);
     });
@@ -741,7 +758,7 @@ function getProductsByCountryID(adm0_code,adm0_name){
   var today = new Date();
   var yearnow = today.getFullYear();
   var monthnow = today.getMonth();
-  var sql = 'SELECT T1.cm_id,T1.cm_name,T1.um_id,T1.um_name,avg(cast(T1.mp_month as double precision)) AS month_num,T1.mp_year,avg(T1.mp_price) FROM "' + datastoreID + '" AS T1 INNER JOIN (SELECT DISTINCT adm0_id,cm_id,um_id from "' + datastoreID + '" WHERE '
+  var sql = 'SELECT T1.cm_id,T1.cm_name,T1.um_id,T1.um_name,avg(T1.mp_month::double precision) AS month_num,T1.mp_year,avg(T1.mp_price) FROM "' + datastoreID + '" AS T1 INNER JOIN (SELECT DISTINCT adm0_id,cm_id,um_id from "' + datastoreID + '" WHERE '
 
   for (i = 0; i < 6; i++) {
     var month = monthnow - i;
@@ -751,7 +768,7 @@ function getProductsByCountryID(adm0_code,adm0_name){
       year -= 1;
     }
     month += 1;
-    sql += '(mp_year='+year+' AND cast(mp_month as int)='+month+') OR ';
+    sql += '(mp_year='+year+' AND (mp_month::int)='+month+') OR ';
   }
   sql = sql.substring(0, sql.length - 4);
   sql += ') AS T2 ON T1.adm0_id=T2.adm0_id AND T1.cm_id=T2.cm_id AND T1.um_id=T2.um_id WHERE T1.adm0_id=' + adm0_code + ' AND T1.mp_year>'+(yearnow-11)+' GROUP BY T1.cm_id,T1.cm_name,T1.um_name,T1.um_id,T1.mp_month,T1.mp_year ORDER BY T1.cm_id, T1.um_id, T1.mp_year, month_num';
@@ -770,7 +787,7 @@ function getProductsByCountryID(adm0_code,adm0_name){
 }
 
 function getProductDataByCountryID(adm0_code,cm_id,um_id,adm0_name,cm_name,um_name,adm1_name,mkt_name){
-  var sql = 'SELECT adm1_id,adm1_name,mkt_id,mkt_name, cast(mp_month as double precision) as month_num, mp_year, mp_price FROM "'+datastoreID+'" where adm0_id='+adm0_code+' and cm_id='+cm_id+' and um_id='+um_id;
+  var sql = 'SELECT adm1_id,adm1_name,mkt_id,mkt_name, (mp_month::double precision) as month_num, mp_year, mp_price FROM "'+datastoreID+'" where adm0_id='+adm0_code+' and cm_id='+cm_id+' and um_id='+um_id;
 
   var data = encodeURIComponent(JSON.stringify({sql: sql}));
 
@@ -1621,13 +1638,14 @@ function setKeyFigures() {
 
 	//PIN
 	if (currentIndicator.id=='#affected+inneed+pct') {
-		// var totalPIN = d3.sum(nationalData, function(d) {
-		// 	if (regionMatch(d['#region+name'])) {
-		// 		return +d['#affected+inneed']; 
-		// 	}
-		// });
-		//hardcoding PIN to match OCHA data
-		createKeyFigure('.figures', 'Total Number of People in Need', 'pin', '431M');//(d3.format('.4s'))(totalPIN)
+		var totalPIN = d3.sum(nationalData, function(d) {
+			if (regionMatch(d['#region+name'])) {
+				return +d['#affected+inneed'];
+			}
+		});
+		//hardcode global PIN to match OCHA data
+		totalPIN = (currentRegion=='') ? '431M' : (d3.format('.4s'))(totalPIN);
+		createKeyFigure('.figures', 'Total Number of People in Need', 'pin', totalPIN);
 		createKeyFigure('.figures', 'Number of Countries', '', totalCountries);
 	}
 	//vaccine rollout
@@ -1675,7 +1693,7 @@ function setKeyFigures() {
 	//CERF
 	else if (currentIndicator.id=='#value+cerf+funding+total+usd') {
 		createKeyFigure('.figures', 'Number of Countries', '', totalCountries);
-		createKeyFigure('.figures', 'Total CERF Funding', '', formatValue(data['#value+cerf+funding+total+usd']));
+		createKeyFigure('.figures', 'Total CERF Funding 2021', '', formatValue(data['#value+cerf+funding+total+usd']));
 		if (data['#value+cerf+funding+total+usd'] > 0) {
 			var gmText = getGamText(data, 'cerf');
 			$('.figures .key-figure .inner').append('<div class="small">'+ gmText +'</div>');
@@ -1685,7 +1703,7 @@ function setKeyFigures() {
 	else if (currentIndicator.id=='#value+cbpf+funding+total+usd') {
 		//num countries
 		createKeyFigure('.figures', 'Number of Countries', '', totalCountries);
-		createKeyFigure('.figures', 'Total CBPF Funding', '', formatValue(data['#value+cbpf+funding+total+usd']));
+		createKeyFigure('.figures', 'Total CBPF Funding 2021', '', formatValue(data['#value+cbpf+funding+total+usd']));
 		
 		//gam
 		if (data['#value+cbpf+funding+total+usd'] > 0) {
@@ -2028,7 +2046,15 @@ function createEvents() {
   d3.selectAll('.ranking-select').on('change',function(e) {
     var selected = d3.select(this).node().value;
     if (selected!='') {
-      updateRankingChart(selected);
+      updateRankingChart(selected, d3.select('#vaccineSortingSelect').node().value);
+    }
+  });
+
+  //rank sorting select event (only on COVAX layer)
+  d3.selectAll('.sorting-select').on('change',function(e) {
+    var selected = d3.select(this).node().value;
+    if (selected!='') {
+      updateRankingChart(d3.select('#vaccineRankingSelect').node().value, selected);
     }
   });
 
@@ -3072,7 +3098,7 @@ function createMapTooltip(country_code, country_name, point) {
           });
         }
         else {
-          content +=  currentIndicator.name + ':<div class="stat">Under Review</div>';
+          content +=  currentIndicator.name + ':<div class="stat">N/A</div>';
         }
       }
     }
@@ -3305,8 +3331,8 @@ function initCountryPanel() {
   hrpDiv.children().remove();
   createFigure(hrpDiv, {className: 'funding-required', title: 'HRP Requirement', stat: formatValue(data['#value+funding+hrp+required+usd']), indicator: '#value+funding+hrp+required+usd'});
   createFigure(hrpDiv, {className: 'funding-covid-allocation', title: 'HRP Allocation for COVID-19 GHRP', stat: formatValue(data['#value+covid+funding+hrp+total+usd']), indicator: '#value+covid+funding+hrp+total+usd'});
-  createFigure(hrpDiv, {className: 'funding-cerf-allocation', title: 'CERF Allocation', stat: formatValue(data['#value+cerf+funding+total+usd']), indicator: '#value+cerf+funding+total+usd'});
-  createFigure(hrpDiv, {className: 'funding-cbpf-allocation', title: 'CBPF Allocation', stat: formatValue(data['#value+cbpf+funding+total+usd']), indicator: '#value+cbpf+funding+total+usd'});
+  createFigure(hrpDiv, {className: 'funding-cerf-allocation', title: 'CERF Allocation 2021', stat: formatValue(data['#value+cerf+funding+total+usd']), indicator: '#value+cerf+funding+total+usd'});
+  createFigure(hrpDiv, {className: 'funding-cbpf-allocation', title: 'CBPF Allocation 2021', stat: formatValue(data['#value+cbpf+funding+total+usd']), indicator: '#value+cbpf+funding+total+usd'});
 
   //inform
   var informDiv = $('.country-panel .inform .panel-inner');
@@ -3399,7 +3425,7 @@ $( document ).ready(function() {
   function getData() {
     console.log('Loading data...')
     Promise.all([
-      d3.json('https://raw.githubusercontent.com/OCHA-DAP/hdx-scraper-covid-viz/cerf2021/out.json'),//https://raw.githubusercontent.com/OCHA-DAP/hdx-scraper-covid-viz/master/out.json
+      d3.json('https://raw.githubusercontent.com/OCHA-DAP/hdx-scraper-covid-viz/master/out.json'),
       d3.json('data/ocha-regions-bbox.geojson')
     ]).then(function(data) {
       console.log('Data loaded');
@@ -3607,7 +3633,7 @@ $( document ).ready(function() {
 
     //check map loaded status
     if (mapLoaded==true && viewInitialized==false)
-      deepLinkCountryView();
+      deepLinkView();
 
     viewInitialized = true;
   }
