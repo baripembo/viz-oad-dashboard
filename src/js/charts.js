@@ -97,6 +97,160 @@ function createProjectionsChart(data, type) {
   }
 }
 
+/*****************************************/
+/*** COVID TRENDSERIES CHART FUNCTIONS ***/
+/*****************************************/
+function initTrendseries(countryCode) {
+  //cases chart
+  var casesArray = formatTrendseriesData(countryCode, 'infected');
+  var latestVal = casesArray[casesArray.length-1]['weekly_new'];
+  $('.cases-title').html('<h6>Weekly Number of New Cases</h6><div class="num">'+numFormat(latestVal)+'</div>');
+  createTrendseries(casesArray, '.cases-trend-chart');
+
+  //deaths chart
+  var deathsArray = formatTrendseriesData(countryCode, 'killed');
+  var latestVal = deathsArray[deathsArray.length-1]['weekly_new'];
+  $('.deaths-title').html('<h6>Weekly Number of New Deaths</h6><div class="num">'+numFormat(latestVal)+'</div>');
+  createTrendseries(deathsArray, '.deaths-trend-chart');
+}
+
+function formatTrendseriesData(countryCode, indicator) {
+  var startDate = new Date(2020,2,1);//start chart at march 1, 2020
+  var trendArray = [];
+  var dataArray = Object.entries(covidTrendData);
+  dataArray.forEach(function(d) {
+    var valueArray = d[1];
+    if (d[0]==countryCode) {
+      valueArray.forEach(function(val) {
+        var obj = {};
+        var date = new Date(val['#date+reported']);
+        var utcDate = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+
+        if (utcDate>=startDate) {
+          obj['date'] = utcDate;
+          obj['weekly_new'] = +val['#affected+'+indicator+'+new+weekly'];
+          obj['new_per_capita'] = +val['#affected+'+indicator+'+new+per100000+weekly'];
+          obj['weekly_trend'] = +val['#affected+'+indicator+'+new+change+weekly'];
+          obj['weekly_trend_pct'] = +val['#affected+'+indicator+'+new+pct+weekly'];
+          trendArray.push(obj);
+        }
+      });
+    }
+  });
+  return trendArray;
+}
+
+var casesTrendChart, deathsTrendChart = '';
+var casesTrendArray = [];
+var deathsTrendArray = [];
+function createTrendseries(array, div) {
+  var chartWidth = viewportWidth - $('.secondary-panel').width() - 75;
+  var chartHeight = 200;
+  var colorArray = ['#F8B1AD'];
+  var isCases = (div.indexOf('cases')>-1) ? true : false;
+  //var maxVal = d3.max(array, function(d) { return +d.weekly_new; });
+
+  var chart = c3.generate({
+    size: {
+      width: chartWidth,
+      height: chartHeight
+    },
+    padding: {
+      bottom: 0,
+      top: 10,
+      left: 35,
+      right: 30
+    },
+    bindto: div,
+    data: {
+      type: 'bar',
+      json: array,
+      keys: {
+        x: 'date',
+        value: ['weekly_new']
+      }
+    },
+    color: {
+      pattern: colorArray
+    },
+    axis: {
+      x: {
+        type: 'timeseries',
+        tick: {
+          outer: false,
+          format: function(d) {
+            var date = dateFormat(d);
+            return date;
+          }
+        }
+      },
+      y: {
+        min: 0,
+        padding: { top:0, bottom:0 },
+        tick: {
+          outer: false,
+          format: function(d) {
+            return (d<10) ? d : shortenNumFormat(d);
+          }
+        }
+      }
+    },
+    legend: {
+      show: false
+    },
+    tooltip: {
+      contents: function(d, defaultTitleFormat, defaultValueFormat, color) {
+        var indicator = (isCases) ? 'Cases' : 'Deaths';
+        var currentArray = (isCases) ? casesTrendArray : deathsTrendArray;
+        var index = d[0].index;
+        var content = '<table class="trendseries-tooltip">';
+        content += '<thead><th colspan="2">' + defaultTitleFormat(d[0].x) + ' ' + d[0].value + ' ' + currentArray[index]['weekly_new'] +'</th></thead>';
+        content += '<tr><td>Weekly Number of New '+indicator+'</td><td>' + numFormat(currentArray[index]['weekly_new']) + '</td></tr>';
+        content += '<tr><td>New '+indicator+' per 100,000</td><td>' + d3.format('.1f')(currentArray[index]['new_per_capita']) + '</td></tr>';
+        content += '<tr><td>Weekly Trend</td><td>' + numFormat(currentArray[index]['weekly_trend']) + '</td></tr>';
+        content += '<tr><td>Weekly Trend in %</td><td>' + percentFormat(currentArray[index]['weekly_trend_pct']) + '</td></tr>';
+        content += '</table>';
+        return content;
+      }
+    },
+    transition: { duration: 500 }
+  });
+
+  //save references to trend charts
+  if (isCases) {
+    casesTrendChart = chart;
+    casesTrendArray = array;
+  }
+  else {
+    deathsTrendChart = chart;
+    deathsTrendArray = array;
+  }
+}
+
+function updateTrendseries(countryCode) {
+  casesTrendArray = formatTrendseriesData(countryCode, 'infected');
+  var latestVal = casesTrendArray[casesTrendArray.length-1]['weekly_new'];
+  $('.cases-title').find('.num').html(numFormat(latestVal));
+  casesTrendChart.load({
+    json: casesTrendArray,
+    keys: {
+      x: 'date',
+      value: ['weekly_new']
+    }
+  });
+  
+  deathsTrendArray = formatTrendseriesData(countryCode, 'killed');
+  var latestVal = deathsTrendArray[deathsTrendArray.length-1]['weekly_new'];
+  $('.deaths-title').find('.num').html(numFormat(latestVal));
+  deathsTrendChart.load({
+    json: deathsTrendArray,
+    keys: {
+      x: 'date',
+      value: ['weekly_new']
+    }
+  });
+}
+
 /****************************************/
 /*** COVID TIMESERIES CHART FUNCTIONS ***/
 /****************************************/
@@ -111,7 +265,6 @@ function formatTimeseriesData(data) {
   var dataArray = Object.entries(data);
   dataArray.forEach(function(d) {
     var countryArray = [];
-    if (d[0]=='Syrian Arab Republic') d[0] = 'Syria';
     if (d[0]=='Venezuela (Bolivarian Republic of)') d[0] = 'Venezuela';
     countryArray.push(d[0])
     var valueArray = d[1].reverse();
@@ -139,25 +292,19 @@ function formatTimeseriesData(data) {
   return timeseriesArray;
 }
 
-
 function createTimeSeries(array, div) {
-  var isGlobal = (div.indexOf('global')>-1) ? true : false;
-  var chartWidth = (isGlobal) ? viewportWidth - $('.secondary-panel').width() - 75 : 336;
-  var chartHeight = (isGlobal) ? $(div).parent().height()-200 : 240;
-  var colorArray = (isGlobal) ? 
-    ['#1ebfb3', '#f2645a', '#007ce1', '#9c27b0', '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'] :
-    ['#999'];
+  var chartWidth = 336;
+  var chartHeight = 240;
+  var colorArray = ['#999'];
 
-  //filter HRP countries for countrytimeseries
-  if (!isGlobal) {
-    var hrpList = [];
-    hrpData.forEach(function(d) {
-      hrpList.push(d['#country+name']);
-    });
-    var hrpArray = array.filter((row) => hrpList.includes(row[0]));
-    hrpArray.unshift(array[0]);
-    array = hrpArray;
-  }
+  //filter HRP countries for country timeseries
+  var hrpList = [];
+  hrpData.forEach(function(d) {
+    hrpList.push(d['#country+name']);
+  });
+  var hrpArray = array.filter((row) => hrpList.includes(row[0]));
+  hrpArray.unshift(array[0]);
+  array = hrpArray;
 
   //get date values for x axis labels
   var dateSet = new Set();
@@ -203,14 +350,10 @@ function createTimeSeries(array, div) {
 				type: 'timeseries',
 				tick: {
           outer: false,
-          count: 5,
           values: dateArray,
-          format: function(d) {
+          format: function(d, i) {
             var date = dateFormat(d);
-            if (!isGlobal) {
-              //display every other month for country view
-              date = (d.getMonth()%2==0) ? date : '';
-            }
+            date = (d.getMonth()%3==0) ? date : '';
             return date;
           }
 				}
@@ -239,23 +382,14 @@ function createTimeSeries(array, div) {
     transition: { duration: 300 }
 	});
 
-  createTimeseriesLegend(chart, div);
-
-  if (isGlobal) {
-    globalTimeseriesChart = chart;
-  }
-  else {
-    countryTimeseriesChart = chart;
-    createSource($('.cases-timeseries'), '#affected+infected');
-  }
+  createTimeseriesLegend(chart);
+  countryTimeseriesChart = chart;
+  createSource($('.cases-timeseries'), '#affected+infected');
 }
 
 
-function createTimeseriesLegend(chart, div, country) {
-  var isGlobal = (div.indexOf('global')>-1) ? true : false;
-  if (isGlobal && $('.timeseries-legend').length>0) {
-    $('.global-timeseries-chart .timeseries-legend').remove();
-  }
+function createTimeseriesLegend(chart, country) {
+  var element = $(chart.element).attr('class');
   var names = [];
   chart.data.shown().forEach(function(d) {
     if (d.id==country || country==undefined)
@@ -263,7 +397,7 @@ function createTimeseriesLegend(chart, div, country) {
   });
 
   //custom legend
-  d3.select(div).insert('div').attr('class', 'timeseries-legend').selectAll('div')
+  d3.select(chart.element).insert('div').attr('class', 'timeseries-legend').selectAll('div')
     .data(names)
     .enter().append('div')
     .attr('data-id', function(id) {
@@ -273,29 +407,13 @@ function createTimeseriesLegend(chart, div, country) {
       return '<span></span>'+id;
     })
     .each(function(id) {
-      var color = (isGlobal) ? chart.color(id) : '#007CE1';
+      var color = '#007CE1';
       d3.select(this).select('span').style('background-color', color);
     })
-    .on('mouseover', function(id) {
-      if (isGlobal) chart.focus(id);
-    })
-    .on('mouseout', function(id) {
-      if (isGlobal) chart.revert();
-    });
-
-  //set max height for legend
-  if (isGlobal) {
-    var chartHeight = $(div).parent().height()-200;
-    var itemHeight = 18;
-    var numItems = Math.round((chartHeight-160)/itemHeight);
-    var availSpace = itemHeight*numItems;
-    $('.global-timeseries-chart .timeseries-legend').css('max-height', availSpace);
-  }
 }
 
 function updateTimeseries(selected) {
   var maxValue = d3.max(countryTimeseriesChart.data(selected)[0].values, function(d) { return +d.value; });
-  if (selected=='Syrian Arab Republic') selected = 'Syria';
   if (selected=='Venezuela (Bolivarian Republic of)') selected = 'Venezuela';
 
   countryTimeseriesChart.axis.max(maxValue*2);
@@ -304,7 +422,7 @@ function updateTimeseries(selected) {
   $('.country-timeseries-chart .c3-chart-lines .c3-line-'+selected).css('stroke', '#007CE1');
 
   $('.country-timeseries-chart .timeseries-legend').remove();
-  createTimeseriesLegend(countryTimeseriesChart, '.country-timeseries-chart', selected);
+  createTimeseriesLegend(countryTimeseriesChart, selected);
 }
 
 
@@ -403,17 +521,27 @@ function createTrendBarChart(data, div) {
 /*************************/
 var rankingX, rankingY, rankingBars, rankingData, rankingBarHeight, valueFormat;
 function createRankingChart() {
+  //reset
+  $('.ranking-container').removeClass('covid');
+  $('.ranking-container').removeClass('ranking-vaccine');
+
   //set title
-  $('.secondary-panel .ranking-container').removeClass('access-severity');
-  $('.secondary-panel .ranking-title').text( $('.menu-indicators').find('.selected').attr('data-legend') + ' by Country' );
+  var rankingTitle = (currentIndicator.id=='#impact+type') ? 'Total Number of Affected Learners' : $('.menu-indicators').find('.selected').attr('data-legend') + ' by Country'
+  $('.secondary-panel .ranking-title').text(rankingTitle);
 
   var indicator;
   switch(currentIndicator.id) {
     case '#severity+inform+type':
       indicator = '#severity+inform+num';
       break;
-    case '#vaccination-campaigns':
-      indicator = '#vaccination+num+ratio';
+    case '#targeted+doses+delivered+pct':
+      indicator = '#capacity+doses+delivered+total';
+      break;
+    case '#impact+type':
+      indicator = '#affected+learners';
+      break;
+    case '#immunization-campaigns':
+      indicator = '#vaccination+postponed+num';
       break;
     case '#food-prices':
       indicator = '#value+food+num+ratio';
@@ -422,13 +550,16 @@ function createRankingChart() {
       indicator = currentIndicator.id;
   }
 
-  //switch sort dropdown if on covid layer
+  //switch ranking dropdown based on layer
   if (currentIndicator.id=='#affected+infected+new+per100000+weekly') {
     $('.ranking-container').addClass('covid');
     $('.ranking-select').val('#affected+infected+new+per100000+weekly');
   }
+  else if (currentIndicator.id=='#targeted+doses+delivered+pct') {
+    $('.ranking-container').addClass('ranking-vaccine');
+    $('.ranking-select').val(indicator);
+  }
   else {
-    $('.ranking-container').removeClass('covid');
     $('.ranking-select').val('descending');
   }
 
@@ -443,7 +574,7 @@ function createRankingChart() {
     $('.ranking-select').val('ascending');
   }
   if (indicator.indexOf('pct')>-1 || indicator.indexOf('ratio')>-1) {
-    valueFormat = percentFormat;
+    valueFormat = (currentIndicator.id=='#value+gdp+ifi+pct') ? d3.format('.2%') : percentFormat;
   }
   if (indicator=='#severity+inform+num') {
     valueFormat = d3.format(',.2r');;
@@ -497,7 +628,7 @@ function createRankingChart() {
     .attr('class', 'bar')
     .attr('height', rankingBarHeight)
     .attr('width', function (d) {
-      return (d.value<0) ? 0 : rankingX(d.value);
+      return (d.value<=0) ? 0 : rankingX(d.value);
     });
 
   //add country names
@@ -514,7 +645,8 @@ function createRankingChart() {
     .attr('class', 'label')
     .attr('y', 9)
     .attr('x', function (d) {
-      return rankingX(d.value) + 3;
+      var xpos = (d.value<=0) ? 0 : rankingX(d.value);
+      return xpos + 3;
     })
     .text(function (d) {
       return valueFormat(d.value);
@@ -527,11 +659,11 @@ function formatRankingData(indicator) {
       if (regionMatch(d['#region+name'])) return d['#country+name']; 
     })
     .rollup(function(v) {
-      if (regionMatch(v[0]['#region+name'])) return v[0][indicator]; 
+      if (regionMatch(v[0]['#region+name'])) return v[0][indicator];
     })
     .entries(nationalData);
 
-  var data = rankingByCountry.filter(function(item) { 
+  var data = rankingByCountry.filter(function(item) {
     return isVal(item.value) && !isNaN(item.value);
   });
   data.sort(function(a, b){ return d3.descending(+a.value, +b.value); });
@@ -540,6 +672,7 @@ function formatRankingData(indicator) {
 
 function updateRankingChart(sortMode) {
   if (sortMode=='ascending' || sortMode=='descending') {
+    //sort the chart
     rankingData.sort(function(a, b){
       if (sortMode=='ascending')
         return d3.ascending(+a.value, +b.value); 
@@ -549,32 +682,99 @@ function updateRankingChart(sortMode) {
     rankingY.domain(rankingData.map(function (d) { return d.key; }));
     rankingBars.transition()
       .duration(400)
-      .attr('transform', function(d, i) { return 'translate(1,' + (rankingY(d.key) + rankingBarHeight/2) + ')'; });
+      .attr('transform', function(d, i) { 
+        return 'translate(1,' + (rankingY(d.key) + rankingBarHeight/2) + ')'; 
+      });
   }
   else {
+    //empty and redraw chart with new indicator
+    $('.secondary-panel').find('.ranking-chart').empty();
+
     rankingData = formatRankingData(sortMode);
     rankingData.sort(function(a, b){
        return d3.descending(+a.value, +b.value);
     });
 
-    var valueMax = d3.max(rankingData, function(d) { return +d.value; });
-    rankingX.domain([0, valueMax]);
-    rankingY.domain(rankingData.map(function (d) { return d.key; }));
-    rankingBars.data(rankingData);
+    if (rankingData.length<1) {
+      $('.ranking-chart').append('<p>No Data</p>');
+      $('.ranking-chart > p').css('text-align', 'center');
+    }
 
-    rankingBars.transition()
-      .duration(400)
+    var valueMax = d3.max(rankingData, function(d) { return +d.value; });
+    valueFormat = d3.format(',.0f');
+
+    //draw chart
+    rankingBarHeight = 13;
+    var barPadding = 9;
+
+    //determine height available for chart
+    var availSpace = viewportHeight - $('.ranking-chart').position().top - 40;
+    var numRows = Math.floor(availSpace/(rankingBarHeight+barPadding));
+    var rankingChartHeight = ((rankingBarHeight+barPadding) * numRows) + 14;
+    $('.ranking-chart').css('height', rankingChartHeight);
+
+    var margin = {top: 0, right: 70, bottom: 15, left: 100},
+        width = $('.secondary-panel').width() - margin.left - margin.right,
+        height = (rankingBarHeight + barPadding) * rankingData.length;
+
+    var svg = d3.select('.ranking-chart').append('svg')
+      .attr('width', width + margin.left + margin.right)
+      .attr('height', height + margin.top + margin.bottom)
+      .append('g')
+      .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+    rankingX = d3.scaleLinear()
+      .range([0, width])
+      .domain([0, valueMax]);
+
+    rankingY = d3.scaleBand()
+      .range([0, height])
+      .domain(rankingData.map(function (d) {
+        return d.key;
+      }));
+
+    var yAxis = d3.axisLeft(rankingY)
+      .tickSize(0);
+
+    var gy = svg.append('g')
+      .attr('class', 'y axis')
+      .call(yAxis)
+
+    rankingBars = svg.selectAll('.bar')
+      .data(rankingData)
+      .enter().append('g')
+      .attr('class', 'bar-container')
       .attr('transform', function(d, i) { return 'translate(1,' + (rankingY(d.key) + rankingBarHeight/2) + ')'; });
 
-    rankingBars.select('.bar').transition()
-      .duration(400)
-      .attr('width', function (d) { return (d.value<0) ? 0 : rankingX(d.value); });
+    //append rects
+    rankingBars.append('rect')
+      .attr('class', 'bar')
+      .attr('height', rankingBarHeight)
+      .transition()
+        .duration(400)
+      .attr('width', function (d) {
+        return (d.value<=0) ? 0 : rankingX(d.value);
+      });
 
-    rankingBars.select('.name')
-      .text(function (d) { return truncateString(d.key, 15); })
+    //add country names
+    rankingBars.append('text')
+      .attr('class', 'name')
+      .attr('x', -3)
+      .attr('y', 9)
+      .text(function (d) {
+        return truncateString(d.key, 15);
+      })
 
-    rankingBars.select('.label')
-      .attr('x', function (d) { return rankingX(d.value) + 3; })
-      .text(function (d) { return d3.format(',.0f')(d.value); });
+    //add a value label to the right of each bar
+    rankingBars.append('text')
+      .attr('class', 'label')
+      .attr('y', 9)
+      .attr('x', function (d) {
+        var xpos = (d.value<=0) ? 0 : rankingX(d.value);
+        return xpos + 3;
+      })
+      .text(function (d) {
+        return valueFormat(d.value);
+      });
   }
 }

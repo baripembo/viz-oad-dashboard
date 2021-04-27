@@ -31,9 +31,7 @@ h1 {
 	font-size: 16px;
 	font-weight: normal;
 	line-height: 18px;
-	padding: 15px 5px 15px 20px;
-	//margin-bottom: 0;
-	//padding: 15px 5px 0 20px;
+	padding: 5px 5px 10px 20px;
 }
 
 h2 {
@@ -85,6 +83,21 @@ h6 {
   margin: 0;
 }
 
+label {
+	&.label-small {
+		background-color: #F2645A;
+		color: #FFF;
+  	font-family: 'Gotham-Bold', sans-serif;
+		font-weight: 400;
+		font-size: 9px;
+		letter-spacing: 0.01em;
+		line-height: 16px;
+		margin-right: 5px;
+		padding: 3px 5px;
+		margin-bottom: 3px;
+	}
+}
+
 .small {
 	color: #888;
 	font-family: 'Source Sans Pro', sans-serif;
@@ -97,15 +110,34 @@ h6 {
 }
 .subtext {
 	color: #888;
+	text-transform: capitalize;
 }
 
 .table-display {
+	margin: 5px 0 20px;
 	.table-row {
+		align-items: center;
 		display: flex;
 		justify-content: space-between;
-		span {
-			display: block;
-			padding-left: 5px;
+		>div:first-child {
+			padding-right: 20px;
+		}
+		&.row-separator {
+			border-bottom: 1px solid #CCC;
+			padding: 8px 0;
+			&:first-child {
+				border-top: 1px solid #CCC;
+			}
+		}
+	}
+	&.layer-covax {
+		.table-row {
+			color: #888;
+			&.row-separator {
+				border-top: 0;
+				color: #000;
+				margin: 6px 0;
+			}
 		}
 	}
 }
@@ -132,13 +164,19 @@ a:visited {
 }
 
 .footnote {
+	color: #888;
+	font-family: 'Source Sans Pro', sans-serif;
   font-size: 10px;
   font-style: italic;
   line-height: 12px;
+  margin: 0;
   padding-bottom: 10px;
   &.gender-data {
   	margin-top: 10px;
   }
+}
+.source + .footnote {
+	padding-top: 10px;
 }
 
 .content {
@@ -150,7 +188,7 @@ a:visited {
 		display: flex;
 		flex-flow: column;
 		overflow: auto;
-		padding: 12px 0;
+		padding: 20px 0 10px;
 		min-width: 255px;
 		width: 255px;
 		z-index: 2;
@@ -199,6 +237,14 @@ a:visited {
 				width: 200px;
 			}
 		}
+	}
+	&.tab-view {
+		.country-select {
+			top: 80px;
+    }
+    .mapboxgl-ctrl-top-right {
+    	top: 134px;
+    }
 	}
 }
 
@@ -299,8 +345,12 @@ a:visited {
   top: 18px;
 }
 
-.hdx-logo {
+.org-logo {
+	display: flex;
 	padding-left: 15px;
+	a:first-child {
+		margin-right: 20px;
+	}
 }
 
 .logos {
@@ -312,36 +362,57 @@ a:visited {
 	img {
 		margin-top: 12px;
 	}
+	.footnote {
+		padding: 10px 20px;
+	}
 }
 
 .menu {
 	h4 {
-		padding: 10px 20px 6px;
+		padding: 0 20px 6px;
 		text-transform: uppercase;
-	}
-	.download-link {
-		padding: 0 20px;
-		a {
-			display: flex;
-			line-height: 16px;    
-			margin-bottom: 15px;
-			text-decoration: none;
-			width: 100%;
-		}
-		i {
-			font-size: 16px;
-			margin-left: auto;
-			padding-top: 3px;
-		}
 	}
 	.global-menu {
 		display: block;
+		margin-top: 10px;
 		h4 {
 			font-size: 11px;
 			line-height: 12px;
 			padding: 15px 0 10px 20px;
 			text-transform: uppercase;
 		}
+	}
+}
+
+.btn-subscription {
+  background-color: #007CE1;
+  border: 0;
+  color: #FFF;
+  cursor: pointer;  
+  display: inline-block;
+  font-size: 12px;
+  margin: 0 20px 10px;
+	padding: 5px 10px;
+  text-decoration: none;
+  &:visited {
+  	color: #FFF;
+  }
+}
+
+.download-link {
+	padding: 0 20px;
+	text-transform: uppercase;
+	a {
+		display: flex;
+		line-height: 16px;    
+		margin-bottom: 15px;
+		text-decoration: none;
+		width: 100%;
+	}
+	i {
+		font-size: 16px;
+		margin-left: auto;
+		padding-top: 3px;
 	}
 }
 
@@ -354,7 +425,7 @@ a:visited {
 			align-items: center;
 			display: flex;
 			height: 60px;
-			padding: 0 61px 0 25px;
+			padding: 0 54px 0 25px;
 			position: relative;
 			&:after {
 				color: #CCC;
@@ -377,8 +448,9 @@ a:visited {
 		i {
 			flex: 0 0 18px;
 			font-size: 18px;
-			margin-right: 22px;
+			//margin-right: 22px;
 			text-align: center;
+			margin: 0 14px 0 7px;
 		}
 		&:hover,
 		&.selected {
@@ -395,7 +467,8 @@ a:visited {
 .region-select,
 .country-select,
 .indicator-select,
-.ranking-select {    
+.ranking-select,
+.trendseries-select {    
 	background-color: #FFF;
   border-color: #FFF;
 	border-radius: 8px;
@@ -415,7 +488,7 @@ a:visited {
 	right: 24px;
 	opacity: 0;
 	position: absolute;
-	top: 80px;
+	top: 30px;
 	width: 215px;
 	z-index: 3;
 }
@@ -428,6 +501,10 @@ a:visited {
 	height: 30px;
 	margin-left: 8px;
 	padding: 0;
+	width: auto;
+}
+
+.trendseries-select {
 	width: auto;
 }
 
@@ -540,7 +617,8 @@ a:visited {
 		.default-select {
 			display: block;
 		}
-		.covid-select {
+		.covid-select,
+		.vaccine-select {
 			display: none;
 		}
 	}
@@ -562,33 +640,22 @@ a:visited {
 			}
 		}
 	}
-	&.access-severity {
-		.ranking-chart {
-			height: auto !important;
-		}
-		.ranking-select-container {
+	&.ranking-vaccine {
+		.ranking-title {
 			display: none;
 		}
-		.access-category {
-			color: #FFF;
-    	display: inline-block;
-			font-family: 'Gotham-Bold', sans-serif;
-			font-size: 12px;
-    	margin-bottom: 5px;
-			padding: 5px 6px 4px;
-			&.high {
-				background-color: #C74B4F;
+		.ranking-select-container {
+			.default-select {
+				display: none;
 			}
-			&.medium {
-				background-color: #F6B98E;
+			.vaccine-select {
+				display: block;
+				.ranking-select {
+					height: 30px;
+					white-space: pre-wrap;
+					width: 100%;
+				}
 			}
-			&.low {
-				background-color: #79B89A;
-			}
-		}
-		ul {
-			list-style-type: none;
-			margin: 0 0 10px;
 		}
 	}
 }
@@ -665,7 +732,8 @@ a:visited {
 		cursor: pointer;
 		display: none;
 	}
-	.no-data-key {
+	.no-data-key,
+	.special-key {
 		height: 20px;
 		rect {
 			fill: #FFF;
@@ -675,15 +743,16 @@ a:visited {
 			transform: translate(25px, 12.5px);
 		}
 	}
+	.special-key {
+		display: none;
+	}
+
 	&.global {
 		display: block;
 		.legend-container {
 			height: 83px;
-			&.vaccination-campaign {
-				height: 32px;
-			}
-			&.access-severity {
-				height: 50px;
+			&.impact-type {
+				height: 68px;
 			}
 		}
 		.source-secondary {
@@ -816,7 +885,7 @@ circle.swatch {
 				padding-bottom: 8px;
 				.stat-title {
 					line-height: 16px;
-					width: 70%;
+					width: 67%;
 				}
 				.stat {
 					font-family: 'Source Sans Pro', sans-serif;
@@ -824,7 +893,7 @@ circle.swatch {
 					line-height: 14px;
 					margin: 0;   
     			text-align: right; 
-					width: 15%;
+					width: 18%;
 				}
 				.sparkline-container {
 					width: 15%;
@@ -844,19 +913,23 @@ circle.swatch {
 			color: #888;
 			display: block;
 			margin-top: -10px;
-			margin-bottom: 10px;
+			margin-bottom: 10px;	
+			&.inline {
+				display: inline-block;
+			}
 		}
 		.cases-total,
 		.deaths-total {
 			color: #333;
 			font-size: 14px;
 			line-height: 15px;
+			margin-top: 2px;
+		}
+		.cases-total {
 			margin-top: 8px;
-			span {
-				color: #888;
-				i {
-					font-size: 10px;
-				}
+			.subtext {
+				display: block;
+				margin-bottom: 8px;
 			}
 		}
 		ul {
@@ -879,7 +952,7 @@ circle.swatch {
 }
 
 .mapboxgl-ctrl-top-right {
-  top: 134px;
+  top: 84px;
   right: 16px;
 }
 
@@ -913,14 +986,14 @@ table {
 	background-color: #FFF;
 	bottom: 0;
 	overflow: hidden;
-	padding: 12px 30px 30px;
+	padding: 20px 30px 30px;
 	position: absolute;
 	top: 0;
 	left: -416px;
 	width: 416px;
 	z-index: 3;
 	transition: left 0.3s ease-in;
-	.hdx-logo,
+	.org-logo,
 	h1 {
 		padding-left: 0;
 	}
@@ -931,7 +1004,7 @@ table {
 		background-color: #FFF;
 		padding: 30px 0 15px;
 		.panel-title {
-   		align-items: center;
+   			align-items: center;
 			display: flex;
 			margin-bottom: 20px;
 		}
@@ -939,6 +1012,13 @@ table {
 			height: 35px;
 			margin-right: 10px;
 			width: 35px;
+		}
+		.download-link {
+			padding: 0;
+		}
+		h4 {
+			padding: 0 0 6px;
+    		text-transform: uppercase;
 		}
 	}
 	.panel-content {
@@ -1018,7 +1098,6 @@ table {
 	}
 }
 
-.global-timeseries-chart,
 .country-timeseries-chart {
 	.timeseries-legend {
 	  background-color: rgba(255, 255, 255, 0.5);
@@ -1129,8 +1208,54 @@ table {
   width: 100%;
   z-index: 3;
   .source-container {
-  	margin-bottom: 40px;
+  	margin-bottom: 20px;
   }
+  .cases-title,
+  .deaths-title {
+  	border-top: 1px solid #CCC;
+  	margin-top: 30px;
+  	h6 {
+  		margin-top: 25px;
+  	}
+  	.num {
+  		color: #000;
+	    font-family: 'Gotham-Light', sans-serif;
+	    font-size: 42px;
+	    line-height: 40px;
+	    padding: 10px 0;
+  	}
+  }
+  .c3-bar._expanded_ {
+  	fill: #F2645B !important;
+  	fill-opacity: 1 !important;
+  }
+}
+
+.trendseries-tooltip {
+	background-color: #FFF;
+	border: 1px solid #E2E2E2;
+	border-collapse: collapse;
+  border-spacing: 0;
+	th {
+		background-color: #B3B3B3;
+		border: 1px solid #B3B3B3;
+		color: #FFF;
+		font-family: 'Source Sans Pro', sans-serif;
+		font-size: 16px;
+		font-weight: bold;
+		margin: 0;
+		padding: 6px 6px;
+	}
+	td {
+		font-family: 'Source Sans Pro', sans-serif;
+		font-size: 13px;
+		font-weight: normal !important;
+		padding: 4px 7px;
+		&:last-child {
+			border-left: 1px solid #E2E2E2;
+			text-align: right;
+		}
+	}
 }
 
 //accessibility helper class
