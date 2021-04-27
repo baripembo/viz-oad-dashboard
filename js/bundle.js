@@ -144,6 +144,8 @@ function formatTrendseriesData(countryCode, indicator) {
 }
 
 var casesTrendChart, deathsTrendChart = '';
+var casesTrendArray = [];
+var deathsTrendArray = [];
 function createTrendseries(array, div) {
   var chartWidth = viewportWidth - $('.secondary-panel').width() - 75;
   var chartHeight = 200;
@@ -202,13 +204,14 @@ function createTrendseries(array, div) {
     tooltip: {
       contents: function(d, defaultTitleFormat, defaultValueFormat, color) {
         var indicator = (isCases) ? 'Cases' : 'Deaths';
+        var currentArray = (isCases) ? casesTrendArray : deathsTrendArray;
         var index = d[0].index;
         var content = '<table class="trendseries-tooltip">';
-        content += '<thead><th colspan="2">' + defaultTitleFormat(d[0].x) + '</th></thead>';
-        content += '<tr><td>Weekly Number of New '+indicator+'</td><td>' + numFormat(array[index]['weekly_new']) + '</td></tr>';
-        content += '<tr><td>New '+indicator+' per 100,000</td><td>' + d3.format('.1f')(array[index]['new_per_capita']) + '</td></tr>';
-        content += '<tr><td>Weekly Trend</td><td>' + numFormat(array[index]['weekly_trend']) + '</td></tr>';
-        content += '<tr><td>Weekly Trend in %</td><td>' + percentFormat(array[index]['weekly_trend_pct']) + '</td></tr>';
+        content += '<thead><th colspan="2">' + defaultTitleFormat(d[0].x) + ' ' + d[0].value + ' ' + currentArray[index]['weekly_new'] +'</th></thead>';
+        content += '<tr><td>Weekly Number of New '+indicator+'</td><td>' + numFormat(currentArray[index]['weekly_new']) + '</td></tr>';
+        content += '<tr><td>New '+indicator+' per 100,000</td><td>' + d3.format('.1f')(currentArray[index]['new_per_capita']) + '</td></tr>';
+        content += '<tr><td>Weekly Trend</td><td>' + numFormat(currentArray[index]['weekly_trend']) + '</td></tr>';
+        content += '<tr><td>Weekly Trend in %</td><td>' + percentFormat(currentArray[index]['weekly_trend_pct']) + '</td></tr>';
         content += '</table>';
         return content;
       }
@@ -219,30 +222,31 @@ function createTrendseries(array, div) {
   //save references to trend charts
   if (isCases) {
     casesTrendChart = chart;
+    casesTrendArray = array;
   }
   else {
     deathsTrendChart = chart;
+    deathsTrendArray = array;
   }
 }
 
 function updateTrendseries(countryCode) {
-  var casesArray = formatTrendseriesData(countryCode, 'infected');
-  var latestVal = casesArray[casesArray.length-1]['weekly_new'];
+  casesTrendArray = formatTrendseriesData(countryCode, 'infected');
+  var latestVal = casesTrendArray[casesTrendArray.length-1]['weekly_new'];
   $('.cases-title').find('.num').html(numFormat(latestVal));
   casesTrendChart.load({
-    json: casesArray,
+    json: casesTrendArray,
     keys: {
       x: 'date',
       value: ['weekly_new']
     }
   });
-
-
-  var deathsArray = formatTrendseriesData(countryCode, 'killed');
-  var latestVal = deathsArray[deathsArray.length-1]['weekly_new'];
+  
+  deathsTrendArray = formatTrendseriesData(countryCode, 'killed');
+  var latestVal = deathsTrendArray[deathsTrendArray.length-1]['weekly_new'];
   $('.deaths-title').find('.num').html(numFormat(latestVal));
   deathsTrendChart.load({
-    json: deathsArray,
+    json: deathsTrendArray,
     keys: {
       x: 'date',
       value: ['weekly_new']
@@ -558,15 +562,12 @@ function createRankingChart() {
     $('.ranking-container').addClass('ranking-vaccine');
     $('.ranking-select').val(indicator);
   }
-  else if (currentIndicator.id=='#targeted+doses+delivered+pct') {
-    $('.ranking-chart').append('<p>Sort by:</p>');
-  }
   else {
     $('.ranking-select').val('descending');
   }
 
   //format data
-  rankingData = formatRankingData(indicator, d3.select('#vaccineSortingSelect').node().value);
+  rankingData = formatRankingData(indicator);
 
   var valueMax = d3.max(rankingData, function(d) { return +d.value; });
   valueFormat = d3.format(',.0f');
@@ -655,29 +656,15 @@ function createRankingChart() {
     });
 }
 
-function formatRankingData(indicator, sorter) {
-  var isCovaxLayer = (indicator.indexOf('#capacity+doses')>-1) ? true : false;
-  if (isCovaxLayer) {
-    if (sorter==undefined) sorter = '#country+name';
-    var rankingByCountry = d3.nest()
-      .key(function(d) {
-        if (regionMatch(d['#region+name'])) return d[sorter]; 
-      })
-      .rollup(function(v) {
-        if (regionMatch(v[0]['#region+name'])) return v[0][indicator];
-      })
-      .entries(nationalData);
-  }
-  else {  
-    var rankingByCountry = d3.nest()
-      .key(function(d) {
-        if (regionMatch(d['#region+name'])) return d['#country+name']; 
-      })
-      .rollup(function(v) {
-        if (regionMatch(v[0]['#region+name'])) return v[0][indicator];
-      })
-      .entries(nationalData);
-  }
+function formatRankingData(indicator) {
+  var rankingByCountry = d3.nest()
+    .key(function(d) {
+      if (regionMatch(d['#region+name'])) return d['#country+name']; 
+    })
+    .rollup(function(v) {
+      if (regionMatch(v[0]['#region+name'])) return v[0][indicator];
+    })
+    .entries(nationalData);
 
   var data = rankingByCountry.filter(function(item) {
     return isVal(item.value) && !isNaN(item.value);
@@ -686,7 +673,7 @@ function formatRankingData(indicator, sorter) {
   return data;
 }
 
-function updateRankingChart(sortMode, secondarySortMode) {
+function updateRankingChart(sortMode) {
   if (sortMode=='ascending' || sortMode=='descending') {
     //sort the chart
     rankingData.sort(function(a, b){
@@ -706,7 +693,7 @@ function updateRankingChart(sortMode, secondarySortMode) {
     //empty and redraw chart with new indicator
     $('.secondary-panel').find('.ranking-chart').empty();
 
-    rankingData = formatRankingData(sortMode, secondarySortMode);
+    rankingData = formatRankingData(sortMode);
     rankingData.sort(function(a, b){
        return d3.descending(+a.value, +b.value);
     });
@@ -2159,22 +2146,13 @@ function createEvents() {
   d3.selectAll('.ranking-select').on('change',function(e) {
     var selected = d3.select(this).node().value;
     if (selected!='') {
-      updateRankingChart(selected, d3.select('#vaccineSortingSelect').node().value);
-    }
-  });
-
-  //rank sorting select event (only on COVAX layer)
-  d3.selectAll('.sorting-select').on('change',function(e) {
-    var selected = d3.select(this).node().value;
-    if (selected!='') {
-      updateRankingChart(d3.select('#vaccineRankingSelect').node().value, selected);
+      updateRankingChart(selected);
     }
   });
 
   //chart view trendseries select event
   d3.select('.trendseries-select').on('change',function(e) {
     var selected = d3.select('.trendseries-select').node().value;
-    //initTrendseries(covidTrendData, selected);
     updateTrendseries(selected);
   });
 
@@ -3724,7 +3702,10 @@ $( document ).ready(function() {
       .selectAll('option')
       .data(globalCountryList)
       .enter().append('option')
-        .text(function(d) { return d.name; })
+        .text(function(d) { 
+          var name = (d.name=='oPt') ? 'Occupied Palestinian Territory' : d.name;
+          return name; 
+        })
         .attr('value', function (d) { return d.code; });
 
     //create tab events
