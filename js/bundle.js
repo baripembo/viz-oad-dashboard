@@ -182,7 +182,7 @@ function createTrendseries(array, div) {
         tick: {
           outer: false,
           format: function(d) {
-            var date = dateFormat(d);
+            var date = chartDateFormat(d);
             return date;
           }
         }
@@ -355,7 +355,7 @@ function createTimeSeries(array, div) {
           outer: false,
           values: dateArray,
           format: function(d, i) {
-            var date = dateFormat(d);
+            var date = chartDateFormat(d);
             date = (d.getMonth()%3==0) ? date : '';
             return date;
           }
@@ -562,12 +562,15 @@ function createRankingChart() {
     $('.ranking-container').addClass('ranking-vaccine');
     $('.ranking-select').val(indicator);
   }
+  else if (currentIndicator.id=='#targeted+doses+delivered+pct') {
+    $('.ranking-chart').append('<p>Sort by:</p>');
+  }
   else {
     $('.ranking-select').val('descending');
   }
 
   //format data
-  rankingData = formatRankingData(indicator);
+  rankingData = formatRankingData(indicator, d3.select('#vaccineSortingSelect').node().value);
 
   var valueMax = d3.max(rankingData, function(d) { return +d.value; });
   valueFormat = d3.format(',.0f');
@@ -656,15 +659,52 @@ function createRankingChart() {
     });
 }
 
-function formatRankingData(indicator) {
-  var rankingByCountry = d3.nest()
-    .key(function(d) {
-      if (regionMatch(d['#region+name'])) return d['#country+name']; 
-    })
-    .rollup(function(v) {
-      if (regionMatch(v[0]['#region+name'])) return v[0][indicator];
-    })
-    .entries(nationalData);
+function formatRankingData(indicator, sorter) {
+  var isCovaxLayer = (indicator.indexOf('#capacity+doses')>-1) ? true : false;
+  if (isCovaxLayer) {
+    if (sorter==undefined) sorter = '#country+name';
+    if (sorter=='#country+name') {
+      var rankingByCountry = d3.nest()
+        .key(function(d) {
+          if (regionMatch(d['#region+name'])) return d[sorter]; 
+        })
+        .rollup(function(v) {
+          if (regionMatch(v[0]['#region+name'])) return v[0][indicator];
+        })
+        .entries(nationalData);
+    }
+    else {
+      //aggregate vax data by funder
+      var funderObject = {};
+      for (var i=0; i<nationalData.length; i++) {
+        if (regionMatch(nationalData[i]['#region+name'])) {
+          if (nationalData[i]['#meta+vaccine+funder']!=undefined && nationalData[i]['#capacity+vaccine+doses']!=undefined) {          
+            var funders = nationalData[i]['#meta+vaccine+funder'].split('|');
+            var doses = nationalData[i]['#capacity+vaccine+doses'].split('|');
+            funders.forEach(function(funder, index) {
+              funderObject[funder] = (funderObject[funder]==undefined) ? +doses[index] : funderObject[funder] + +doses[index];
+            });
+          }
+        }
+      }
+
+      //format aggregated vax data for ranking chart
+      var rankingByCountry = [];
+      for (const [funder, doses] of Object.entries(funderObject)) {
+        rankingByCountry.push({key: funder, value: doses});        
+      }
+    }
+  }
+  else {  
+    var rankingByCountry = d3.nest()
+      .key(function(d) {
+        if (regionMatch(d['#region+name'])) return d['#country+name']; 
+      })
+      .rollup(function(v) {
+        if (regionMatch(v[0]['#region+name'])) return v[0][indicator];
+      })
+      .entries(nationalData);
+  }
 
   var data = rankingByCountry.filter(function(item) {
     return isVal(item.value) && !isNaN(item.value);
@@ -673,7 +713,7 @@ function formatRankingData(indicator) {
   return data;
 }
 
-function updateRankingChart(sortMode) {
+function updateRankingChart(sortMode, secondarySortMode) {
   if (sortMode=='ascending' || sortMode=='descending') {
     //sort the chart
     rankingData.sort(function(a, b){
@@ -693,7 +733,7 @@ function updateRankingChart(sortMode) {
     //empty and redraw chart with new indicator
     $('.secondary-panel').find('.ranking-chart').empty();
 
-    rankingData = formatRankingData(sortMode);
+    rankingData = formatRankingData(sortMode, secondarySortMode);
     rankingData.sort(function(a, b){
        return d3.descending(+a.value, +b.value);
     });
@@ -1698,7 +1738,7 @@ function setKeyFigures() {
 	
 	//show global vax stat only on covax layer
 	if (currentIndicator.id=='#targeted+doses+delivered+pct' && worldData['#capacity+doses+administered+total']!=undefined) {
-		var totalAdministeredVal = shortenNumFormat(worldData['#capacity+doses+administered+total']);
+		var totalAdministeredVal = d3.format('.3s')(worldData['#capacity+doses+administered+total']).replace(/G/,"B");
 		globalFigures += '<br><br><b>Global vaccines administered: '+ totalAdministeredVal +'</b>';
 	}
 	
@@ -1752,6 +1792,18 @@ function setKeyFigures() {
 		createKeyFigure('.figures', 'Other Delivered (Number of Doses)', '', data['#capacity+doses+delivered+others']==undefined ? 'NA' : shortenNumFormat(data['#capacity+doses+delivered+others']));
 		createKeyFigure('.figures', 'Total Delivered (Number of Doses)', '', data['#capacity+doses+delivered+total']==undefined ? 'NA' : shortenNumFormat(data['#capacity+doses+delivered+total']));
 		createKeyFigure('.figures', 'Total Administered (Number of Doses)', '', data['#capacity+doses+administered+total']==undefined ? 'NA' : shortenNumFormat(data['#capacity+doses+administered+total']));
+	} 
+	//IPC
+	else if (currentIndicator.id=='#affected+food+p3plus+num') {
+		createKeyFigure('.figures', 'Number of Countries', '', totalCountries);
+		var ipcTotal = (data['#affected+food+ipc+p3plus+num']==undefined) ? 0 : d3.format('.3s')(data['#affected+food+ipc+p3plus+num']);
+		createKeyFigure('.figures', 'Total number of people in IPC 3+', '', ipcTotal);
+	}
+	//SAM
+	else if (currentIndicator.id=='#affected+children+sam') {
+		createKeyFigure('.figures', 'Number of Countries', '', totalCountries);
+		var samTotal = (data[indicator]==undefined) ? 0 : d3.format('.3s')(data[indicator]);
+		createKeyFigure('.figures', 'Number of Admissions', '', samTotal);
 	}
 	//access severity
 	else if (currentIndicator.id=='#event+year+todate+num') {
@@ -1840,7 +1892,7 @@ function setKeyFigures() {
 		var covidGlobal = (currentRegion!='') ? covidTrendData[currentRegion] : covidTrendData.GHO;
 		var weeklyCases = (covidGlobal!=undefined) ? covidGlobal[covidGlobal.length-1]['#affected+infected+new+weekly'] : 0;
 		var weeklyDeaths = (covidGlobal!=undefined) ? covidGlobal[covidGlobal.length-1]['#affected+killed+new+weekly'] : 0;
-		var weeklyTrend = (covidGlobal!=undefined) ? covidGlobal[covidGlobal.length-1]['#affected+infected+new+pct+weekly'] : 0;
+		var weeklyTrend = (covidGlobal!=undefined) ? covidGlobal[covidGlobal.length-1]['#affected+infected+new+pct+weekly']*100 : 0;
 		
 		if (covidGlobal!=undefined) {
 			//weekly new cases
@@ -1865,7 +1917,7 @@ function setKeyFigures() {
 			createKeyFigure('.figures', 'Weekly Trend<br>(new cases past week / prior week)', 'cases-trend', weeklyTrend.toFixed(1) + '%');
 	    var pctArray = [];
 	    covidGlobal.forEach(function(d) {
-	      var obj = {date: d['#date+reported'], value: d['#affected+infected+new+pct+weekly']};
+	      var obj = {date: d['#date+reported'], value: d['#affected+infected+new+pct+weekly']*100};
 	      pctArray.push(obj);
 	    });
 			createSparkline(pctArray, '.secondary-panel .cases-trend');
@@ -2145,8 +2197,24 @@ function createEvents() {
   //ranking select event
   d3.selectAll('.ranking-select').on('change',function(e) {
     var selected = d3.select(this).node().value;
+    if (selected!='') {  
+      //show/hide vaccine sort select if Total Delivered is selected
+      if (selected=='#capacity+doses+delivered+total') {
+        $('.sorting-select-container').show();
+        updateRankingChart(selected, d3.select('#vaccineSortingSelect').node().value);
+      }
+      else {
+        $('.sorting-select-container').hide();
+        updateRankingChart(selected);
+      }
+    }
+  });
+
+  //rank sorting select event (only on COVAX layer)
+  d3.selectAll('.sorting-select').on('change',function(e) {
+    var selected = d3.select(this).node().value;
     if (selected!='') {
-      updateRankingChart(selected);
+      updateRankingChart(d3.select('#vaccineRankingSelect').node().value, selected);
     }
   });
 
@@ -3300,7 +3368,7 @@ function createMapTooltip(country_code, country_name, point) {
       if (country[0]['#covid+trend+pct']!=undefined) {
         var pctArray = [];
         covidTrendData[country_code].forEach(function(d) {
-          var obj = {date: d['#date+reported'], value: d['#affected+infected+new+pct+weekly']};
+          var obj = {date: d['#date+reported'], value: d['#affected+infected+new+pct+weekly']*100};
           pctArray.push(obj);
         });
         createSparkline(pctArray, '.mapboxgl-popup-content .covid-pct .sparkline-container');
@@ -3461,6 +3529,7 @@ var numFormat = d3.format(',');
 var shortenNumFormat = d3.format('.2s');
 var percentFormat = d3.format('.1%');
 var dateFormat = d3.utcFormat("%b %d, %Y");
+var chartDateFormat = d3.utcFormat("%-m/%-d/%y");
 var colorRange = ['#F7DBD9', '#F6BDB9', '#F5A09A', '#F4827A', '#F2645A'];
 var informColorRange = ['#FFE8DC','#FDCCB8','#FC8F6F','#F43C27','#961518'];
 var immunizationColorRange = ['#CCE5F9','#99CBF3','#66B0ED','#3396E7','#027CE1'];
@@ -3568,7 +3637,7 @@ $( document ).ready(function() {
         
         //store covid trend data
         var covidByCountry = covidTrendData[item['#country+code']];
-        item['#covid+trend+pct'] = (covidByCountry==undefined) ? null : covidByCountry[covidByCountry.length-1]['#affected+infected+new+pct+weekly']/100;
+        item['#covid+trend+pct'] = (covidByCountry==undefined) ? null : covidByCountry[covidByCountry.length-1]['#affected+infected+new+pct+weekly'];
         item['#affected+infected+new+per100000+weekly'] = (covidByCountry==undefined) ? null : covidByCountry[covidByCountry.length-1]['#affected+infected+new+per100000+weekly'];
         item['#affected+infected+new+weekly'] = (covidByCountry==undefined) ? null : covidByCountry[covidByCountry.length-1]['#affected+infected+new+weekly'];
         item['#affected+killed+new+weekly'] = (covidByCountry==undefined) ? null : covidByCountry[covidByCountry.length-1]['#affected+killed+new+weekly'];
