@@ -1633,12 +1633,12 @@ a:visited {
   padding: 0;
   width: auto; }
 
-.sorting-select-container {
+.vaccine-sorting-container {
   align-items: center;
   display: flex;
   flex-wrap: nowrap;
   margin-top: 10px; }
-  .sorting-select-container p {
+  .vaccine-sorting-container p {
     margin-right: 5px; }
 
 .trendseries-select {
