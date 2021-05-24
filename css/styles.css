@@ -1995,15 +1995,15 @@ circle.swatch {
   top: 84px;
   right: 16px; }
 
-table {
+table.immunization-table {
   font-size: 12px;
   line-height: 14px; }
-  table th {
+  table.immunization-table th {
     text-align: left;
     vertical-align: bottom; }
-  table tr td:first-child, table tr td:last-child {
+  table.immunization-table tr td:first-child, table.immunization-table tr td:last-child {
     font-weight: 700; }
-  table tr.covid-postpone td:first-child, table tr.covid-postpone td:last-child {
+  table.immunization-table tr.covid-postpone td:first-child, table.immunization-table tr.covid-postpone td:last-child {
     color: #F2645A; }
 
 .country-panel {
@@ -2220,6 +2220,43 @@ table {
     .trendseries-tooltip td:last-child {
       border-left: 1px solid #E2E2E2;
       text-align: right; }
+
+.comparison-panel {
+  background-color: #F5FBFC;
+  bottom: 0;
+  display: none;
+  font-family: 'Source Sans Pro', sans-serif;
+  height: 176px;
+  left: 0;
+  margin-left: 20px;
+  padding-top: 25px;
+  width: 500px;
+  position: absolute;
+  z-index: 2; }
+  .comparison-panel .modal-close-btn {
+    color: #888;
+    right: 15px;
+    top: 10px; }
+  .comparison-panel h6 {
+    font-size: 12px; }
+  .comparison-panel .comparison-table {
+    border-collapse: collapse;
+    width: 100%; }
+    .comparison-panel .comparison-table thead {
+      font-weight: 700;
+      line-height: 15px;
+      vertical-align: bottom; }
+      .comparison-panel .comparison-table thead td {
+        padding-bottom: 5px; }
+    .comparison-panel .comparison-table tr {
+      border-bottom: 1px solid #CCC; }
+      .comparison-panel .comparison-table tr td {
+        text-align: right; }
+        .comparison-panel .comparison-table tr td:first-child {
+          padding-left: 15px;
+          text-align: left; }
+        .comparison-panel .comparison-table tr td:last-child {
+          padding-right: 15px; }
 
 .visuallyhidden {
   border: 0;
