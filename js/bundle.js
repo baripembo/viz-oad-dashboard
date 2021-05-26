@@ -849,7 +849,7 @@ function createComparison(object) {
         ];
 
         $('.comparison-panel .message').remove();
-        
+
         //add table headers
         if ($('.comparison-table').children().length<1) {
           content += '<thead>';
@@ -868,12 +868,12 @@ function createComparison(object) {
         //fill in next table row
         addRow(data);
       }
-    }
-
-    //show comparison panel and close secondary panel    
-    $('.comparison-panel').addClass('expand').show();
-    toggleSecondaryPanel(null, 'close');
+    }    
   }
+
+  //show comparison panel and close secondary panel    
+  $('.comparison-panel').addClass('expand').show();
+  toggleSecondaryPanel(null, 'close');
 }
 
 function addRow(data) {
@@ -3666,7 +3666,7 @@ $( document ).ready(function() {
   var prod = (window.location.href.indexOf('ocha-dap')>-1 || window.location.href.indexOf('data.humdata.org')>-1) ? true : false;
   //console.log(prod);
 
-  mapboxgl.accessToken = 'pk.eyJ1IjoiaHVtZGF0YSIsImEiOiJja2FvMW1wbDIwMzE2MnFwMW9teHQxOXhpIn0.Uri8IURftz3Jv5It51ISAA';
+  mapboxgl.accessToken = 'pk.eyJ1IjoiaHVtZGF0YSIsImEiOiJja2hnbWs5NzkxMXh2MnNvcmF6dXIxMWE0In0.0GfmJoEJyWFQ5UzNxl2WgA';
   var tooltip = d3.select('.tooltip');
   var minWidth = 1000;
   viewportWidth = (window.innerWidth<minWidth) ? minWidth - $('.content-left').innerWidth() : window.innerWidth - $('.content-left').innerWidth();
