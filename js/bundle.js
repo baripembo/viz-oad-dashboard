@@ -135,6 +135,7 @@ function formatTrendseriesData(countryCode, indicator) {
           obj['new_per_capita'] = +val['#affected+'+indicator+'+new+per100000+weekly'];
           obj['weekly_trend'] = +val['#affected+'+indicator+'+new+change+weekly'];
           obj['weekly_trend_pct'] = +val['#affected+'+indicator+'+new+pct+weekly'];
+          obj['weekly_cumulative'] = + val['#affected+'+indicator+'+cumulative+weekly'];
           trendArray.push(obj);
         }
       });
@@ -212,6 +213,7 @@ function createTrendseries(array, div) {
         content += '<tr><td>New '+indicator+' per 100,000</td><td>' + d3.format('.1f')(currentArray[index]['new_per_capita']) + '</td></tr>';
         content += '<tr><td>Weekly Trend</td><td>' + numFormat(currentArray[index]['weekly_trend']) + '</td></tr>';
         content += '<tr><td>Weekly Trend in %</td><td>' + percentFormat(currentArray[index]['weekly_trend_pct']) + '</td></tr>';
+        content += '<tr><td>Number of Cumulative '+indicator+'</td><td>' + numFormat(currentArray[index]['weekly_cumulative']) + '</td></tr>';
         content += '</table>';
         return content;
       }
@@ -1813,6 +1815,7 @@ const countryCodeList = {
 
 
 function setKeyFigures() {
+	console.log('setKeyFigures')
 	var secondaryPanel = $('.secondary-panel');
 	var secondaryPanelSource = $('.secondary-panel .source-container');
 	secondaryPanel.find('.figures, .source-container, .ranking-chart').empty();
@@ -1838,7 +1841,7 @@ function setKeyFigures() {
 	secondaryPanel.find('.global-figures').html(globalFigures);
 
 	//if on covax layer, show HRP data by default
-	currentRegion = (currentIndicator.id=='#targeted+doses+delivered+pct' && currentRegion=='') ? 'HRPs' : d3.select('.region-select').node().value;
+	currentRegion = (currentIndicator.id=='#targeted+doses+delivered+pct' && (currentRegion=='' || currentRegion=='HRPs')) ? 'HRPs' : d3.select('.region-select').node().value;
 
 	//get regional data
 	var data = worldData;
@@ -1884,6 +1887,7 @@ function setKeyFigures() {
 		createKeyFigure('.figures', 'Other Delivered (Number of Doses)', '', data['#capacity+doses+delivered+others']==undefined ? 'NA' : shortenNumFormat(data['#capacity+doses+delivered+others']));
 		createKeyFigure('.figures', 'Total Delivered (Number of Doses)', '', data['#capacity+doses+delivered+total']==undefined ? 'NA' : shortenNumFormat(data['#capacity+doses+delivered+total']));
 		createKeyFigure('.figures', 'Total Administered (Number of Doses)', '', data['#capacity+doses+administered+total']==undefined ? 'NA' : shortenNumFormat(data['#capacity+doses+administered+total']));
+		console.log('---',data['#capacity+doses+administered+total'])
 	} 
 	//IPC
 	else if (currentIndicator.id=='#affected+food+p3plus+num') {
@@ -1937,22 +1941,24 @@ function setKeyFigures() {
 	//CERF
 	else if (currentIndicator.id=='#value+cerf+funding+total+usd') {
 		createKeyFigure('.figures', 'Number of Countries', '', totalCountries);
-		createKeyFigure('.figures', 'Total CERF Funding 2021', '', formatValue(data['#value+cerf+funding+total+usd']));
+		if (data['#value+cerf+contributions+total+usd']!=undefined) createKeyFigure('.figures', 'Total Contribution', '', formatValue(data['#value+cerf+contributions+total+usd']));
+		createKeyFigure('.figures', 'Total CERF Funding 2021', 'total-funding', formatValue(data['#value+cerf+funding+total+usd']));
 		if (data['#value+cerf+funding+total+usd'] > 0) {
 			var gmText = getGamText(data, 'cerf');
-			$('.figures .key-figure .inner').append('<div class="small">'+ gmText +'</div>');
+			$('.figures .key-figure .inner .total-funding').append('<div class="small">'+ gmText +'</div>');
 		}
 	}
 	//CBPF
 	else if (currentIndicator.id=='#value+cbpf+funding+total+usd') {
 		//num countries
 		createKeyFigure('.figures', 'Number of Countries', '', totalCountries);
-		createKeyFigure('.figures', 'Total CBPF Funding 2021', '', formatValue(data['#value+cbpf+funding+total+usd']));
+		if (data['#value+cbpf+contributions+total+usd']!=undefined) createKeyFigure('.figures', 'Total Contribution', '', formatValue(data['#value+cbpf+contributions+total+usd']));
+		createKeyFigure('.figures', 'Total CBPF Funding 2021', 'total-funding', formatValue(data['#value+cbpf+funding+total+usd']));
 		
 		//gam
 		if (data['#value+cbpf+funding+total+usd'] > 0) {
 			var gmText = getGamText(data, 'cbpf');
-			$('.figures .key-figure .inner').append('<div class="small">'+ gmText +'</div>');
+			$('.figures .key-figure .inner .total-funding').append('<div class="small">'+ gmText +'</div>');
 		}
 
 		//beneficieries
