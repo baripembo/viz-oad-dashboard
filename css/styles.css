@@ -1564,6 +1564,8 @@ a:visited {
     font-size: 16px;
     margin-left: auto;
     padding-top: 3px; }
+  .download-link .download-monthly label {
+    display: none; }
 
 .menu-indicators li {
   color: #888;
