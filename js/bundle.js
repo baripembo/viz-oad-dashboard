@@ -527,11 +527,12 @@ function createTrendBarChart(data, div) {
 var rankingX, rankingY, rankingBars, rankingData, rankingBarHeight, valueFormat;
 function createRankingChart() {
   //reset
-  $('.ranking-container').removeClass('covid');
-  $('.ranking-container').removeClass('ranking-vaccine');
+  $('.ranking-container').removeClass('covid ranking-vaccine ranking-inform');
 
   //set title
-  var rankingTitle = (currentIndicator.id=='#impact+type') ? 'Total Number of Affected Learners' : $('.menu-indicators').find('.selected').attr('data-legend') + ' by Country'
+  var rankingTitle = $('.menu-indicators').find('.selected').attr('data-legend') + ' by Country';
+  if (currentIndicator.id=='#impact+type') rankingTitle = 'Total Number of Affected Learners';
+  if (currentIndicator.id=='#severity+inform+type') rankingTitle = 'INFORM Severity Index by Country';
   $('.secondary-panel .ranking-title').text(rankingTitle);
 
   var indicator;
@@ -566,6 +567,10 @@ function createRankingChart() {
   }
   else if (currentIndicator.id=='#targeted+doses+delivered+pct') {
     $('.ranking-chart').append('<p>Sort by:</p>');
+  }
+  else if (currentIndicator.id=='#severity+inform+type') {
+    $('.ranking-container').addClass('ranking-inform');
+    $('.ranking-select').val(indicator);
   }
   else {
     $('.ranking-select').val('descending');
@@ -698,6 +703,19 @@ function formatRankingData(indicator, sorter) {
         rankingByCountry.push({key: funder, value: doses});        
       }
     }
+  }
+  else if (currentIndicator.id == '#severity+inform+type') {
+    var rankingByCountry = d3.nest()
+      .key(function(d) {
+        if (regionMatch(d['#region+name'])) return d['#country+name']; 
+      })
+      .rollup(function(v) {
+        if (regionMatch(v[0]['#region+name'])) {
+          if (indicator == '#severity+inform+num' || v[0]['#severity+inform+trend'] == indicator.toLowerCase()) 
+            return v[0]['#severity+inform+num'];
+        }
+      })
+      .entries(nationalData);
   }
   else {  
     var rankingByCountry = d3.nest()
@@ -1816,7 +1834,6 @@ const countryCodeList = {
 
 
 function setKeyFigures() {
-	console.log('setKeyFigures')
 	var secondaryPanel = $('.secondary-panel');
 	var secondaryPanelSource = $('.secondary-panel .source-container');
 	secondaryPanel.find('.figures, .source-container, .ranking-chart').empty();
@@ -1888,7 +1905,6 @@ function setKeyFigures() {
 		createKeyFigure('.figures', 'Other Delivered (Number of Doses)', '', data['#capacity+doses+delivered+others']==undefined ? 'NA' : shortenNumFormat(data['#capacity+doses+delivered+others']));
 		createKeyFigure('.figures', 'Total Delivered (Number of Doses)', '', data['#capacity+doses+delivered+total']==undefined ? 'NA' : shortenNumFormat(data['#capacity+doses+delivered+total']));
 		createKeyFigure('.figures', 'Total Administered (Number of Doses)', '', data['#capacity+doses+administered+total']==undefined ? 'NA' : shortenNumFormat(data['#capacity+doses+administered+total']));
-		console.log('---',data['#capacity+doses+administered+total'])
 	} 
 	//IPC
 	else if (currentIndicator.id=='#affected+food+p3plus+num') {
@@ -2406,7 +2422,6 @@ function selectLayer(menuItem) {
     if (currentIndicator.id!='#value+food+num+ratio') {
       closeModal();
     }
-
     //reset vaccine sorting select
     if (currentIndicator.id!='#targeted+doses+delivered+pct') {
       $('.vaccine-sorting-container').show();
@@ -3682,7 +3697,7 @@ $( document ).ready(function() {
   var prod = (window.location.href.indexOf('ocha-dap')>-1 || window.location.href.indexOf('data.humdata.org')>-1) ? true : false;
   //console.log(prod);
 
-  mapboxgl.accessToken = 'pk.eyJ1IjoiaHVtZGF0YSIsImEiOiJja2hnbWs5NzkxMXh2MnNvcmF6dXIxMWE0In0.0GfmJoEJyWFQ5UzNxl2WgA';
+  mapboxgl.accessToken = 'pk.eyJ1IjoiaHVtZGF0YSIsImEiOiJja2FvMW1wbDIwMzE2MnFwMW9teHQxOXhpIn0.Uri8IURftz3Jv5It51ISAA';
   var tooltip = d3.select('.tooltip');
   var minWidth = 1000;
   viewportWidth = (window.innerWidth<minWidth) ? minWidth - $('.content-left').innerWidth() : window.innerWidth - $('.content-left').innerWidth();
