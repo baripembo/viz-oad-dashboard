@@ -1811,6 +1811,8 @@ const countryCodeList = {
   COD: '70s1gowk',
   COL: 'awxirkoh',
   ETH: '8l382re2',
+  GTM: '3cyria8u',
+  HND: '8kvvnawe',
   HTI: '4in4ae66',
   IRQ: '079oa80i',
   LBY: '0o4l8ysb',
@@ -1824,6 +1826,7 @@ const countryCodeList = {
   SDN: 'a2zw3leb',
   SOM: '3s7xeitz',
   SSD: '3556pb27',
+  SLV: '77ydes06',
   SYR: '2qt39dhl',
   TCD: 'd6tya3am',
   UKR: 'adkwa0bw',
@@ -1902,7 +1905,7 @@ function setKeyFigures() {
 	//vaccine rollout
 	else if (currentIndicator.id=='#targeted+doses+delivered+pct') {
 		createKeyFigure('.figures', 'Number of Countries', '', totalCountries);
-		createKeyFigure('.figures', 'COVAX Allocations (Number of Doses)', '', data['#capacity+doses+forecast+covax']==undefined ? 'NA' : shortenNumFormat(data['#capacity+doses+forecast+covax']));
+		createKeyFigure('.figures', 'Covax Allocations Round 6 (Number of Doses)', '', data['#capacity+doses+forecast+covax']==undefined ? 'NA' : shortenNumFormat(data['#capacity+doses+forecast+covax']));
 		var covaxDelivered = data['#capacity+doses+delivered+covax'];
 		covaxDelivered = (covaxDelivered > 0) ? shortenNumFormat(covaxDelivered) : covaxDelivered;
 		createKeyFigure('.figures', 'COVAX Delivered (Number of Doses)', '', covaxDelivered);
