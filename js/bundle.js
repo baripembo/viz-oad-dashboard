@@ -550,7 +550,7 @@ function createRankingChart() {
       indicator = '#vaccination+postponed+num';
       break;
     case '#food-prices':
-      indicator = '#value+food+num+ratio';
+      indicator = '#indicator+foodbasket+change+pct';
       break;
     default:
       indicator = currentIndicator.id;
@@ -935,13 +935,8 @@ function resetComparison() {
   $('.comparison-table').empty();
   comparisonList = [];
 }
-//var datastoreID = '12d7c8e3-eff9-4db0-93b7-726825c4fe9a';
-//var dataDomain = 'https://data.humdata.org';
-
-//const foodPricesCountries = {};
-getCountryIDs();
-const foodPricesCountries = {1: "Afghanistan",8: "Angola",12: "Argentina",13: "Armenia",23: "Bangladesh",26: "Belarus",29: "Benin",33: "Bolivia",42: "Burkina Faso",43: "Burundi",44: "Cambodia",45: "Cameroon",47: "Cape Verde",49: "Central African Republic",50: "Chad",52: "China",57: "Colombia",59: "Congo",66: "Cote d'Ivoire",68: "Democratic Republic of the Congo",70: "Djibouti",72: "Dominican Republic",73: "Ecuador",75: "El Salvador",79: "Ethiopia",90: "Gambia",94: "Ghana",103: "Guatemala",105: "Guinea-Bissau",106: "Guinea",108: "Haiti",111: "Honduras",115: "Bassas da India",116: "Indonesia",117: "Islamic Republic of Iran",118: "Iraq",126: "Japan",130: "Jordan",132: "Kazakhstan",133: "Kenya",138: "Kyrgyzstan",139: "Lao People's Democratic Republic",141: "Lebanon",142: "Lesotho",144: "Liberia",145: "Libya",152: "Malawi",155: "Mali",159: "Mauritania",162: "Mexico",167: "Mongolia",170: "Mozambique",171: "Myanmar",172: "Namibia",180: "Nicaragua",181: "Niger",182: "Nigeria",188: "Pakistan",191: "Panama",194: "Paraguay",195: "Peru",196: "Philippines",204: "Russian Federation",205: "Rwanda",217: "Senegal",221: "Sierra Leone",226: "Somalia",227: "South Africa",231: "Sri Lanka",235: "Swaziland",238: "Syrian Arab Republic",239: "Tajikistan",240: "Thailand",243: "Togo",249: "Turkey",253: "Uganda",257: "United Republic of Tanzania",269: "Yemen",270: "Zambia",999: "Occupied Palestinian Territory",40764: "Sudan",40765: "Egypt",70001: "South Sudan"};
 let countriesLookup = {}
+getCountryIDs();
 
 $('.modal-bg-overlay, .modal-close-btn').on('click', closeModal);
 
@@ -1586,11 +1581,11 @@ function generateBarChart(data,cf,prod,unit,adm0,adm0_code,adm1,adm0_url){
 
 function transitionBarChart(data){
     data.forEach(function(e){
-        if(e.key.length>14){
-            e.display = e.key.substring(0,14)+"...";
-        } else {
-            e.display = e.key;
-        }
+      if(e.key.length>14){
+        e.display = e.key.substring(0,14)+"...";
+      } else {
+        e.display = e.key;
+      }
     });   
     
     var margin = {top: 10, right: 60, bottom: 60, left: 60},
@@ -1608,59 +1603,57 @@ function transitionBarChart(data){
     y.domain([d3.max(data.map(function(d) { return d.value; })),0]);
     
     var xAxis = d3.axisBottom()
-        .scale(x);
+      .scale(x);
 
     var yAxis = d3.axisLeft()
-        .scale(y)
-        .ticks(3);    
+      .scale(y)
+      .ticks(3);    
     
     d3.selectAll(".yaxis")
-        .transition().duration(200)
-        .call(yAxis);
+      .transition().duration(200)
+      .call(yAxis);
 
     d3.selectAll(".xaxis")
-        .attr("transform", "translate(0," + height + ")")
-        .call(xAxis)
-        .selectAll("text")  
-            .style("text-anchor", "start")
-            .attr("transform", function(d) {
-                return "rotate(30)";
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis)
+      .selectAll("text")  
+        .style("text-anchor", "start")
+        .attr("transform", function(d) {
+          return "rotate(30)";
     }); 
         
     var count = data.length;
     
     var svg = d3.select("#drilldown_chart").selectAll("rect")
-            .attr("x", function(d,i) { return x(d.display); })
-            .attr("width", x.bandwidth()-1)
-            .attr("y", function(d){
-                           return y(d.value);        
-            })
-            .attr("height", function(d,i) {
-                if(i>=count){
-                            return 0;
-                } else {
-                            return height-y(d.value);
-                }
-            }).on("mouseover", function(d) {
-                    var price = d3.select(".barpricelabel");
-                    price.style("display", null);
-                    var value = d.value<100 ? d.value.toPrecision(3) : Math.round(d.value);
-                    price.attr("transform", "translate(" + (x(d.display)+(x.bandwidth()-1)/2) + "," + (y(d.value)-10) + ")");
-                    price.select("text").text(value);
-            });
+      .attr("x", function(d,i) { return x(d.display); })
+      .attr("width", x.bandwidth()-1)
+      .attr("y", function(d){
+        return y(d.value);        
+      })
+      .attr("height", function(d,i) {
+        if(i>=count){
+          return 0;
+        } else {
+          return height-y(d.value);
+        }
+      }).on("mouseover", function(d) {
+        var price = d3.select(".barpricelabel");
+        price.style("display", null);
+        var value = d.value<100 ? d.value.toPrecision(3) : Math.round(d.value);
+        price.attr("transform", "translate(" + (x(d.display)+(x.bandwidth()-1)/2) + "," + (y(d.value)-10) + ")");
+        price.select("text").text(value);
+      });
             
-    
     var svg = d3.select("#drilldown_chart").selectAll("rect").data(data)
-        .transition().duration(200)  
-            .attr("x", function(d,i) { return x(d.display); })
-            .attr("width", x.bandwidth()-1)
-            .attr("y", function(d){
-                           return y(d.value);        
-            })
-            .attr("height", function(d) {
-                            return height-y(d.value);
-            });  
-                
+      .transition().duration(200)  
+        .attr("x", function(d,i) { return x(d.display); })
+        .attr("width", x.bandwidth()-1)
+        .attr("y", function(d){
+          return y(d.value);        
+        })
+        .attr("height", function(d) {
+          return height-y(d.value);
+        });         
 }
 
 
@@ -2440,7 +2433,7 @@ function selectLayer(menuItem) {
     toggleSecondaryPanel(menuItem, 'open');
 
     //set food prices view
-    if (currentIndicator.id!='#value+food+num+ratio') {
+    if (currentIndicator.id!='#indicator+foodbasket+change+pct') {
       closeModal();
     }
     //reset vaccine sorting select
@@ -2544,13 +2537,13 @@ function selectCountry(features) {
 function handleGlobalEvents(layer) {
   map.on('mouseenter', globalLayer, function(e) {
     map.getCanvas().style.cursor = 'pointer';
-    if (currentIndicator.id!='#value+food+num+ratio') {
+    if (currentIndicator.id!='#indicator+foodbasket+change+pct') {
       tooltip.addTo(map);
     }
   });
 
   map.on('mousemove', function(e) {
-    if (currentIndicator.id!='#value+food+num+ratio') {
+    if (currentIndicator.id!='#indicator+foodbasket+change+pct') {
       var features = map.queryRenderedFeatures(e.point, { layers: [globalLayer, globalLabelLayer, globalMarkerLayer] });
       var target;
       features.forEach(function(feature) {
@@ -2586,7 +2579,7 @@ function handleGlobalEvents(layer) {
 
         createComparison(country)
      
-        if (currentIndicator.id=='#value+food+num+ratio' && country[0]['#value+food+num+ratio']!=undefined) {
+        if (currentIndicator.id=='#indicator+foodbasket+change+pct' && country[0]['#indicator+foodbasket+change+pct']!=undefined) {
           openModal(currentCountry.code, currentCountry.name);
         }
       }
@@ -2825,7 +2818,7 @@ function setGlobalLegend(scale) {
     //vacc footnote
     createFootnote('.map-legend.global', '#vaccination+postponed+num', 'Methodology: Information about interrupted immunization campaigns contains both official and unofficial information sources. The country ranking has been determined by calculating the ratio of total number of postponed campaigns and total immunization campaigns. Note: data collection is ongoing and may not reflect all the campaigns in every country.');
     //food prices footnote
-    createFootnote('.map-legend.global', '#value+food+num+ratio', 'Methodology: Information about food prices is collected from data during the last 6 month moving window. The country ranking for food prices has been determined by calculating the ratio of the number of commodities in alert, stress or crisis and the total number of commodities. The commodity status comes from <a href="https://dataviz.vam.wfp.org" target="_blank" rel="noopener">WFP’s model</a>.');
+    createFootnote('.map-legend.global', '#indicator+foodbasket+change+pct', 'Methodology: Information about food prices is collected from data during the last 6 month moving window. The country ranking for food prices has been determined by calculating the ratio of the number of commodities in alert, stress or crisis and the total number of commodities. The commodity status comes from <a href="https://dataviz.vam.wfp.org" target="_blank" rel="noopener">WFP’s model</a>.');
     //oxford footnote
     createFootnote('.map-legend.global', '#severity+stringency+num', 'Note: This is a composite measure based on nine response indicators including school closures, workplace closures, and travel bans, rescaled to a value from 0 to 100 (100 = strictest)');
     //CERF footnote
@@ -2883,7 +2876,7 @@ function setGlobalLegend(scale) {
 
   //POPULATE
   var legendTitle = $('.menu-indicators').find('.selected').attr('data-legend');
-  if (currentIndicator.id=='#value+food+num+ratio') legendTitle += '<br>Click on a country to explore commodity prices';
+  if (currentIndicator.id=='#indicator+foodbasket+change+pct') legendTitle += '<br>Click on a country to explore commodity prices';
   $('.map-legend.global .indicator-title').html(legendTitle);
 
   //current indicator
@@ -3724,7 +3717,7 @@ $( document ).ready(function() {
   var prod = (window.location.href.indexOf('ocha-dap')>-1 || window.location.href.indexOf('data.humdata.org')>-1) ? true : false;
   //console.log(prod);
 
-  mapboxgl.accessToken = 'pk.eyJ1IjoiaHVtZGF0YSIsImEiOiJja2FvMW1wbDIwMzE2MnFwMW9teHQxOXhpIn0.Uri8IURftz3Jv5It51ISAA';
+  mapboxgl.accessToken = 'pk.eyJ1IjoiaHVtZGF0YSIsImEiOiJja2hnbWs5NzkxMXh2MnNvcmF6dXIxMWE0In0.0GfmJoEJyWFQ5UzNxl2WgA';
   var tooltip = d3.select('.tooltip');
   var minWidth = 1000;
   viewportWidth = (window.innerWidth<minWidth) ? minWidth - $('.content-left').innerWidth() : window.innerWidth - $('.content-left').innerWidth();
