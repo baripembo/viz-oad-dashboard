@@ -1838,7 +1838,7 @@ const countryCodeList = {
   MOZ: '5jojox7h',
   NER: '9gbs4a2a',
   NGA: '3ceksugh',
-  PAK: '94y0veay',
+  //PAK: '94y0veay',
   PSE: '1emy37d7',
   SDN: 'a2zw3leb',
   SOM: '3s7xeitz',
@@ -1849,7 +1849,7 @@ const countryCodeList = {
   UKR: 'adkwa0bw',
   VEN: '9vcajdlr',
   YEM: '3m20d1v8',
-  ZWE: '1ry8x8ul'
+  //ZWE: '1ry8x8ul'
 };
 
 
@@ -2139,13 +2139,13 @@ function getSource(indicator) {
 
 
 var map, mapFeatures, globalLayer, globalLabelLayer, globalMarkerLayer, countryLayer, countryBoundaryLayer, countryLabelLayer, countryMarkerLayer, tooltip, markerScale, countryMarkerScale;
-var adm0SourceLayer = '63_polbnda_int_uncs-29lk4r';
+var adm0SourceLayer = 'polbnda_int_uncs-6zgtye';
 var hoveredStateId = null;
 function initMap() {
   console.log('Loading map...')
   map = new mapboxgl.Map({
     container: 'global-map',
-    style: 'mapbox://styles/humdata/ckb843tjb46fy1ilaw49redy7',
+    style: 'mapbox://styles/humdata/ckyw4l9z9002f14p3cyt9g2t0',//mapbox://styles/humdata/ckb843tjb46fy1ilaw49redy7',
     center: [-25, 0],
     minZoom: 1,
     zoom: zoomLevel,
@@ -3794,9 +3794,11 @@ $( document ).ready(function() {
       zoomLevel = 1.4;
     }
 
+    //ckb843tjb46fy1ilaw49redy7
+
     //load static map -- will only work for screens smaller than 1280
     if (viewportWidth<=1280) {
-      var staticURL = 'https://api.mapbox.com/styles/v1/humdata/ckb843tjb46fy1ilaw49redy7/static/-25,0,'+zoomLevel+'/'+viewportWidth+'x'+viewportHeight+'?access_token='+mapboxgl.accessToken;
+      var staticURL = 'https://api.mapbox.com/styles/v1/humdata/ckyw4l9z9002f14p3cyt9g2t0/static/-25,0,'+zoomLevel+'/'+viewportWidth+'x'+viewportHeight+'?access_token='+mapboxgl.accessToken;
       $('#static-map').css('background-image', 'url('+staticURL+')');
     }
 
@@ -3807,7 +3809,7 @@ $( document ).ready(function() {
   function getData() {
     console.log('Loading data...')
     Promise.all([
-      d3.json('https://raw.githubusercontent.com/OCHA-DAP/hdx-scraper-covid-viz/master/out.json'),
+      d3.json('data/out.json'),//https://raw.githubusercontent.com/OCHA-DAP/hdx-scraper-covid-viz/master/out.json
       d3.json('data/ocha-regions-bbox.geojson')
     ]).then(function(data) {
       console.log('Data loaded');
