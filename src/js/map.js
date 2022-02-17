@@ -5,7 +5,7 @@ function initMap() {
   console.log('Loading map...')
   map = new mapboxgl.Map({
     container: 'global-map',
-    style: 'mapbox://styles/humdata/ckyw4l9z9002f14p3cyt9g2t0',//mapbox://styles/humdata/ckb843tjb46fy1ilaw49redy7',
+    style: 'mapbox://styles/humdata/ckyw4l9z9002f14p3cyt9g2t0',
     center: [-25, 0],
     minZoom: 1,
     zoom: zoomLevel,
@@ -702,7 +702,7 @@ function setGlobalLegend(scale) {
     //vaccine footnote
     createFootnote('.map-legend.global', '#targeted+doses+delivered+pct', 'Note: Data refers to doses delivered to country not administered to people. Only countries with a Humanitarian Response Plan are included');
     //pin footnote
-    createFootnote('.map-legend.global', '#affected+inneed+pct', 'The Total Number of People in Need figure corresponds to 28 HRPs and 7 Regional Appeals. Population percentages greater than 100% include refugees, migrants, and/or asylum seekers.');
+    createFootnote('.map-legend.global', '#affected+inneed+pct', 'The Total Number of People in Need figure corresponds to 28 HRPs, 7 Regional Appeals, Madagascar\'s Flash Appeal and Lebanon\'s ERP. Population percentages greater than 100% include refugees, migrants, and/or asylum seekers');
     //vacc footnote
     createFootnote('.map-legend.global', '#vaccination+postponed+num', 'Methodology: Information about interrupted immunization campaigns contains both official and unofficial information sources. The country ranking has been determined by calculating the ratio of total number of postponed campaigns and total immunization campaigns. Note: data collection is ongoing and may not reflect all the campaigns in every country.');
     //food prices footnote
@@ -1247,7 +1247,8 @@ function createMapTooltip(country_code, country_name, point) {
         //School closures layer
         else if (currentIndicator.id=='#impact+type') {
           content += currentIndicator.name + ':<div class="stat">' + val + '</div>';
-          var tableArray = [{label: 'Number of learners enrolled from pre-primary to upper-secondary education', value: country[0]['#population+learners+pre_primary_to_secondary']},
+          var tableArray = [{label: 'Total duration of full and partial school closures (in weeks)', value: country[0]['#impact+full_partial+weeks']},
+                            {label: 'Number of learners enrolled from pre-primary to upper-secondary education', value: country[0]['#population+learners+pre_primary_to_secondary']},
                             {label: 'Number of learners enrolled in tertiary education programmes', value: country[0]['#population+learners+tertiary']}];
           content += '<div class="table-display">';
           tableArray.forEach(function(row) {
