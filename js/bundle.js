@@ -1669,6 +1669,7 @@ function transitionBarChart(data){
 
 
 function mpTrack(view, content) {
+  //mixpanel event
   mixpanel.track('viz interaction', {
     'page title': document.title,
     'embedded in': window.location.href,
@@ -1677,6 +1678,9 @@ function mpTrack(view, content) {
     'current view': view,
     'content': content
   });
+
+  //google analytics event
+  ga('send', 'event', 'viz interaction', 'switch viz', 'oad covid-19 / '+ view, content);
 }
 
 function getMonth(m) {
@@ -4018,12 +4022,16 @@ $( document ).ready(function() {
     var today = new Date();
     $('.download-link .today-date').text(dateFormat(today));
     $('.download-daily').on('click', function() {  
+      //mixpanel event
       mixpanel.track('link click', {
         'embedded in': window.location.href,
         'destination url': $(this).attr('href'),
         'link type': 'download report',
         'page title': document.title
       });
+
+      //google analytics event
+      ga('send', 'event', 'oad covid-19 link', $(this).attr('href'), 'download report', document.title);
     });
 
     //show/hide NEW label for monthly report
@@ -4041,12 +4049,16 @@ $( document ).ready(function() {
 
     //track monthly pdf download
     $('.download-monthly').on('click', function() {  
+      //mixpanel event
       mixpanel.track('link click', {
         'embedded in': window.location.href,
         'destination url': $(this).attr('href'),
         'link type': 'download report',
         'page title': document.title
       });
+      
+      //google analytics event
+      ga('send', 'event', 'oad covid-19 link', $(this).attr('href'), 'download report', document.title);
     });
 
     //load trenseries for global view
