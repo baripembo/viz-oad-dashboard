@@ -1668,6 +1668,11 @@ function transitionBarChart(data){
 
 
 
+function vizTrack(view, content) {
+  mpTrack(view, content);
+  gaTrack('viz interaction', 'switch viz', view);
+}
+
 function mpTrack(view, content) {
   //mixpanel event
   mixpanel.track('viz interaction', {
@@ -1678,9 +1683,14 @@ function mpTrack(view, content) {
     'current view': view,
     'content': content
   });
+}
 
-  //google analytics event
-  ga('send', 'event', 'viz interaction', 'switch viz', 'oad covid-19 / '+ view, content);
+function gaTrack(eventCategory, eventAction, eventLabel) {
+  ga('send', 'event', eventCategory, eventAction, eventLabel, {
+    hitCallback: function() {
+      console.log('Finishing sending click event to GA')
+    }
+  });
 }
 
 function getMonth(m) {
@@ -2443,7 +2453,7 @@ function createEvents() {
     var selected = $('input[name="countryIndicators"]:checked');
     currentCountryIndicator = {id: selected.val(), name: selected.parent().text()};
     updateCountryLayer();
-    mpTrack(currentCountry.code, currentCountryIndicator.name);
+    vizTrack(currentCountry.code, currentCountryIndicator.name);
   });
 }
 
@@ -2468,7 +2478,7 @@ function selectLayer(menuItem) {
       $('.vaccine-sorting-container').show();
     }
 
-    mpTrack('wrl', $(menuItem).find('div').text());
+    vizTrack('wrl', $(menuItem).find('div').text());
     updateGlobalLayer();
   }
 
@@ -2519,7 +2529,7 @@ function selectRegion() {
     linear: true
   });
 
-  mpTrack(currentRegion, currentIndicator.name);
+  vizTrack(currentRegion, currentIndicator.name);
   updateGlobalLayer();
 }
 
@@ -2551,7 +2561,7 @@ function selectCountry(features) {
   });
 
   map.once('moveend', initCountryView);
-  mpTrack(currentCountry.code, currentCountryIndicator.name);
+  vizTrack(currentCountry.code, currentCountryIndicator.name);
 
   //append country code to url
   window.history.replaceState(null, null, '?c='+currentCountry.code);
@@ -4015,7 +4025,7 @@ $( document ).ready(function() {
       else {
         $('#chart-view').hide();
       }
-      mpTrack($(this).data('id'), currentIndicator.name);
+      vizTrack($(this).data('id'), currentIndicator.name);
     });
 
     //set daily download date
@@ -4031,7 +4041,7 @@ $( document ).ready(function() {
       });
 
       //google analytics event
-      ga('send', 'event', 'oad covid-19 link', $(this).attr('href'), 'download report', document.title);
+      gaTrack('oad covid-19 link', $(this).attr('href'), 'download report');
     });
 
     //show/hide NEW label for monthly report
@@ -4056,9 +4066,9 @@ $( document ).ready(function() {
         'link type': 'download report',
         'page title': document.title
       });
-      
+
       //google analytics event
-      ga('send', 'event', 'oad covid-19 link', $(this).attr('href'), 'download report', document.title);
+      gaTrack('oad covid-19 link', $(this).attr('href'), 'download report');
     });
 
     //load trenseries for global view
