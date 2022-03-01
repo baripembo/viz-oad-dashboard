@@ -1670,7 +1670,7 @@ function transitionBarChart(data){
 
 function vizTrack(view, content) {
   mpTrack(view, content);
-  gaTrack('viz interaction', 'switch viz', 'oad covid-19 / '+view);
+  gaTrack('viz interaction', 'switch viz', 'oad covid-19 / '+view, content);
 }
 
 function mpTrack(view, content) {
@@ -1685,8 +1685,9 @@ function mpTrack(view, content) {
   });
 }
 
-function gaTrack(eventCategory, eventAction, eventLabel) {
+function gaTrack(eventCategory, eventAction, eventLabel, type) {
   ga('send', 'event', eventCategory, eventAction, eventLabel, {
+    'dimension2': type,
     hitCallback: function() {
       console.log('Finishing sending click event to GA')
     }
@@ -4041,7 +4042,7 @@ $( document ).ready(function() {
       });
 
       //google analytics event
-      gaTrack('oad covid-19 link', $(this).attr('href'), 'download report');
+      gaTrack('oad covid-19 link', $(this).attr('href'), 'download report', document.title);
     });
 
     //show/hide NEW label for monthly report
@@ -4068,7 +4069,7 @@ $( document ).ready(function() {
       });
 
       //google analytics event
-      gaTrack('oad covid-19 link', $(this).attr('href'), 'download report');
+      gaTrack('oad covid-19 link', $(this).attr('href'), 'download report', document.title);
     });
 
     //load trenseries for global view
