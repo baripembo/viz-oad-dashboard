@@ -1175,7 +1175,7 @@ function createMapTooltip(country_code, country_name, point) {
               content += '</div><div>'+ numFormat(doses) +'</div></div>';
             });
             content += '<div class="table-row row-separator"><div>Administered (doses)</div><div>'+ numFormat(administeredTotal) +'</div></div>';
-            content += '<div class="table-row"><div>Population coverage</div><div>'+ percentFormat(administeredTotal/country[0]['#population']) +'</div></div>';
+            content += '<div class="table-row"><div>Population coverage</div><div>'+ percentFormat(country[0]['#capacity+doses+administered+coverage+pct']) +'</div></div>';
             content += '</div>';
           }
           else {
