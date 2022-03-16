@@ -846,6 +846,7 @@ function updateRankingChart(sortMode, secondarySortMode) {
         return xpos + 3;
       })
       .text(function (d) {
+        if (sortMode.indexOf('pct')>-1 && d.value>1) d.value = 1;
         return valueFormat(d.value);
       });
   }
