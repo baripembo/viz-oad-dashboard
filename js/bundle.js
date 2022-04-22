@@ -556,7 +556,7 @@ function createRankingChart() {
       indicator = '#vaccination+postponed+num';
       break;
     case '#food-prices':
-      indicator = '#indicator+foodbasket+change+pct';
+      indicator = '#indicator+foodbasket+change+pct+val';
       break;
     default:
       indicator = currentIndicator.id;
@@ -2690,14 +2690,15 @@ function updateGlobalLayer() {
   var expressionMarkers = ['match', ['get', 'ISO_3']];
   nationalData.forEach(function(d) {
     if (regionMatch(d['#region+name'])) {
-      var val = d[currentIndicator.id];
+      var val = (currentIndicator.id=='#indicator+foodbasket+change+pct') ? d['#indicator+foodbasket+change+category'] : d[currentIndicator.id];
       var color = colorDefault;
       
       if (currentIndicator.id=='#affected+infected+new+weekly') {
         color = (val==null) ? colorNoData : colorScale(val);
       }
       else if (currentIndicator.id=='#indicator+foodbasket+change+pct') {
-        if (val<0) val = 0; //hotfix for negative values
+        val = d['#indicator+foodbasket+change+category'];
+        //if (val<0) val = 0; //hotfix for negative values
         color = (val==null) ? colorNoData : colorScale(val);
       }
       else if (currentIndicator.id=='#severity+inform+type' || currentIndicator.id=='#impact+type') {
@@ -2778,7 +2779,8 @@ function getGlobalLegendScale() {
     scale = d3.scaleQuantize().domain([0, max]).range(colorRange);
   }
   else if (currentIndicator.id=='#indicator+foodbasket+change+pct') {
-    scale = d3.scaleQuantize().domain([min, max]).range(colorRange);
+    //scale = d3.scaleQuantize().domain([min, max]).range(colorRange);
+    scale = d3.scaleOrdinal().domain(foodBasketScale).range(colorRange);
   }
   else if (currentIndicator.id=='#impact+type') {
     scale = d3.scaleOrdinal().domain(['Fully open', 'Partially open', 'Closed due to COVID-19', 'Academic break']).range(schoolClosureColorRange);
@@ -2860,7 +2862,7 @@ function setGlobalLegend(scale) {
     //vaccine footnote
     createFootnote('.map-legend.global', '#targeted+doses+delivered+pct', 'Note: Data refers to doses delivered to country not administered to people. Only countries with a Humanitarian Response Plan are included');
     //pin footnote
-    createFootnote('.map-legend.global', '#affected+inneed+pct', 'The Total Number of People in Need figure corresponds to 28 HRPs, 7 Regional Appeals, Madagascar\'s Flash Appeal and Lebanon\'s ERP. Population percentages greater than 100% include refugees, migrants, and/or asylum seekers');
+    createFootnote('.map-legend.global', '#affected+inneed+pct', 'The Total Number of People in Need figure corresponds to 28 HRPs, 8 Regional Response Plans, 3 Flash Appeals and Lebanon\'s ERP. Population percentages greater than 100% include refugees, migrants, and/or asylum seekers.');
     //vacc footnote
     createFootnote('.map-legend.global', '#vaccination+postponed+num', 'Methodology: Information about interrupted immunization campaigns contains both official and unofficial information sources. The country ranking has been determined by calculating the ratio of total number of postponed campaigns and total immunization campaigns. Note: data collection is ongoing and may not reflect all the campaigns in every country.');
     //food prices footnote
@@ -3779,6 +3781,7 @@ var populationColorRange = ['#FFE281','#FDB96D','#FA9059','#F27253','#E9554D'];
 var accessColorRange = ['#79B89A','#F6B98E','#C74B4F'];
 var oxfordColorRange = ['#ffffd9','#c7e9b4','#41b6c4','#225ea8','#172976'];
 var schoolClosureColorRange = ['#D8EEBF','#FFF5C2','#F6BDB9','#CCCCCC'];
+var foodBasketScale = ['Negative (<0%)', 'Normal (0-3%)', 'Moderate (3-10%)', 'High (10-25%)', 'Severe (>25%)'];
 var colorDefault = '#F2F2EF';
 var colorNoData = '#FFF';
 var regionBoundaryData, regionalData, worldData, nationalData, subnationalData, subnationalDataByCountry, immunizationData, timeseriesData, covidTrendData, dataByCountry, countriesByRegion, colorScale, viewportWidth, viewportHeight, currentRegion = '';
@@ -3879,6 +3882,23 @@ $( document ).ready(function() {
 
         //calculate and inject PIN percentage
         item['#affected+inneed+pct'] = (item['#affected+inneed']=='' || item['#population']=='') ? '' : item['#affected+inneed']/item['#population'];
+
+        //determine food basket category
+        let foodBasketPct = +item['#indicator+foodbasket+change+pct']*100;
+        let foodBasketCategory = '';
+        if (foodBasketPct<=0)
+          foodBasketCategory = foodBasketScale[0];
+        else if (foodBasketPct>0 && foodBasketPct<=3)
+          foodBasketCategory = foodBasketScale[1];
+        else if (foodBasketPct>3 && foodBasketPct<=10)
+          foodBasketCategory = foodBasketScale[2];
+        else if (foodBasketPct>10 && foodBasketPct<=25)
+          foodBasketCategory = foodBasketScale[3];
+        else if (foodBasketPct>25)
+          foodBasketCategory = foodBasketScale[4];
+        else
+          foodBasketCategory = null;
+        item['#indicator+foodbasket+change+category'] = foodBasketCategory;
         
         //store covid trend data
         var covidByCountry = covidTrendData[item['#country+code']];
@@ -3953,30 +3973,32 @@ $( document ).ready(function() {
         .key(function(d) { return d['#region+name']; })
         .object(nationalData);
 
-      //group immunization data by country    
-      immunizationDataByCountry = d3.nest()
-        .key(function(d) { return d['#country+code']; })
-        .entries(immunizationData);
+      //group immunization data by country
+      if (immunizationData!=undefined) {
+        immunizationDataByCountry = d3.nest()
+          .key(function(d) { return d['#country+code']; })
+          .entries(immunizationData);
 
-      //format dates and set overall status
-      immunizationDataByCountry.forEach(function(country) {
-        var postponed = 'On Track';
-        var isPostponed = false;
-        country.values.forEach(function(campaign) {
-          var d = moment(campaign['#date+start'], ['YYYY-MM','MM/DD/YYYY']);
-          var date = new Date(d.year(), d.month(), d.date());
-          campaign['#date+start'] = (isNaN(date.getTime())) ? campaign['#date+start'] : getMonth(date.getMonth()) + ' ' + date.getFullYear();
-          if (campaign['#status+name'].toLowerCase().indexOf('unknown')>-1 && !isPostponed) postponed = 'Unknown';
-          if (campaign['#status+name'].toLowerCase().indexOf('postponed')>-1) {
-            isPostponed = true;
-            postponed = 'Postponed / May postpone';
-          }
-        });
+        //format dates and set overall status
+        immunizationDataByCountry.forEach(function(country) {
+          var postponed = 'On Track';
+          var isPostponed = false;
+          country.values.forEach(function(campaign) {
+            var d = moment(campaign['#date+start'], ['YYYY-MM','MM/DD/YYYY']);
+            var date = new Date(d.year(), d.month(), d.date());
+            campaign['#date+start'] = (isNaN(date.getTime())) ? campaign['#date+start'] : getMonth(date.getMonth()) + ' ' + date.getFullYear();
+            if (campaign['#status+name'].toLowerCase().indexOf('unknown')>-1 && !isPostponed) postponed = 'Unknown';
+            if (campaign['#status+name'].toLowerCase().indexOf('postponed')>-1) {
+              isPostponed = true;
+              postponed = 'Postponed / May postpone';
+            }
+          });
 
-        nationalData.forEach(function(item) {
-          if (item['#country+code'] == country.key) item['#immunization-campaigns'] = postponed;
+          nationalData.forEach(function(item) {
+            if (item['#country+code'] == country.key) item['#immunization-campaigns'] = postponed;
+          });
         });
-      });
+      }
 
       //console.log(nationalData)
       //console.log(covidTrendData)
@@ -4062,14 +4084,14 @@ $( document ).ready(function() {
 
     //show/hide NEW label for monthly report
     sourcesData.forEach(function(item) {
-      if (item['#indicator+name']=='#meta+monthly+report') {
+      if (item['#indicator+name']=='#meta+report') {
         var today = new Date();
-        var newDate = new Date(item['#date'])
+        var newDate = new Date(item['#date']);
         newDate.setDate(newDate.getDate() + 7) //leave NEW tag up for 1 week
         if (today > newDate)
-          $('.download-monthly').find('label').hide()
+          $('.download-quarterly').find('label').hide()
         else
-          $('.download-monthly').find('label').show()
+          $('.download-quarterly').find('label').show()
       }
     })
 
