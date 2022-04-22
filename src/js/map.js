@@ -532,14 +532,15 @@ function updateGlobalLayer() {
   var expressionMarkers = ['match', ['get', 'ISO_3']];
   nationalData.forEach(function(d) {
     if (regionMatch(d['#region+name'])) {
-      var val = d[currentIndicator.id];
+      var val = (currentIndicator.id=='#indicator+foodbasket+change+pct') ? d['#indicator+foodbasket+change+category'] : d[currentIndicator.id];
       var color = colorDefault;
       
       if (currentIndicator.id=='#affected+infected+new+weekly') {
         color = (val==null) ? colorNoData : colorScale(val);
       }
       else if (currentIndicator.id=='#indicator+foodbasket+change+pct') {
-        if (val<0) val = 0; //hotfix for negative values
+        val = d['#indicator+foodbasket+change+category'];
+        //if (val<0) val = 0; //hotfix for negative values
         color = (val==null) ? colorNoData : colorScale(val);
       }
       else if (currentIndicator.id=='#severity+inform+type' || currentIndicator.id=='#impact+type') {
@@ -620,7 +621,8 @@ function getGlobalLegendScale() {
     scale = d3.scaleQuantize().domain([0, max]).range(colorRange);
   }
   else if (currentIndicator.id=='#indicator+foodbasket+change+pct') {
-    scale = d3.scaleQuantize().domain([min, max]).range(colorRange);
+    //scale = d3.scaleQuantize().domain([min, max]).range(colorRange);
+    scale = d3.scaleOrdinal().domain(foodBasketScale).range(colorRange);
   }
   else if (currentIndicator.id=='#impact+type') {
     scale = d3.scaleOrdinal().domain(['Fully open', 'Partially open', 'Closed due to COVID-19', 'Academic break']).range(schoolClosureColorRange);
