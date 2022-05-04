@@ -3236,7 +3236,7 @@ function createMapTooltip(country_code, country_name, point) {
       var val = country[0][currentIndicator.id];
 
       //format content for tooltip
-      if (lastHovered!=country_code) {
+      //if (lastHovered!=country_code) {
         //set formats for value
         if (isVal(val)) {
           if (currentIndicator.id.indexOf('pct')>-1) {
@@ -3618,8 +3618,8 @@ function createMapTooltip(country_code, country_name, point) {
             //createTrendBarChart(pctArray, '.mapboxgl-popup-content .covid-pct .sparkline-container');
           }
         }
-      }
-      lastHovered = country_code;
+      //}
+      //lastHovered = country_code;
 
       setTooltipPosition(point);
   }
