@@ -1081,6 +1081,7 @@ function generateSparklines(results,adm0_code,adm0_name,adm0_URL){
     $(targetHeader).html(headerHtml);
 
     var country_name = adm0_name.replace(/\s+/g, '-').toLowerCase();
+    country_name = country_name.replace(/ü/g, 'u');
     $(targetHeader).find('.source a').attr('href', 'https://data.humdata.org/dataset/wfp-food-prices-for-'+country_name);
 
     var html='<div class="chart-container">';
@@ -3028,7 +3029,7 @@ function initCountryLayer() {
     if (f.properties.ADM0_REF=='State of Palestine' || f.properties.ADM0_REF=='Venezuela (Bolivarian Republic of)') f.properties.ADM0_REF = currentCountry.name;
     if (f.properties.ADM0_PCODE!=undefined && f.properties.ADM0_REF==currentCountry.name) {
       map.getCanvas().style.cursor = 'pointer';
-      createCountryMapTooltip(f.properties.ADM1_REF);
+      createCountryMapTooltip(f.properties.ADM1_PCODE);
       tooltip
         .addTo(map)
         .setLngLat(e.lngLat);
@@ -3630,9 +3631,9 @@ function setTooltipPosition(point) {
 }
 
 
-function createCountryMapTooltip(adm1_name) {
+function createCountryMapTooltip(adm1_code) {
   var adm1 = subnationalData.filter(function(c) {
-    if (c['#adm1+name']==adm1_name && c['#country+code']==currentCountry.code)
+    if (c['#adm1+code']==adm1_code && c['#country+code']==currentCountry.code)
       return c;
   });
 
@@ -3648,7 +3649,7 @@ function createCountryMapTooltip(adm1_name) {
     else {
       val = 'No Data';
     }
-    var content = '<h2>' + adm1_name + '</h2>' + currentCountryIndicator.name + ':<div class="stat">' + val + '</div>';
+    var content = '<h2>' + adm1[0]['#adm1+name'] + '</h2>' + currentCountryIndicator.name + ':<div class="stat">' + val + '</div>';
 
     tooltip.setHTML(content);
   }
@@ -3773,11 +3774,13 @@ var currentIndicator = {};
 var currentCountryIndicator = {};
 var currentCountry = {};
 
+mapboxgl.baseApiUrl='https://data.humdata.org/mapbox';
+mapboxgl.accessToken = 'cacheToken';
+
 $( document ).ready(function() {
   var prod = (window.location.href.indexOf('ocha-dap')>-1 || window.location.href.indexOf('data.humdata.org')>-1) ? true : false;
   //console.log(prod);
 
-  mapboxgl.accessToken = 'pk.eyJ1IjoiaHVtZGF0YSIsImEiOiJja2hnbWs5NzkxMXh2MnNvcmF6dXIxMWE0In0.0GfmJoEJyWFQ5UzNxl2WgA';
   var tooltip = d3.select('.tooltip');
   var minWidth = 1000;
   viewportWidth = (window.innerWidth<minWidth) ? minWidth - $('.content-left').innerWidth() : window.innerWidth - $('.content-left').innerWidth();
@@ -3809,7 +3812,7 @@ $( document ).ready(function() {
 
     //load static map -- will only work for screens smaller than 1280
     if (viewportWidth<=1280) {
-      var staticURL = 'https://api.mapbox.com/styles/v1/humdata/ckyw4l9z9002f14p3cyt9g2t0/static/-25,0,'+zoomLevel+'/'+viewportWidth+'x'+viewportHeight+'?access_token='+mapboxgl.accessToken;
+      var staticURL = mapboxgl.baseApiUrl+'/styles/v1/humdata/cl2tdltqy000t16p838882gw8/static/-25,0,'+zoomLevel+'/'+viewportWidth+'x'+viewportHeight+'?access_token='+mapboxgl.accessToken;
       $('#static-map').css('background-image', 'url('+staticURL+')');
     }
 
