@@ -1672,7 +1672,7 @@ function transitionBarChart(data){
 
 function vizTrack(view, content) {
   mpTrack(view, content);
-  gaTrack('viz interaction', 'switch viz', 'oad covid-19 / '+view, content);
+  gaTrack('viz interaction hdx', 'switch viz', 'oad covid-19', content);
 }
 
 function mpTrack(view, content) {
