@@ -179,6 +179,12 @@ function deepLinkView() {
     else 
       $('.comparison-panel').hide();
   }
+  //deep link to tabbed view
+  if (location.indexOf('?tab=')>-1) {
+    let view = location.split('tab=')[1];
+    let selectedTab = $(`.tab-menubar .tab-button[data-id="${view}"]`);
+    selectedTab.click();
+  }
 }
 
 
