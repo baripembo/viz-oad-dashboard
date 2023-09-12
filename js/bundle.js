@@ -588,6 +588,7 @@ function createRankingChart() {
 
   //format data
   rankingData = formatRankingData(indicator, d3.select('#vaccineSortingSelect').node().value);
+  console.log('rankingData',rankingData)
 
   var valueMax = d3.max(rankingData, function(d) { return +d.value; });
   valueFormat = d3.format(',.0f');
@@ -3804,7 +3805,7 @@ $( document ).ready(function() {
     //set content sizes based on viewport
     $('.secondary-panel').height(viewportHeight-40);
     $('.content').width(viewportWidth + $('.content-left').innerWidth());
-    $('.content').height(viewportHeight);
+    $('.content').height(viewportHeight - $('.alert-message').outerHeight());
     $('.content-right').width(viewportWidth);
     $('#chart-view').height(viewportHeight-$('.tab-menubar').outerHeight()-30);
     $('.country-panel .panel-content').height(viewportHeight - $('.country-panel .panel-content').position().top);
