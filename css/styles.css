@@ -2196,16 +2196,14 @@ table.immunization-table {
 .alert-message {
   background-color: #FDE9E8;
   border: 1px solid #F2645A;
-  color: #F2645A;
-  font-size: 14px;
-  line-height: 50px; }
+  color: #000;
+  font-size: 16px;
+  text-align: center; }
   .alert-message a {
     color: #F2645A; }
-    .alert-message a:hover {
-      font-weight: bold; }
   .alert-message p {
     margin: 0;
-    padding: 0 15px; }
+    padding: 20px; }
 
 #chart-view {
   background-color: #FFF;
