@@ -585,6 +585,7 @@ function createRankingChart() {
 
   //format data
   rankingData = formatRankingData(indicator, d3.select('#vaccineSortingSelect').node().value);
+  console.log('rankingData',rankingData)
 
   var valueMax = d3.max(rankingData, function(d) { return +d.value; });
   valueFormat = d3.format(',.0f');
