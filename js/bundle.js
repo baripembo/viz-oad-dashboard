@@ -326,6 +326,17 @@ function createTimeSeries(array, div) {
   });
   var dateArray = [...dateSet];
 
+  //minimize dates
+  let shortDateArray = [];
+  let count = 0;
+  for (i in dateArray) {
+    if (count==4) {
+      shortDateArray.push(dateArray[i]);
+      count = 0;
+    }
+    count++;
+  }
+
 	var chart = c3.generate({
     size: {
       width: chartWidth,
@@ -361,8 +372,8 @@ function createTimeSeries(array, div) {
 				type: 'timeseries',
 				tick: {
           outer: false,
-          values: dateArray,
-          format: function(d, i) {
+          values: shortDateArray,
+          format: function(d) {
             var date = chartDateFormat(d);
             date = (d.getMonth()%3==0) ? date : '';
             return date;
@@ -3807,8 +3818,9 @@ $( document ).ready(function() {
     $('.content').width(viewportWidth + $('.content-left').innerWidth());
     $('.content').height(viewportHeight - $('.alert-message').outerHeight());
     $('.content-right').width(viewportWidth);
-    $('#chart-view').height(viewportHeight-$('.tab-menubar').outerHeight()-30);
-    $('.country-panel .panel-content').height(viewportHeight - $('.country-panel .panel-content').position().top);
+    $('#chart-view').height(viewportHeight - $('.tab-menubar').outerHeight() - 30);
+    $('.country-panel').height($('.content').height() - 50);
+    $('.country-panel .panel-content').height($('.country-panel').height() - $('.country-panel .panel-content').position().top + 50);
     $('.map-legend.global, .map-legend.country').css('max-height', viewportHeight - 200);
     if (viewportHeight<696) {
       zoomLevel = 1.4;

@@ -2037,7 +2037,6 @@ table.immunization-table {
   overflow: hidden;
   padding: 20px 30px 30px;
   position: absolute;
-  top: 0;
   left: -416px;
   width: 416px;
   z-index: 3;
